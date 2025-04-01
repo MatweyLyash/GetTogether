@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-export const Feedback = sequelize.define('Feedback', {
+const Feedback = sequelize.define('Feedback', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -10,6 +10,7 @@ export const Feedback = sequelize.define('Feedback', {
       user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field:"user_id",
       },
       message: {
         type: DataTypes.TEXT,
@@ -18,8 +19,11 @@ export const Feedback = sequelize.define('Feedback', {
       created_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-        onUpdate: Sequelize.literal('CURRENT_TIMESTAMP')
+        field:"created_at",
       },
     }, {
-      timestamps: true,
+      timestamps: false,
+      tableName:"feedback"
     });
+
+    module.exports  = Feedback;

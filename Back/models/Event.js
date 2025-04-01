@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-export const Event = sequelize.define('Event', {
+const Event = sequelize.define('Event', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -10,10 +10,12 @@ export const Event = sequelize.define('Event', {
       creater_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field:"creater_id",
       },
       category_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field:"category_id",
       },
       title: {
         type: DataTypes.STRING(255),
@@ -39,12 +41,17 @@ export const Event = sequelize.define('Event', {
       created_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        field:"created_at",
       },
       updated_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        field:"updated_at",
         onUpdate: Sequelize.literal('CURRENT_TIMESTAMP')
       },
     }, {
-      timestamps: true,
+      timestamps:false,
+      tableName:"event"
     });
+
+module.exports  = Event;

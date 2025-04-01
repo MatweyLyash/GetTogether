@@ -13,7 +13,7 @@ create table Users (
     id SERIAL PRIMARY KEY,
     role_id INT NOT NULL,
     telegram VARCHAR(255) UNIQUE NOT NULL,
-    login VARCHAR(255) NOT NULL,
+    login VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     is_blocked BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -50,7 +50,7 @@ CREATE TABLE Category (
 
 CREATE TABLE Event (
     id SERIAL PRIMARY KEY,
-    creater_id INT NOT NULL,
+    creator_id INT NOT NULL,
     category_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -61,8 +61,22 @@ CREATE TABLE Event (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (creater_id) REFERENCES Users(id),
+    FOREIGN KEY (creator_id) REFERENCES Users(id),
     FOREIGN KEY (category_id)  REFERENCES Category (id)
+)
+
+
+create table EventRegistration (
+    id serial PRIMARY KEY,
+    user_id INT NOT NULL,
+    event_id INT NOT NULL,
+    status_ID INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    Foreign Key (user_id) REFERENCES Users(id),
+    Foreign Key (event_id) REFERENCES Event(id),
+    Foreign Key (status_id) REFERENCES Status(id)
 )
 
 create table Review (
@@ -87,11 +101,11 @@ insert into Status (status_name) VALUES('rejected');
 
 insert into Users (role_id, telegram, password_hash) VALUES(3, 436035164,'admin');
 
-alter table Users add COLUMN login VARCHAR(50) NOT NULL;
-
 
 select *  from users
+SELECT * FROM Categories
 
-
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
 
 

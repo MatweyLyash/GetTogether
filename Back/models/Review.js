@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-export const Review = sequelize.define('Review', {
+const Review = sequelize.define('Review', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -10,10 +10,12 @@ export const Review = sequelize.define('Review', {
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field:"user_id",
     },
     event_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field:"event_id",
     },
     rating: {
       type: DataTypes.INTEGER,
@@ -29,8 +31,11 @@ export const Review = sequelize.define('Review', {
     created_at: {
       type: DataTypes.DATE,
       defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      onUpdate: Sequelize.literal('CURRENT_TIMESTAMP')
+      field:"created_id",
     },
   }, {
-    timestamps: true,
+    timestamps: false,
+    tableName:"review"
   });
+
+  module.exports = Review;

@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-export const Status = sequelize.define('Status', {
+const Status = sequelize.define('Status', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -10,7 +10,12 @@ export const Status = sequelize.define('Status', {
       status_name: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        field:"status_name",
       },
     }, {
       timestamps: false,
+      tableName:"status"
     });
+
+
+module.exports = Status;
