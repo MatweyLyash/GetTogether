@@ -12,7 +12,7 @@ router.get('/users', AdminController.getUsers);
 router.put('/users/:user_id/ban', AdminController.userBan);
 
 router.put('/organizer/request/:request_id', AdminController.organizerResponse);
-router.put('/organizer/take/:user_id', AdminController.unassignOrganizer);
+router.put('/organizer/unassign/:user_id', AdminController.unassignOrganizer);
 
 router.get('/events', AdminController.getEvents);
 

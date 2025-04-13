@@ -60,6 +60,7 @@ CREATE TABLE Event (
     capacity INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    telegramgroup VARCHAR(255) NOT NULL,
 
     FOREIGN KEY (creator_id) REFERENCES Users(id),
     FOREIGN KEY (category_id)  REFERENCES Category (id)
@@ -107,5 +108,7 @@ SELECT * FROM Categories
 
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
+
+
 
 

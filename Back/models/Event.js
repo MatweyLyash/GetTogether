@@ -20,23 +20,35 @@ const Event = sequelize.define('Event', {
       title: {
         type: DataTypes.STRING(255),
         allowNull: false,
+        field:"title",
       },
       description: {
         type: DataTypes.TEXT,
+        field:"description",
       },
       date: {
         type: DataTypes.DATE,
         allowNull: false,
+        field:"date",
       },
       location: {
         type: DataTypes.STRING(255),
+        field:"location",
       },
       price: {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0,
+        field:"price",
+      },
+      telegramGroup: {
+        type:DataTypes.STRING(255),
+        allowNull:false,
+        field:"telegramgroup",
       },
       capacity: {
         type: DataTypes.INTEGER,
+        allowNull:false,
+        field:"capacity",
       },
       created_at: {
         type: DataTypes.DATE,

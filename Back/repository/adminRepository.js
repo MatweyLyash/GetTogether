@@ -1,4 +1,5 @@
 const models = require('./../models/relations');
+const eventValidator = require('./../validators/eventValidator');
 
 class AdminRepository {
     
@@ -28,10 +29,23 @@ class AdminRepository {
     async unassignOrganizer(user_id) {
         await models.User.update({role_id:1}, {where:{id:user_id}})
     }
-    
 
     async getEvents () {
         await models.Event.findAll()
+    }
+
+    async updateEvent (event_id, title, description, date, location, category_id, price, capacity) {
+
+        eventValidator.validateEvent({title, description, date, location, category_id, price, capacity})
+        if(!eventValidator.validateEvent({title, description, date, location, category_id, price, capacity})) {
+            throw new Error('Invalid event data');
+        }
+        await models.Event.update({title, description, date, location, category_id, price, capacity}, {where:{id:event_id}})
+
+    }
+
+    async deleteEvent (event_id) {
+        await models.Event.destroy({where:{id:event_id}})
     }
 
 }
