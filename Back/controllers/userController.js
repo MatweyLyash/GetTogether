@@ -3,7 +3,17 @@ const validators = require('../services/baseValidators');
 
 class UserController {
     constructor() {
-        this.userRepository = new UserRepository();
+        this.userRepository = UserRepository.repository;
+        
+        this.getCategories = this.getCategories.bind(this);
+        this.getEvents = this.getEvents.bind(this);
+        this.getEvent = this.getEvent.bind(this);
+        this.createEventRegistration = this.createEventRegistration.bind(this);
+        this.createReview = this.createReview.bind(this);
+        this.getReviews = this.getReviews.bind(this);
+        this.getOwnEventsRegistration = this.getOwnEventsRegistration.bind(this);
+        this.createOrganizerRequest = this.createOrganizerRequest.bind(this);
+        this.getOwnOrganizerRequests = this.getOwnOrganizerRequests.bind(this);
     }
 
     async getCategories(req, res) {

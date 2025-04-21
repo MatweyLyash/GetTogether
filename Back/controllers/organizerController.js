@@ -1,10 +1,17 @@
-const OrganizerRepository = require('./../repository/organizerRepository').repository;
+const OrganizerRepository = require('./../repository/organizerRepository');
 const validators = require('../services/baseValidators');
 const eventValidator = require('../services/eventValidator');
 
 class OrganizerController {
     constructor() {
-        this.organizerRepository = new OrganizerRepository();
+        this.organizerRepository = OrganizerRepository.repository;
+
+        this.createEvent = this.createEvent.bind(this);
+        this.getOwnEvents = this.getOwnEvents.bind(this);
+        this.getOwnEvent = this.getOwnEvent.bind(this);
+        this.updateEvent = this.updateEvent.bind(this);
+        this.deleteEvent = this.deleteEvent.bind(this);
+        this.responseToEventRequest = this.responseToEventRequest.bind(this);
     }
 
     async createEvent(req, res) {
