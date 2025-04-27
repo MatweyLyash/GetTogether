@@ -5,12 +5,11 @@ const User = require('../models/User');
 class AuthController {
   async register(req, res, next) {
     const { role_id, telegram, login, password } = req.body;
-    console.log(role_id);
 
     try {
       const existingUser = await User.findOne({ where: { telegram } });
       if (existingUser) {
-        return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+        return res.status(400).json({ message: 'Пользователь с таким telegram уже существует' });
       }
 
       const salt = await bcrypt.genSalt(10);
@@ -18,9 +17,38 @@ class AuthController {
 
       const user = await User.create({ role_id, password_hash, telegram, login });
 
-      // Generate token
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-        expiresIn: '24h',
+      // Generate tokens with extended payload
+      const accessToken = jwt.sign({ 
+        sub: user.id,
+        login: user.login,
+        role_id: user.role_id,
+        telegram: user.telegram
+      }, process.env.JWT_SECRET, {
+        expiresIn: '15m',
+      });
+
+      const refreshToken = jwt.sign({ 
+        sub: user.id,
+        login: user.login,
+        role_id: user.role_id,
+        telegram: user.telegram
+      }, process.env.JWT_REFRESH_SECRET, {
+        expiresIn: '7d',
+      });
+
+      // Set cookies
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes (исправлено: 10000 → 1000)
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days (исправлено: 10000 → 1000)
       });
 
       res.status(201).json({ 
@@ -30,8 +58,7 @@ class AuthController {
           login: user.login,
           role_id: user.role_id,
           telegram: user.telegram
-        },
-        token
+        }
       });
     } catch (error) {
       res.status(500).json({ message: 'Ошибка при регистрации', error: error.message });
@@ -47,7 +74,6 @@ class AuthController {
         return res.status(400).json({ message: 'Неверный логин или пароль' });
       }
 
-      // Check if account is blocked
       if (user.is_blocked) {
         return res.status(403).json({ message: 'Ваш аккаунт заблокирован' });
       }
@@ -57,9 +83,38 @@ class AuthController {
         return res.status(400).json({ message: 'Неверный логин или пароль' });
       }
 
-      // Generate token
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-        expiresIn: '24h',
+      // Generate tokens with extended payload
+      const accessToken = jwt.sign({ 
+        sub: user.id, // Заменяем userId на sub
+        login: user.login,
+        role_id: user.role_id,
+        telegram: user.telegram
+      }, process.env.JWT_SECRET, {
+        expiresIn: '15m',
+      });
+
+      const refreshToken = jwt.sign({ 
+        sub: user.id, // Заменяем userId на sub
+        login: user.login,
+        role_id: user.role_id,
+        telegram: user.telegram
+      }, process.env.JWT_REFRESH_SECRET, {
+        expiresIn: '7d',
+      });
+
+      // Set cookies
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes (исправлено: 10000 → 1000)
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days (исправлено: 10000 → 1000)
       });
 
       res.status(200).json({ 
@@ -69,12 +124,60 @@ class AuthController {
           login: user.login,
           role_id: user.role_id,
           telegram: user.telegram
-        },
-        token 
+        }
       });
     } catch (error) {
       res.status(500).json({ message: 'Ошибка при авторизации', error: error.message });
     }
   }
+
+  async refreshToken(req, res) {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'Отсутствует refresh токен' });
+    }
+
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+      const user = await User.findByPk(decoded.sub); // Заменяем decoded.userId на decoded.sub
+
+      if (!user) {
+        return res.status(401).json({ message: 'Пользователь не найден' });
+      }
+
+      if (user.is_blocked) {
+        return res.status(403).json({ message: 'Ваш аккаунт заблокирован' });
+      }
+
+      // Generate new access token with extended payload
+      const accessToken = jwt.sign({ 
+        sub: user.id, // Заменяем userId на sub
+        login: user.login,
+        role_id: user.role_id,
+        telegram: user.telegram
+      }, process.env.JWT_SECRET, {
+        expiresIn: '15m',
+      });
+
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes (исправлено: 10000 → 1000)
+      });
+
+      res.status(200).json({ message: 'Токен успешно обновлен' });
+    } catch (error) {
+      return res.status(401).json({ message: 'Недействительный refresh токен' });
+    }
+  }
+
+  async logout(req, res) {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    res.status(200).json({ message: 'Успешный выход из системы' });
+  }
 }
-module.exports.controller = new AuthController();
+
+module.exports = new AuthController();

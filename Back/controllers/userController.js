@@ -53,44 +53,6 @@ class UserController {
         }
     }
 
-    async createEventRegistration(req, res) {
-        try {
-            const { user_id, event_id } = req.body;
-            
-            if (!validators.validatePresence(user_id) || !validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'User ID and Event ID are required' });
-            }
-            
-            const registration = await this.userRepository.createEventRegistration(user_id, event_id);
-            return res.status(201).json(registration);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
-
-    async createReview(req, res) {
-        try {
-            const { user_id, event_id, rating, text } = req.body;
-            
-            if (!validators.validatePresence(user_id) || !validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'User ID and Event ID are required' });
-            }
-            
-            if (!validators.validateRating(rating)) {
-                return res.status(400).json({ error: 'Rating must be a number between 1 and 5' });
-            }
-            
-            if (!validators.validateText(text)) {
-                return res.status(400).json({ error: 'Text must be between 1 and 255 characters' });
-            }
-            
-            const review = await this.userRepository.createReview(user_id, event_id, rating, text);
-            return res.status(201).json(review);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
-
     async getReviews(req, res) {
         try {
             const { event_id } = req.params;
@@ -106,14 +68,49 @@ class UserController {
         }
     }
 
-    async getOwnEventsRegistration(req, res) {
+    async createEventRegistration(req, res) {
         try {
-            const { user_id } = req.params;
+            const { event_id } = req.body;
+            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
             
-            if (!validators.validatePresence(user_id)) {
-                return res.status(400).json({ error: 'User ID is required' });
+            if (!validators.validatePresence(event_id)) {
+                return res.status(400).json({ error: 'Event ID is required' });
             }
             
+            const registration = await this.userRepository.createEventRegistration(user_id, event_id);
+            return res.status(201).json(registration);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async createReview(req, res) {
+        try {
+            const { event_id, rating, comment } = req.body;
+            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
+            
+            if (!validators.validatePresence(event_id)) {
+                return res.status(400).json({ error: 'Event ID is required' });
+            }
+            
+            if (!validators.validateRating(rating)) {
+                return res.status(400).json({ error: 'Rating must be a number between 1 and 5' });
+            }
+            
+            if (!validators.validateText(comment)) {
+                return res.status(400).json({ error: 'Comment must be between 1 and 255 characters' });
+            }
+            
+            const review = await this.userRepository.createReview(user_id, event_id, rating, comment);
+            return res.status(201).json(review);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async getOwnEventsRegistration(req, res) {
+        try {
+            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
             const registrations = await this.userRepository.getOwnEventsRegistration(user_id);
             return res.json(registrations);
         } catch (error) {
@@ -123,27 +120,19 @@ class UserController {
 
     async createOrganizerRequest(req, res) {
         try {
-            const { user_id } = req.body;
-            
-            if (!validators.validatePresence(user_id)) {
-                return res.status(400).json({ error: 'User ID is required' });
-            }
-            
+            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
+            console.log('Received user_id:', user_id); // Для отладки
             const request = await this.userRepository.createOrganizerRequest(user_id);
             return res.status(201).json(request);
         } catch (error) {
+            console.error('Error in createOrganizerRequest:', error);
             return res.status(500).json({ error: error.message });
         }
     }
 
     async getOwnOrganizerRequests(req, res) {
         try {
-            const { user_id } = req.params;
-            
-            if (!validators.validatePresence(user_id)) {
-                return res.status(400).json({ error: 'User ID is required' });
-            }
-            
+            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
             const requests = await this.userRepository.getOwnOrganizerRequests(user_id);
             return res.json(requests);
         } catch (error) {

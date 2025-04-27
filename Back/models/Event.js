@@ -7,10 +7,10 @@ const Event = sequelize.define('Event', {
         primaryKey: true,
         autoIncrement: true,
       },
-      creater_id: {
+      creator_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        field:"creater_id",
+        field:"creator_id",
       },
       category_id: {
         type: DataTypes.INTEGER,

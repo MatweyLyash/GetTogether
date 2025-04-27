@@ -23,7 +23,7 @@ class AdminRepository {
     }
 
     async organizerResponse(request_id, status_id) {
-        await models.OrganizerRequest.update({status:status_id}, {where:{id:request_id}})
+        await models.OrganizerRequest.update({status_id:status_id}, {where:{id:request_id}})
     }
 
     async unassignOrganizer(user_id) {

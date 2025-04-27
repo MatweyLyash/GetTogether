@@ -31,7 +31,7 @@ const Review = sequelize.define('Review', {
     created_at: {
       type: DataTypes.DATE,
       defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      field:"created_id",
+      field:"created_at",
     },
   }, {
     timestamps: false,

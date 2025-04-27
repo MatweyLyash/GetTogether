@@ -103,12 +103,15 @@ insert into Status (status_name) VALUES('rejected');
 insert into Users (role_id, telegram, password_hash) VALUES(3, 436035164,'admin');
 
 
-select *  from users
-SELECT * FROM Categories
+select * from OrganizerRequest;
 
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
+SELECT * FROM users WHERE id = 1;
+
+select * from event;
+
+select * from eventregistration
 
 
+SELECT * FROM EventRegistration WHERE user_id = 3 AND event_id = 3;
 
-
+select * from review

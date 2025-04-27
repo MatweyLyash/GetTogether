@@ -69,7 +69,7 @@ class AdminController {
     }
   }
 
-     async organizerResponse(req, res) {
+    async organizerResponse(req, res) {
     try {
       const { request_id } = req.params;
       const { status_id } = req.body;

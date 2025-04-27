@@ -6,18 +6,18 @@ const models = require('../models/relations');
  */
 const isAdmin = async (req, res, next) => {
   try {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Get access token from cookies
+    const accessToken = req.cookies?.accessToken;
     
-    if (!token) {
+    if (!accessToken) {
       return res.status(401).json({ message: 'Отсутствует токен авторизации' });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify access token
+    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
     
     // Check if user exists
-    const user = await models.User.findByPk(decoded.userId);
+    const user = await models.User.findByPk(decoded.sub);
     
     if (!user) {
       return res.status(401).json({ message: 'Пользователь не найден' });
@@ -32,6 +32,9 @@ const isAdmin = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Токен истек' });
+    }
     console.error('Error in admin middleware:', error);
     return res.status(401).json({ message: 'Недействительный токен' });
   }
@@ -42,18 +45,18 @@ const isAdmin = async (req, res, next) => {
  */
 const isOrganizer = async (req, res, next) => {
   try {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Get access token from cookies
+    const accessToken = req.cookies?.accessToken;
     
-    if (!token) {
+    if (!accessToken) {
       return res.status(401).json({ message: 'Отсутствует токен авторизации' });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify access token
+    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
     
     // Check if user exists
-    const user = await models.User.findByPk(decoded.userId);
+    const user = await models.User.findByPk(decoded.sub);
     
     if (!user) {
       return res.status(401).json({ message: 'Пользователь не найден' });
@@ -68,6 +71,9 @@ const isOrganizer = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Токен истек' });
+    }
     console.error('Error in organizer middleware:', error);
     return res.status(401).json({ message: 'Недействительный токен' });
   }

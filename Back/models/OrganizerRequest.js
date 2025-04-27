@@ -1,6 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
-const { mapFinderOptions } = require('sequelize/lib/utils');
 
 const OrganizerRequest = sequelize.define('OrganizerRequest', {
     id: {

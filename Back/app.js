@@ -1,4 +1,5 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const models = require('./models/relations');
 const authRouter = require('./routes/authRoutes');
 const adminRouter = require('./routes/adminRoutes');
@@ -10,6 +11,7 @@ const auth = require('./middleware/authMiddleware');
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser()); // Add cookie parser middleware
 
 // Public routes
 app.use('/api/auth', authRouter);

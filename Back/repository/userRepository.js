@@ -29,8 +29,8 @@ class UserRepository {
         return await models.EventRegistration.create({user_id, event_id, status_id: 1});
     }
 
-    async createReview(user_id, event_id, rating, text) {
-        return await models.Review.create({user_id, event_id, rating, text});
+    async createReview(user_id, event_id, rating, comment) {
+        return await models.Review.create({user_id, event_id, rating, comment});
     }
 
     async getReviews(event_id) {
@@ -47,7 +47,7 @@ class UserRepository {
     }
 
     async createOrganizerRequest(user_id) {
-        return await models.OrganizerRequest.create({user_id, status: 1});
+        return await models.OrganizerRequest.create({user_id, status_id: 1});
     }
 
     async getOwnOrganizerRequests(user_id) {

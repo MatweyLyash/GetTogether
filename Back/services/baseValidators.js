@@ -59,4 +59,5 @@ module.exports = {
     validateLogin,
     validateText,
     validateRating,
+    validateStringLength
 };
