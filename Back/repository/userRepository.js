@@ -13,16 +13,31 @@ class UserRepository {
     async getEvent(event_id) {
         return await models.Event.findOne({
             where: { id: event_id },
-            include:[
-                { model: models.Category,
+            include: [
+                { 
+                    model: models.Category,
+                    as: 'category',
                     attributes: ['id', 'category_name']
-                 },
+                },
                 { 
                     model: models.User,
+                    as: 'creator',
                     attributes: ['id', 'login', 'telegram']
+                },
+                { 
+                    model: models.Review,
+                    as: 'reviews',
+                    attributes: ['id', 'rating', 'comment', 'created_at'],
+                    include: [
+                        { 
+                            model: models.User,
+                            as: 'reviewUser',
+                            attributes: ['id', 'login']
+                        }
+                    ]
                 }
             ]
-        })
+        });
     }
 
     async createEventRegistration(user_id, event_id) {

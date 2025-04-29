@@ -115,3 +115,12 @@ select * from eventregistration
 SELECT * FROM EventRegistration WHERE user_id = 3 AND event_id = 3;
 
 select * from review
+
+select * from users
+
+
+
+
+update  users set login = 'organizer1' where id=2
+
+select * from event

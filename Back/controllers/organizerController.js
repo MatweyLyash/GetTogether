@@ -12,6 +12,7 @@ class OrganizerController {
         this.updateEvent = this.updateEvent.bind(this);
         this.deleteEvent = this.deleteEvent.bind(this);
         this.responseToEventRequest = this.responseToEventRequest.bind(this);
+        this.getEventRequests = this.getEventRequests.bind(this);
     }
 
     async createEvent(req, res) {
@@ -115,6 +116,25 @@ class OrganizerController {
             if (error.message === 'Event not found or not owned by organizer' || error.message === 'Registration not found') {
                 return res.status(404).json({ error: error.message });
             }
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async getEventRequests(req, res) {
+        try {
+            const { event_id } = req.params;
+            const creator_id = req.user.id;
+            
+            if (!eventValidator.validateId(event_id)) {
+                return res.status(400).json({ error: 'Valid Event ID is required' });
+            }
+            
+            const requests = await this.organizerRepository.getEventRequests(creator_id, event_id);
+            if(requests.length === 0) {
+                return res.status(404).json({ error: 'No requests found' });
+            }
+            return res.json(requests);
+        } catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }

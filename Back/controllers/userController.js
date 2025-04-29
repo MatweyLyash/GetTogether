@@ -100,12 +100,35 @@ class UserController {
             if (!validators.validateText(comment)) {
                 return res.status(400).json({ error: 'Comment must be between 1 and 255 characters' });
             }
+
+            const registration = await models.EventRegistration.findOne({
+                where: { user_id, event_id, status_id: 2 }
+            });
+            if (!registration) {
+                return res.status(403).json({ error: 'Вы не были подтверждены на этом мероприятии' });
+            }
+          
+            // 2. Проверка, что мероприятие уже прошло
+            const event = await models.Event.findByPk(event_id);
+            if (!event) {
+                return res.status(404).json({ error: 'Мероприятие не найдено' });
+            }
+            if (new Date(event.date) > new Date()) {
+                return res.status(400).json({ error: 'Оставлять отзыв можно только после завершения мероприятия' });
+            }
+          
+              // 3. Проверка, что отзыв уже не оставлен
+            const existing = await models.Review.findOne({ where: { user_id, event_id } });
+            if (existing) {
+                return res.status(400).json({ error: 'Вы уже оставили отзыв на это мероприятие' });
+            }
             
             const review = await this.userRepository.createReview(user_id, event_id, rating, comment);
             return res.status(201).json(review);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+            } 
+            catch (error) {
+                return res.status(500).json({ error: error.message });
+            }
     }
 
     async getOwnEventsRegistration(req, res) {

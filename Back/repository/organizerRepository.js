@@ -36,13 +36,11 @@ class OrganizerRepository {
     }
 
     async responseToEventRequest(creator_id, user_id, event_id, status_id) {
-        // Проверяем, что событие принадлежит организатору
         const event = await models.Event.findOne({ where: { id: event_id, creator_id } });
         if (!event) {
             throw new Error('Event not found or not owned by organizer');
         }
     
-        // Обновляем регистрацию
         const [updatedCount] = await models.EventRegistration.update(
             { status_id },
             { where: { user_id, event_id } }
@@ -52,10 +50,27 @@ class OrganizerRepository {
             throw new Error('Registration not found');
         }
     
-        // Возвращаем обновленную запись
         return await models.EventRegistration.findOne({ where: { user_id, event_id } });
     }
 
+    async getEventRequests(creator_id, event_id) {
+        return await models.EventRegistration.findAll({
+            where: { event_id },
+            include: [
+                {
+                    model: models.User,
+                    as: 'user',
+                    attributes: ['id', 'login', 'telegram', 'created_at']
+                },
+                {
+                    model: models.Event,
+                    as: 'event',
+                    where: { creator_id }, // Проверяем, что событие принадлежит организатору
+                    attributes: []
+                }
+            ]
+        });
+    }
 }
 
 module.exports.repository = new OrganizerRepository();

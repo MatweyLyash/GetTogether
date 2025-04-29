@@ -9,5 +9,6 @@ router.get('/event/:event_id', OrganizerController.getOwnEvent);
 router.put('/event/:event_id', OrganizerController.updateEvent);
 router.delete('/event/:event_id', OrganizerController.deleteEvent);
 router.put('/event/request/:event_id', OrganizerController.responseToEventRequest);
+router.get('/event/requests/:event_id', OrganizerController.getEventRequests);
 
 module.exports = router;
