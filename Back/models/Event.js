@@ -40,10 +40,18 @@ const Event = sequelize.define('Event', {
         defaultValue: 0,
         field:"price",
       },
-      telegramGroup: {
+      telegram_chat_link: {
         type:DataTypes.STRING(255),
         allowNull:false,
-        field:"telegramgroup",
+        field:"telegram_chat_link",
+      },
+      telegram_chat_id:{
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      organizer_verification_key: {
+        type: DataTypes.STRING,
+        allowNull: true
       },
       capacity: {
         type: DataTypes.INTEGER,

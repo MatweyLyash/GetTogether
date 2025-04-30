@@ -10,10 +10,12 @@ class UserRepository {
         return await models.Event.findAll();
     }
 
-    async getEvent(event_id) {
-        return await models.Event.findOne({
-            where: { id: event_id },
-            include: [
+    async getEvent(event_id, user_id) {
+
+        if(!user_id) {
+            return await models.Event.findOne({
+                where: { id: event_id },
+                include: [
                 { 
                     model: models.Category,
                     as: 'category',
@@ -36,8 +38,48 @@ class UserRepository {
                         }
                     ]
                 }
-            ]
-        });
+                ]
+            });
+        }
+        else {
+            try {
+                const event = await models.Event.findOne({
+                  where: { id: event_id },
+                  include: [
+                    { model: models.Category, as: 'category', attributes: ['id', 'category_name'] },
+                    { model: models.User, as: 'creator', attributes: ['id', 'login', 'telegram'] },
+                    { model: models.Review, as: 'reviews', attributes: ['id', 'rating', 'comment', 'created_at'], include: [{ model: models.User, as: 'reviewUser', attributes: ['id', 'login'] }] }
+                  ]
+                });
+          
+                if (!event) {
+                  throw new Error('Event not found');
+                }
+          
+                // Проверяем регистрацию текущего пользователя
+                const registration = await models.EventRegistration.findOne({
+                  where: { event_id, user_id },
+                  include: [{ model: models.Status, as: 'status', attributes: ['status_name'] }]
+                });
+          
+                // Добавляем telegram_invite_link, если заявка одобрена
+                let telegram_invite_link = null;
+                if (registration && registration.status_id === 2) {
+                  telegram_invite_link = registration.telegram_invite_link;
+                }
+          
+                return {
+                  event,
+                  registration: registration ? {
+                    status: registration.status_id,
+                    telegram_invite_link
+                  } : null
+                };
+              } catch (error) {
+                console.error('Ошибка получения события:', error);
+                throw error;
+              }
+        }
     }
 
     async createEventRegistration(user_id, event_id) {

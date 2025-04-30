@@ -37,12 +37,13 @@ class UserController {
     async getEvent(req, res) {
         try {
             const { event_id } = req.params;
+            const user_id = req.user.id;
             
             if (!validators.validatePresence(event_id)) {
                 return res.status(400).json({ error: 'Event ID is required' });
             }
             
-            const event = await this.userRepository.getEvent(event_id);
+            const event = await this.userRepository.getEvent(event_id, user_id);
             if (!event) {
                 return res.status(404).json({ error: 'Event not found' });
             }

@@ -5,8 +5,11 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "node-telegram-bot-api": "^0.66.0",
     "pg": "^8.14.1",
     "sequelize": "^6.37.6",
+    "telegram-bot-api": "^2.0.1",
+    "uuid": "^11.1.0",
     "websocket": "^1.0.35"
   }
 }

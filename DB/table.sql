@@ -60,7 +60,9 @@ CREATE TABLE Event (
     capacity INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    telegramgroup VARCHAR(255) NOT NULL,
+    telegram_chat_link VARCHAR(255) NOT NULL,
+    telegram_chat_id varchar(255),
+
 
     FOREIGN KEY (creator_id) REFERENCES Users(id),
     FOREIGN KEY (category_id)  REFERENCES Category (id)
@@ -72,6 +74,7 @@ create table EventRegistration (
     user_id INT NOT NULL,
     event_id INT NOT NULL,
     status_ID INT NOT NULL,
+    telegram_invite_link varchar(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -79,6 +82,8 @@ create table EventRegistration (
     Foreign Key (event_id) REFERENCES Event(id),
     Foreign Key (status_id) REFERENCES Status(id)
 )
+
+
 
 create table Review (
     id SERIAL PRIMARY KEY,
@@ -123,4 +128,10 @@ select * from users
 
 update  users set login = 'organizer1' where id=2
 
-select * from event
+select * from event;
+
+select * from status
+
+update  users set telegram='@matwanol' where id =1
+
+select * from eventregistration

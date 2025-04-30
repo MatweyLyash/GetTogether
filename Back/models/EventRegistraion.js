@@ -24,6 +24,10 @@ const EventRegistration = sequelize.define('EventRegistration', {
     allowNull: false,
     field:"status_id",
   },
+  telegram_invite_link: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

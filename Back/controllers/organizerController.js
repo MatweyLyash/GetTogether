@@ -1,6 +1,8 @@
 const OrganizerRepository = require('./../repository/organizerRepository');
 const validators = require('../services/baseValidators');
 const eventValidator = require('../services/eventValidator');
+const { v4: uuidv4 } = require('uuid');
+
 
 class OrganizerController {
     constructor() {
@@ -17,17 +19,21 @@ class OrganizerController {
 
     async createEvent(req, res) {
         try {
-            const { title, description, date, location, category_id, price, capacity, telegramGroup } = req.body;
+            const { title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
             const creator_id = req.user.id;
             
             if (!eventValidator.validateEvent({
-                title, description, date, location, category_id, price, capacity, telegramGroup
+                title, description, date, location, category_id, price, capacity, telegram_chat_link
             })) {
                 return res.status(400).json({ error: 'All fields are required and must be valid' });
             }
-            
-            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegramGroup);
-            return res.status(201).json(event);
+            const organizer_verification_key = uuidv4();
+
+            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key);
+            res.status(201).json({
+                event,
+                message: `Событие создано. Добавьте бота @MyEventBot в группу как администратора и отправьте в группе: /verify ${organizer_verification_key}`
+              });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
@@ -64,15 +70,15 @@ class OrganizerController {
     
     async updateEvent(req, res) {
         try {
-            const { event_id, title, description, date, location, category_id, price, capacity, telegramGroup } = req.body;
+            const { event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
             const creator_id = req.user.id;
             if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
-                title, description, date, location, category_id, price, capacity, telegramGroup
+                title, description, date, location, category_id, price, capacity, telegram_chat_link
             })) {
                 return res.status(400).json({ error: 'All fields are required and must be valid' });
             }
             
-            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegramGroup);
+            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link);
             
             if(event === 1) {
                 return res.status(204).json({message: "Event updated successfully"});
