@@ -1,0 +1,52 @@
+.headerContainer {
+    background-color: #fefefe;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+
+  }
+  
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2e4fd7;
+  }
+  
+  .nav {
+    display: flex;
+    gap: 1rem;
+  
+    @media (max-width: 768px) {
+      display: none!important;
+    }
+  }
+  
+  .navItem {
+    color: #2e4fd7;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  
+    &:hover {
+      color: scale(#2e4fd7, 10%);
+    }
+  }
+
+  .mobileMenu {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+
+  
+  .wrapHamburger {
+    display: none;
+  
+    @media (max-width: 768px) {
+      display: block;
+    }
+  }

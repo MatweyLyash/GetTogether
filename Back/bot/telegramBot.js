@@ -61,6 +61,62 @@ bot.onText(/\/verify (.+)/, async (msg, match) => {
   }
 });
 
+bot.onText(/\/link (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const login = match[1].trim();
+  const telegramTag = `@${msg.from.username}`;
+
+  try {
+    if (msg.chat.type !== 'private') {
+      return bot.sendMessage(chatId, 'Команда /link должна быть отправлена в личном чате с ботом.');
+    }
+
+    const user = await models.User.findOne({ where: { login } });
+    if (!user) {
+      return bot.sendMessage(chatId, `Пользователь с логином "${login}" не найден. Проверьте правильность логина.`);
+    }
+
+    // Проверяем, не занят ли тег
+    const existingUser = await models.User.findOne({ where: { telegram: telegramTag } });
+    if (existingUser && existingUser.id !== user.id) {
+      return bot.sendMessage(chatId, `Тег ${telegramTag} уже привязан к другому аккаунту.`);
+    }
+
+    // Сохраняем текущий updated_at
+    const originalUpdatedAt = new Date(user.updated_at);
+    user.telegram = telegramTag; // Устанавливаем тег сразу
+    user.updated_at = new Date(); // Обновляем updated_at
+    await user.save();
+
+    // Запускаем таймер на 2 минуты
+    setTimeout(async () => {
+      try {
+        // Перезагружаем пользователя из базы
+        const updatedUser = await models.User.findByPk(user.id);
+        const currentUpdatedAt = new Date(updatedUser.updated_at);
+
+        // Проверяем, изменился ли updated_at
+        if (currentUpdatedAt.getTime() === originalUpdatedAt.getTime()) {
+          updatedUser.telegram = null; // Сбрасываем, если updated_at не изменился
+          updatedUser.updated_at = new Date();
+          await updatedUser.save();
+          bot.sendMessage(chatId, `Привязка аккаунта "${login}" отменена, так как не была подтверждена в течение 2 минут.`);
+        }
+      } catch (error) {
+        console.error('Ошибка при сбросе telegram:', error);
+      }
+    }, 120000); // 2 минуты = 120000 мс
+
+    bot.sendMessage(
+      chatId,
+      `Запрос на привязку аккаунта "${login}" отправлен. Перейдите в личный кабинет на сайте и подтвердите привязку, указав ваш Telegram-тег (${telegramTag}).`
+    );
+  } catch (error) {
+    console.error('Ошибка привязки аккаунта:', error);
+    bot.sendMessage(chatId, `Ошибка: ${error.message}`);
+  }
+});
+
 // Функция для генерации одноразовой ссылки
 async function generateInviteLink(eventId, userId) {
   try {

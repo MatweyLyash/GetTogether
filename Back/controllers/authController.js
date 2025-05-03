@@ -4,10 +4,10 @@ const User = require('../models/User');
 
 class AuthController {
   async register(req, res, next) {
-    const { role_id, telegram, login, password } = req.body;
+    const { login, password } = req.body;
 
     try {
-      const existingUser = await User.findOne({ where: { telegram } });
+      const existingUser = await User.findOne({ where: { login } });
       if (existingUser) {
         return res.status(400).json({ message: 'Пользователь с таким telegram уже существует' });
       }
@@ -15,14 +15,13 @@ class AuthController {
       const salt = await bcrypt.genSalt(10);
       const password_hash = await bcrypt.hash(password, salt);
 
-      const user = await User.create({ role_id, password_hash, telegram, login });
+      const user = await User.create({ role_id:1, password_hash, login });
 
       // Generate tokens with extended payload
       const accessToken = jwt.sign({ 
         sub: user.id,
         login: user.login,
         role_id: user.role_id,
-        telegram: user.telegram
       }, process.env.JWT_SECRET, {
         expiresIn: '15m',
       });
@@ -31,7 +30,6 @@ class AuthController {
         sub: user.id,
         login: user.login,
         role_id: user.role_id,
-        telegram: user.telegram
       }, process.env.JWT_REFRESH_SECRET, {
         expiresIn: '7d',
       });
@@ -88,7 +86,6 @@ class AuthController {
         sub: user.id, // Заменяем userId на sub
         login: user.login,
         role_id: user.role_id,
-        telegram: user.telegram
       }, process.env.JWT_SECRET, {
         expiresIn: '15m',
       });
@@ -97,7 +94,6 @@ class AuthController {
         sub: user.id, // Заменяем userId на sub
         login: user.login,
         role_id: user.role_id,
-        telegram: user.telegram
       }, process.env.JWT_REFRESH_SECRET, {
         expiresIn: '7d',
       });
@@ -155,7 +151,6 @@ class AuthController {
         sub: user.id, // Заменяем userId на sub
         login: user.login,
         role_id: user.role_id,
-        telegram: user.telegram
       }, process.env.JWT_SECRET, {
         expiresIn: '15m',
       });

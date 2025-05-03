@@ -1,0 +1,38 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+}
+
+.formContainer {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.formWrapper {
+  /* Стили для обёртки формы */
+}
+
+.tabButton {
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 0.5rem;
+  }
+
+  .formContainer {
+    max-width: 100%;
+  }
+}

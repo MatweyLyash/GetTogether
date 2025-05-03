@@ -15,7 +15,7 @@ const User = sequelize.define ('User', {
       telegram: {
         type: DataTypes.STRING(255),
         unique: true,
-        allowNull: false,
+        allowNull: true,
       },
       login:{
         type: DataTypes.STRING(50),
@@ -43,7 +43,9 @@ const User = sequelize.define ('User', {
         onUpdate: Sequelize.literal('CURRENT_TIMESTAMP')
       },
     }, {
-        timestamps: false,
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
         underscored: true,
         tableName:"users"
       }

@@ -12,7 +12,7 @@ create table Status (
 create table Users (
     id SERIAL PRIMARY KEY,
     role_id INT NOT NULL,
-    telegram VARCHAR(255) UNIQUE NOT NULL,
+    telegram VARCHAR(255) UNIQUE,
     login VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     is_blocked BOOLEAN DEFAULT FALSE,
@@ -135,3 +135,4 @@ select * from status
 update  users set telegram='@matwanol' where id =1
 
 select * from eventregistration
+

@@ -20,7 +20,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', auth, userRouter);
 
 // Organizer routes - requires organizer role
-app.use('/api/organizer', auth, isAdmin, organizerRouter);
+app.use('/api/organizer', auth, isOrganizer, organizerRouter);
 
 // Admin routes - requires admin role
 app.use('/api/admin', auth, isAdmin, adminRouter);
