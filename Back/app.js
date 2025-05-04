@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const models = require('./models/relations');
 const authRouter = require('./routes/authRoutes');
@@ -12,6 +13,11 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser()); // Add cookie parser middleware
+
+app.use(cors({
+    origin: 'http://localhost:5173', // Разрешить доступ с клиентского домена
+    credentials: true
+  }));
 
 // Public routes
 app.use('/api/auth', authRouter);

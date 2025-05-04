@@ -99,6 +99,7 @@ class UserRepository {
             where: { user_id},
             include: {
                 model: models.Event,
+                as: 'event'
             },
         });
     }

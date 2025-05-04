@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/categories', UserController.getCategories);
 router.get('/events', UserController.getEvents);
-router.get('/events/:event_id', UserController.getEvent);
+router.get('/event/:event_id', UserController.getEvent);
 
 router.post('/events/registration', UserController.createEventRegistration);
 router.post('/reviews', UserController.createReview);

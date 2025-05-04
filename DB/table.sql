@@ -117,7 +117,7 @@ select * from event;
 select * from eventregistration
 
 
-SELECT * FROM EventRegistration WHERE user_id = 3 AND event_id = 3;
+SELECT * FROM EventRegistration WHERE user_id = 3 ;
 
 select * from review
 
@@ -135,4 +135,6 @@ select * from status
 update  users set telegram='@matwanol' where id =1
 
 select * from eventregistration
+
+
 

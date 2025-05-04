@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './AuthContext/AuthContext';
+
 import Home from './pages/Home/Home';
 import Events from './pages/Events/Events';
 import Event from './pages/Event/Event';
@@ -8,6 +10,7 @@ import Login from './pages/Login/Login';
 
 function App() {
   return (
+    <AuthProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -18,6 +21,7 @@ function App() {
         <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   );
 }
 

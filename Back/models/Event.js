@@ -70,8 +70,10 @@ const Event = sequelize.define('Event', {
         onUpdate: Sequelize.literal('CURRENT_TIMESTAMP')
       },
     }, {
-      timestamps:false,
-      tableName:"event"
+      timestamps:true,
+      tableName:"event",
+      updatedAt:"updated_at",
+      createdAt:"created_at",
     });
 
 module.exports  = Event;

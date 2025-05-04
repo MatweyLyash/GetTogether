@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Heading,
@@ -12,45 +12,24 @@ import {
 } from '@chakra-ui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { login, register } from '../../api/api';
+import { useAuth } from '../../AuthContext/AuthContext';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import styles from './Login.module.scss';
 
-// Имитация API (заменить на реальный бэкенд)
-const api = {
-  login: async (login: string, password: string) => {
-    if (login && password) {
-      return { token: 'fake-token' };
-    }
-    throw new Error('Неверный логин или пароль');
-  },
-  register: async (login: string, password: string) => {
-    if (login  && password) {
-      return { success: true };
-    }
-    throw new Error('Ошибка регистрации');
-  },
-};
-
 function Login() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [login, setLogin] = useState('');
+  const [loginInput, setLoginInput] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
-
-  // Проверка авторизации
-  useEffect(() => {
-    const isAuthenticated = false; // Заменить на проверку токена
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [navigate]);
+  const { loginUser } = useAuth(); // Используем loginUser вместо setIsAuthenticated
 
   // Обработчик авторизации
   const handleLogin = async () => {
-    if (!login || !password) {
+    if (!loginInput || !password) {
       toast({
         title: 'Ошибка',
         description: 'Заполните все поля',
@@ -63,11 +42,10 @@ function Login() {
 
     setIsLoading(true);
     try {
-      const response = await api.login(login, password);
-      localStorage.setItem('token', response.token);
+      await loginUser({ login: loginInput, password });
       toast({
         title: 'Успех',
-        description: 'Вы вошли в систему',
+        description: 'Вход выполнен',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -88,7 +66,7 @@ function Login() {
 
   // Обработчик регистрации
   const handleRegister = async () => {
-    if (!login  || !password ) {
+    if (!loginInput || !password) {
       toast({
         title: 'Ошибка',
         description: 'Заполните все поля',
@@ -101,15 +79,15 @@ function Login() {
 
     setIsLoading(true);
     try {
-      await api.register(login,  password);
+      const response = await register({ login: loginInput, password });
       toast({
         title: 'Успех',
-        description: 'Регистрация завершена. Войдите в систему.',
+        description: response.message,
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
-      setLogin('');
+      setLoginInput('');
       setPassword('');
       setTab('login');
     } catch (error: any) {
@@ -183,8 +161,8 @@ function Login() {
                       <FormControl mb="1rem">
                         <FormLabel>Логин</FormLabel>
                         <Input
-                          value={login}
-                          onChange={(e) => setLogin(e.target.value)}
+                          value={loginInput}
+                          onChange={(e) => setLoginInput(e.target.value)}
                           placeholder="Введите логин"
                           bg="#E7EBFC"
                         />
@@ -224,8 +202,8 @@ function Login() {
                       <FormControl mb="1rem">
                         <FormLabel>Логин</FormLabel>
                         <Input
-                          value={login}
-                          onChange={(e) => setLogin(e.target.value)}
+                          value={loginInput}
+                          onChange={(e) => setLoginInput(e.target.value)}
                           placeholder="Введите логин"
                           bg="#E7EBFC"
                         />

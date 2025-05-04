@@ -174,8 +174,14 @@ function Home() {
             padding-top:10px;
             padding-bottom:10px;
           }
-            .slick-list{
+          @media(max-width: 768px) {
+            .slick-track {
+              height: 500px;
             }
+            .slick-list {
+              height: 520px;
+            }
+          }
         `}
       </style>
       <Header />
