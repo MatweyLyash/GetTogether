@@ -60,7 +60,7 @@ CREATE TABLE Event (
     capacity INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    telegram_chat_link VARCHAR(255) NOT NULL,
+    telegram_chat_link VARCHAR(255),
     telegram_chat_id varchar(255),
 
 
@@ -121,7 +121,7 @@ SELECT * FROM EventRegistration WHERE user_id = 3 ;
 
 select * from review
 
-select * from users
+select * from users where id=2
 
 
 
@@ -135,6 +135,10 @@ select * from status
 update  users set telegram='@matwanol' where id =1
 
 select * from eventregistration
+
+select * from role
+
+alter table event alter column telegram_chat_link drop not null;
 
 
 

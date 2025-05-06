@@ -25,8 +25,8 @@ function EventCard({ event }: EventCardProps) {
           </Text>
           <Text className={styles.cardText}>Категория: {event.category.category_name}</Text>
           <Text className={styles.cardText}>Цена: {event.price} ₽</Text>
-          <Text className={styles.cardText}>Свободные места: {event.free_slots}</Text>
-          <Text className={styles.cardText}>Адрес: {event.address}</Text>
+          <Text className={styles.cardText}>Свободные места: {event.capacity}</Text>
+          <Text className={styles.cardText}>Адрес: {event.location}</Text>
         </Box>
         <Box className={styles.cardImageContainer}>
           <img
@@ -38,7 +38,7 @@ function EventCard({ event }: EventCardProps) {
       </Box>
       <Button
         as={Link}
-        to={`/events/${event.id}`}
+        to={`/event/${event.id}`}
         className={styles.cardButton}
         bg="#2E4FD7"
         color="white"

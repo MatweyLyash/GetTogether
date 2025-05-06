@@ -5,8 +5,8 @@ export interface Event {
     category: { id: string; category_name: string };
     date: string;
     price: number;
-    free_slots: number;
-    address: string;
+    capacity: number;
+    location: string;
     creator: { id: string; login: string; telegram: string };
     reviews?: Array<{
       id: string;

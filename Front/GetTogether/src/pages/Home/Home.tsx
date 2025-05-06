@@ -6,78 +6,54 @@ import { Link } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import EventCard from '../../components/EventCard/EventCard';
-import { Event, Category } from '../../types/event';
+import { getCategories, getEvents } from '../../api/api'; // Import real API functions
+import { Event as EventCardEvent } from '../../types/event'; // Импортируем тип Event из types/event
 import styles from './Home.module.scss';
 
-// Имитация API (заменить на реальный бэкенд)
+// Define Category type to match backend and Cabinet.tsx
+interface Category {
+  id: number;
+  category_name: string;
+}
+
+// Define Event type to match backend response
+interface ApiEvent {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  category_id: number;
+  price: number;
+  capacity: number;
+  telegram_chat_link: string | null;
+  creator_id?: string; // Изменено с number на string?, что соответствует Cabinet.tsx
+  created_at?: string;
+  updated_at?: string;
+  organizer_verification_key?: string;
+  telegram_chat_id?: string | null;
+}
+
+// Интерфейс для ответа API
+interface EventApiResponse {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  category_id: number;
+  price: number | string;
+  capacity: number;
+  telegram_chat_link: string | null;
+  creator_id?: string | number; // Может быть строкой или числом или undefined
+  created_at?: string;
+  updated_at?: string;
+  organizer_verification_key?: string;
+  telegram_chat_id?: string | null;
+}
+
+// Mock API for reviews (since no real API is provided for reviews)
 const api = {
-  getCategories: async (): Promise<Category[]> => {
-    return [
-      { id: '1', category_name: 'Музыка' },
-      { id: '2', category_name: 'Кулинария' },
-      { id: '3', category_name: 'Спорт' },
-      { id: '4', category_name: 'Наука' },
-    ];
-  },
-  getEvents: async (): Promise<Event[]> => {
-    return [
-      {
-        id: '1',
-        title: 'Концерт рок-группы',
-        description: 'Живое выступление',
-        category: { id: '1', category_name: 'Музыка' },
-        date: '2025-06-01T19:00:00Z',
-        price: 1500,
-        free_slots: 50,
-        address: 'Москва, Клуб 123',
-        creator: { id: '1', login: 'RockStar', telegram: '@RockStar' },
-      },
-      {
-        id: '2',
-        title: 'Мастер-класс по кулинарии',
-        description: 'Готовим пасту',
-        category: { id: '2', category_name: 'Кулинария' },
-        date: '2025-06-02T18:00:00Z',
-        price: 2000,
-        free_slots: 10,
-        address: 'Москва, Кулинарная студия',
-        creator: { id: '2', login: 'ChefMaster', telegram: '@ChefMaster' },
-      },
-      {
-        id: '3',
-        title: 'Йога на закате',
-        description: 'Расслабляющая практика',
-        category: { id: '3', category_name: 'Спорт' },
-        date: '2025-06-03T20:00:00Z',
-        price: 1000,
-        free_slots: 20,
-        address: 'Москва, Парк Горького',
-        creator: { id: '3', login: 'YogaGuru', telegram: '@YogaGuru' },
-      },
-      {
-        id: '4',
-        title: 'Лекция по астрономии',
-        description: 'Звезды и галактики',
-        category: { id: '4', category_name: 'Наука' },
-        date: '2025-06-04T19:00:00Z',
-        price: 500,
-        free_slots: 30,
-        address: 'Москва, Планетарий',
-        creator: { id: '4', login: 'StarWatcher', telegram: '@StarWatcher' },
-      },
-      {
-        id: '5',
-        title: 'Вечеринка 80-х',
-        description: 'Танцы и ретро',
-        category: { id: '5', category_name: 'Вечеринки' },
-        date: '2025-06-05T21:00:00Z',
-        price: 800,
-        free_slots: 40,
-        address: 'Москва, Бар Ретро',
-        creator: { id: '5', login: 'PartyKing', telegram: '@PartyKing' },
-      },
-    ];
-  },
   getReviews: async () => {
     return [
       { id: '1', event_id: '1', rating: 5, comment: 'Отличный концерт!', user: { id: '6', login: 'Fan1' } },
@@ -91,10 +67,10 @@ function Home() {
   const [isAuthenticated] = useState(false); // Заглушка для авторизации
   const [isOrganizer] = useState(true); // Заглушка для роли организатора
   const [categories, setCategories] = useState<Category[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<EventCardEvent[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQueryByTitle, setSearchQueryByTitle] = useState('');
+  const [searchQueryByLocation, setSearchQueryByLocation] = useState('');
   const sliderRef = useRef<Slider>(null);
   const toast = useToast();
 
@@ -103,16 +79,47 @@ function Home() {
     const fetchData = async () => {
       try {
         const [catData, eventData, reviewData] = await Promise.all([
-          api.getCategories(),
-          api.getEvents(),
+          getCategories(),
+          getEvents(),
           api.getReviews(),
         ]);
-        setCategories(catData);
-        setEvents(eventData);
+
+        // Map categories to ensure correct type
+        const mappedCategories: Category[] = catData.map((cat) => ({
+          id: cat.id,
+          category_name: cat.category_name,
+        }));
+
+        // Map events to match Event type expected by EventCard
+        const mappedEvents: EventCardEvent[] = eventData.map((event: EventApiResponse) => ({
+          id: String(event.id),
+          title: event.title,
+          description: event.description,
+          date: event.date,
+          price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
+          capacity: event.capacity, // Assume all slots are free (adjust based on backend)
+          location: event.location, // Use location as address
+          category: {
+            id: String(event.category_id), // Преобразуем id в строку для совместимости с EventCard
+            category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name || 
+                          `Категория ${event.category_id}`,
+          },
+          creator: {
+            id: String(event.creator_id || '0'),
+            login: `Organizer_${event.creator_id || '0'}`, // Mock login
+            telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`, // Mock telegram
+          },
+          // При необходимости можно добавить пустые отзывы
+          reviews: [],
+        }));
+
+        setCategories(mappedCategories);
+        setEvents(mappedEvents);
         setReviews(reviewData);
-      } catch (error) {
+      } catch (error: any) {
         toast({
           title: 'Ошибка загрузки данных',
+          description: error.message || 'Не удалось загрузить данные',
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -151,11 +158,11 @@ function Home() {
 
   // Обработчик поиска
   const handleSearch = () => {
-    if (!searchQuery) return;
+    if (!searchQueryByTitle && !searchQueryByLocation) return;
     // Здесь будет запрос на бэк с searchQuery и selectedCategory
     toast({
       title: 'Поиск',
-      description: `Ищем события по запросу "${searchQuery}"`,
+      description: `Ищем события по запросу "${searchQueryByTitle}" и "${searchQueryByLocation}"`,
       status: 'info',
       duration: 3000,
       isClosable: true,
@@ -202,15 +209,15 @@ function Home() {
             <Flex gap="1rem" flexDir={{ base: 'column', md: 'row' }}>
               <Input
                 placeholder="Поиск по названию"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchQueryByTitle}
+                onChange={(e) => setSearchQueryByTitle(e.target.value)}
                 bg="white"
                 size="lg"
               />
               <Select
-                placeholder="Выберите категорию"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                placeholder="Поиск по месту проведения"
+                value={searchQueryByLocation}
+                onChange={(e) => setSearchQueryByLocation(e.target.value)}
                 bg="white"
                 size="lg"
               >
@@ -262,19 +269,17 @@ function Home() {
           </Heading>
           <Slider ref={sliderRef} {...slickSettings}>
             {events.map((event) => (
-        <div className={styles.slide}>
-              <motion.div
-                key={event.id}
-                whileHover={{ scale: 1.03 }}
-                transition={{ duration: 0.2 }}
-              >
-                <EventCard event={event} />
-              </motion.div>
+              <div key={event.id} className={styles.slide}>
+                <motion.div
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <EventCard event={event} />
+                </motion.div>
               </div>
             ))}
           </Slider>
         </Box>
-
 
         {/* Отзывы */}
         <Box className={styles.reviews} p={{ base: '1rem', md: '2rem' }}>
@@ -315,7 +320,7 @@ function Home() {
             <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem">
               Создавайте и посещайте уникальные события
             </Text>
-            <Link to="/signup">
+            <Link to="/register">
               <Button
                 bg="#2E4FD7"
                 color="white"

@@ -42,7 +42,7 @@ const Event = sequelize.define('Event', {
       },
       telegram_chat_link: {
         type:DataTypes.STRING(255),
-        allowNull:false,
+        allowNull:true,
         field:"telegram_chat_link",
       },
       telegram_chat_id:{

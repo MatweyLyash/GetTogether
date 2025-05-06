@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import { Event as EventCardEvent, EventResponse } from '../types/event';
 
 // Настройка Axios
 const authApi = axios.create({
@@ -36,7 +37,6 @@ interface AuthResponse {
 
 interface RefreshTokenResponse {
     message: string;
-    user?: User; // Делаем user опциональным
   }
 
 interface Category {
@@ -153,6 +153,18 @@ export async function login(data: AuthData): Promise<AuthResponse> {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || 'Ошибка при авторизации');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getMe(): Promise<User> {
+  try {
+    const response = await organizerApi.get<User>('/me');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Ошибка при получении данных пользователя');
     }
     throw new Error('Неизвестная ошибка');
   }
@@ -297,6 +309,30 @@ export async function linkTelegram(telegram: string): Promise<{ message: string;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || 'Ошибка при привязке Telegram');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getEventById(event_id: string): Promise<EventResponse> {
+  try {
+    const response = await userApi.get<EventResponse>(`/event/${event_id}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении мероприятия');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function registerForEvent(event_id: string): Promise<{ status: number; telegram_invite_link: string | null }> {
+  try {
+    const response = await userApi.post<{ status: number; telegram_invite_link: string | null }>('/events/registration', { event_id });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при регистрации на мероприятие');
     }
     throw new Error('Неизвестная ошибка');
   }

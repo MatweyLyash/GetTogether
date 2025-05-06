@@ -168,6 +168,8 @@ class AuthController {
     }
   }
 
+
+
   async logout(req, res) {
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');

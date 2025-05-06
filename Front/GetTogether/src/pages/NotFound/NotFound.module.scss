@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.notFoundCard {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: white;
+}
+
+.notFoundImage {
+  margin: 2rem auto;
+  max-width: 300px;
+  width: 100%;
+}
+
+.title {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #2E4FD7;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.message {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.homeButton {
+  background-color: #2E4FD7;
+  color: white;
+  padding: 0.5rem 2rem;
+  border-radius: 6px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #1e3fa9;
+  }
+} 

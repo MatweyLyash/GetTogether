@@ -15,6 +15,7 @@ class OrganizerController {
         this.deleteEvent = this.deleteEvent.bind(this);
         this.responseToEventRequest = this.responseToEventRequest.bind(this);
         this.getEventRequests = this.getEventRequests.bind(this);
+        this.getMe = this.getMe.bind(this);
     }
 
     async createEvent(req, res) {
@@ -23,7 +24,7 @@ class OrganizerController {
             const creator_id = req.user.id;
             
             if (!eventValidator.validateEvent({
-                title, description, date, location, category_id, price, capacity, telegram_chat_link
+                title, description, date, location, category_id, price, capacity
             })) {
                 return res.status(400).json({ error: 'All fields are required and must be valid' });
             }
@@ -80,10 +81,10 @@ class OrganizerController {
             
             const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link);
             
-            if(event === 1) {
+            if(event == 1) {
                 return res.status(204).json({message: "Event updated successfully"});
             }
-            return res.status(404).json({error: "Event not found"});
+            return res.status(404).json({error: "Event not found", event});
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
@@ -136,10 +137,20 @@ class OrganizerController {
             }
             
             const requests = await this.organizerRepository.getEventRequests(creator_id, event_id);
-            if(requests.length === 0) {
-                return res.status(404).json({ error: 'No requests found' });
-            }
             return res.json(requests);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async getMe(req, res) {
+        try {
+            const user_id = req.user.id;
+            const user = await this.organizerRepository.getMe(user_id);
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            return res.json(user);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
