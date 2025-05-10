@@ -7,6 +7,7 @@ export interface Event {
     price: number;
     capacity: number;
     location: string;
+    image: string | null;
     creator: { id: string; login: string; telegram: string };
     reviews?: Array<{
       id: string;

@@ -58,6 +58,7 @@ CREATE TABLE Event (
     location VARCHAR(255),
     price DECIMAL(10, 2) DEFAULT 0,
     capacity INT,
+    image bytea,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     telegram_chat_link VARCHAR(255),
@@ -124,6 +125,8 @@ select * from review
 select * from users where id=2
 
 
+select * from event
+
 
 
 update  users set login = 'organizer1' where id=2
@@ -139,6 +142,9 @@ select * from eventregistration
 select * from role
 
 alter table event alter column telegram_chat_link drop not null;
+
+alter table event add COLUMN image BYTEA;
+
 
 
 

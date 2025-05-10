@@ -9,6 +9,7 @@ import EventCard from '../../components/EventCard/EventCard';
 import { getCategories, getEvents } from '../../api/api'; // Import real API functions
 import { Event as EventCardEvent } from '../../types/event'; // Импортируем тип Event из types/event
 import styles from './Home.module.scss';
+import { useAuth } from '../../AuthContext/AuthContext';
 
 // Define Category type to match backend and Cabinet.tsx
 interface Category {
@@ -41,6 +42,7 @@ interface EventApiResponse {
   description: string;
   date: string;
   location: string;
+  image: string | null;
   category_id: number;
   price: number | string;
   capacity: number;
@@ -64,8 +66,7 @@ const api = {
 };
 
 function Home() {
-  const [isAuthenticated] = useState(false); // Заглушка для авторизации
-  const [isOrganizer] = useState(true); // Заглушка для роли организатора
+  const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [events, setEvents] = useState<EventCardEvent[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -73,6 +74,7 @@ function Home() {
   const [searchQueryByLocation, setSearchQueryByLocation] = useState('');
   const sliderRef = useRef<Slider>(null);
   const toast = useToast();
+
 
   // Загрузка данных с бэка
   useEffect(() => {
@@ -99,6 +101,7 @@ function Home() {
           price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
           capacity: event.capacity, // Assume all slots are free (adjust based on backend)
           location: event.location, // Use location as address
+          image: event.image,
           category: {
             id: String(event.category_id), // Преобразуем id в строку для совместимости с EventCard
             category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name || 
@@ -308,30 +311,32 @@ function Home() {
         </Box>
 
         {/* Призыв к регистрации */}
-        <Box className={styles.cta} p={{ base: '2rem', md: '4rem' }} textAlign="center" bg="#E7EBFC">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Heading as="h3" size={{ base: 'md', md: 'lg' }} mb="1rem">
-              Присоединяйтесь к GetTogether!
-            </Heading>
-            <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem">
-              Создавайте и посещайте уникальные события
-            </Text>
-            <Link to="/register">
-              <Button
-                bg="#2E4FD7"
-                color="white"
-                _hover={{ bg: '#1e3fa9' }}
-                size={{ base: 'md', md: 'lg' }}
-              >
-                Зарегистрироваться
-              </Button>
-            </Link>
-          </motion.div>
-        </Box>
+        {!user && (
+                  <Box className={styles.cta} p={{ base: '2rem', md: '4rem' }} textAlign="center" bg="#E7EBFC">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <Heading as="h3" size={{ base: 'md', md: 'lg' }} mb="1rem">
+                      Присоединяйтесь к GetTogether!
+                    </Heading>
+                    <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem">
+                      Создавайте и посещайте уникальные события
+                    </Text>
+                    <Link to="/register">
+                      <Button
+                        bg="#2E4FD7"
+                        color="white"
+                        _hover={{ bg: '#1e3fa9' }}
+                        size={{ base: 'md', md: 'lg' }}
+                      >
+                        Зарегистрироваться
+                      </Button>
+                    </Link>
+                  </motion.div>
+                </Box>
+        )}
       </Box>
       <Footer />
     </Box>

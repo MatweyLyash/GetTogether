@@ -1,4 +1,4 @@
-import { Box, Text, Button } from '@chakra-ui/react';
+import { Box, Text, Button, Image } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Event } from '../../types/event';
@@ -29,10 +29,14 @@ function EventCard({ event }: EventCardProps) {
           <Text className={styles.cardText}>Адрес: {event.location}</Text>
         </Box>
         <Box className={styles.cardImageContainer}>
-          <img
-            src={'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'}
+          <Image
+            src={event.image || 'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'}
             alt={event.title}
-            className={styles.cardImage}
+            borderRadius="8px"
+            width="100%"
+            height="180px"
+            objectFit="cover"
+            loading="lazy"
           />
         </Box>
       </Box>

@@ -21,7 +21,7 @@ import {
   IconButton,
   Container,
 } from '@chakra-ui/react';
-import { FaMapMarkerAlt, FaCalendarAlt, FaRubleSign, FaUserFriends, FaTelegram, FaStar } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaCalendarAlt, FaRubleSign, FaUserFriends, FaTelegram, FaStar, FaMoneyBill } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
@@ -171,7 +171,7 @@ function EventPage() {
               overflow="hidden"
             >
               <Image 
-                src={`https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg`} 
+                src={event.image || 'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'} 
                 alt={event.title}
                 w="100%" 
                 h="100%" 
@@ -237,11 +237,11 @@ function EventPage() {
 
                 <Stat>
                   <HStack align="center">
-                    <FaRubleSign color="#2E4FD7" />
+                   <FaMoneyBill color="#2E4FD7" />
                     <StatLabel>Стоимость</StatLabel>
                   </HStack>
                   <StatNumber fontSize="md">
-                    {event.price > 0 ? `${event.price} ₽` : 'Бесплатно'}
+                    {event.price > 0 ? `${event.price} BYN` : 'Бесплатно'}
                   </StatNumber>
                 </Stat>
               </SimpleGrid>
@@ -290,9 +290,10 @@ function EventPage() {
                     colorScheme="green"
                     size="lg"
                     w="100%"
+                    h="20"
                     isDisabled
                   >
-                    Вы зарегистрированы
+                    Заяка на регистрацию передана. <br/>Ожидайте подтверждения от организатора
                   </Button>
                 )}
 

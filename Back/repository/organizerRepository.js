@@ -3,8 +3,8 @@ const {generateInviteLink} = require('../bot/telegramBot');
 
 
 class OrganizerRepository {
-    async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key) {
-        return await models.Event.create({creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key});
+    async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image) {
+        return await models.Event.create({creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image});
     }
 
     async getOwnEvents(creator_id) {
@@ -29,8 +29,23 @@ class OrganizerRepository {
         });
     }
 
-    async updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link) {
-        return await models.Event.update({title, description, date, location, category_id, price, capacity, telegram_chat_link}, {where:{creator_id, id:event_id}});
+    async updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image) {
+        const updateData = {
+            title,
+            description,
+            date,
+            location,
+            category_id,
+            price,
+            capacity,
+            telegram_chat_link
+        };
+        if (image !== undefined) {
+        updateData.image = image; // Обновляем изображение, если передано
+        }
+        return await models.Event.update(updateData, {
+        where: { creator_id, id: event_id }
+        });
     }
 
     async deleteEvent(creator_id, event_id) {
@@ -42,7 +57,7 @@ class OrganizerRepository {
         const event = await models.Event.findOne({ where: { id: event_id, creator_id: creator_id } });
         console.log(event);
         if (!event) {
-            throw new Error('Event not found or not owned by organizer');
+            throw new Error('Событие не найдено или у него нет организатора');
         }
 
         const registration = await models.EventRegistration.findOne({
@@ -54,12 +69,12 @@ class OrganizerRepository {
           // Если статус "approved", генерируем одноразовую ссылку
           if (status_id === 2) {
             if (!event.telegram_chat_id) {
-              throw new Error('Telegram group not linked to event');
+              throw new Error('Телаграмм беседа не привязана');
             }
       
             const inviteResult = await generateInviteLink(event_id, user_id);
             if (!inviteResult.success) {
-              throw new Error(`Failed to generate Telegram invite link: ${inviteResult.message}`);
+              throw new Error(`Ошибка генерации ключа: ${inviteResult.message}`);
             }
       
             registration.telegram_invite_link = inviteResult.inviteLink;

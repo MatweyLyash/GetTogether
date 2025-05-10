@@ -17,6 +17,11 @@ const organizerApi = axios.create({
   withCredentials: true,
 });
 
+const guestApi = axios.create({
+  baseURL: 'http://localhost:5000/api/guest',
+  withCredentials: true,
+});
+
 // Интерфейсы
 interface AuthData {
   login: string;
@@ -55,6 +60,7 @@ interface Event {
   capacity: number;
   telegram_chat_link: string | null;
   creator_id?: string;
+  image: string | null;
 }
 
 interface EventRegistration {
@@ -86,6 +92,10 @@ interface EventRequest {
   user_id: string;
   event_id: string;
   status_id: number;
+  user: {
+    login: string;
+    telegram: string | null;
+  };
 }
 
 // Интерцептор для обработки 401 и обновления токена
@@ -208,7 +218,7 @@ export async function refreshToken(): Promise<RefreshTokenResponse> {
 // User Routes
 export async function getCategories(): Promise<Category[]> {
   try {
-    const response = await userApi.get<Category[]>('/categories');
+    const response = await guestApi.get<Category[]>('/categories');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -220,7 +230,7 @@ export async function getCategories(): Promise<Category[]> {
 
 export async function getEvents(): Promise<Event[]> {
   try {
-    const response = await userApi.get<Event[]>('/events');
+    const response = await guestApi.get<Event[]>('/events');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -232,7 +242,7 @@ export async function getEvents(): Promise<Event[]> {
 
 export async function getEvent(event_id: string): Promise<Event> {
   try {
-    const response = await userApi.get<Event>(`/event/${event_id}`);
+    const response = await guestApi.get<Event>(`/event/${event_id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -339,9 +349,13 @@ export async function registerForEvent(event_id: string): Promise<{ status: numb
 }
 
 // Organizer Routes
-export async function createEvent(event: Omit<Event, 'id'>): Promise<Event> {
+export async function createEvent(formData: FormData): Promise<{ event: Event; message: string }> {
   try {
-    const response = await organizerApi.post<Event>('/event', event);
+    const response = await organizerApi.post<{ event: Event; message: string }>('/event', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -375,9 +389,13 @@ export async function getOwnEvent(event_id: string): Promise<Event> {
   }
 }
 
-export async function updateEvent(event_id: string, event: Omit<Event, 'id'>): Promise<{ message: string }> {
+export async function updateEvent(event_id: string, formData: FormData): Promise<{ event: Event; message: string }> {
   try {
-    const response = await organizerApi.put<{ message: string }>(`/event/${event_id}`, { event_id, ...event });
+    const response = await organizerApi.put<{ event: Event; message: string }>(`/event/${event_id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

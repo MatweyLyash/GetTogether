@@ -22,7 +22,8 @@ class OrganizerController {
         try {
             const { title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
             const creator_id = req.user.id;
-            
+            const image = req.file?.buffer; // Двоичные данные изображения
+
             if (!eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity
             })) {
@@ -30,26 +31,44 @@ class OrganizerController {
             }
             const organizer_verification_key = uuidv4();
 
-            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key);
+            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image);
+
+            if (event.image) {
+                const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
+                const fileType = await fileTypeFromBuffer(event.image);
+                const mime = fileType?.mime || 'image/jpeg'; // JPEG по умолчанию
+                event.dataValues.image = `data:${mime};base64,${event.image.toString('base64')}`;
+            }
+
             res.status(201).json({
                 event,
-                message: `Событие создано. Добавьте бота @MyEventBot в группу как администратора и отправьте в группе: /verify ${organizer_verification_key}`
-              });
+                message: `Событие создано. Добавьте бота @GetTogetherPSKPbot в группу как администратора и отправьте в группе: /verify ${organizer_verification_key}`
+            });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
-    
+
     async getOwnEvents(req, res) {
         try {
             const creater_id = req.user.id
             const events = await this.organizerRepository.getOwnEvents(creater_id);
+
+            for (const event of events) {
+                if (event.image) {
+                    const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
+                    const fileType = await fileTypeFromBuffer(event.image);
+                    const mime = fileType?.mime || 'image/jpeg';
+                    event.dataValues.image = `data:${mime};base64,${event.image.toString('base64')}`;
+                }
+            }
+
             return res.json(events);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
-    
+
     async getOwnEvent(req, res) {
         try {
             const { event_id } = req.params;
@@ -57,66 +76,82 @@ class OrganizerController {
             if (!eventValidator.validateId(event_id)) {
                 return res.status(400).json({ error: 'Valid Event ID is required' });
             }
-            
+
             const event = await this.organizerRepository.getOwnEvent(creater_id, event_id);
             if (!event) {
                 return res.status(404).json({ error: 'Event not found' });
             }
-            
+
+            if (event.image) {
+                const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
+                const fileType = await fileTypeFromBuffer(event.image);
+                const mime = fileType?.mime || 'image/jpeg';
+                event.dataValues.image = `data:${mime};base64,${event.image.toString('base64')}`;
+            }
+
             return res.json(event);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
-    
+
     async updateEvent(req, res) {
         try {
             const { event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
             const creator_id = req.user.id;
+            const image = req.file?.buffer;
+
             if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity, telegram_chat_link
             })) {
                 return res.status(400).json({ error: 'All fields are required and must be valid' });
             }
-            
-            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link);
-            
-            if(event == 1) {
-                return res.status(204).json({message: "Event updated successfully"});
+
+            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image);
+
+            if (event == 1) {
+                const updatedEvent = await this.organizerRepository.getOwnEvent(creator_id, event_id);
+                if (updatedEvent.image) {
+                    const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
+                    const fileType = await fileTypeFromBuffer(updatedEvent.image);
+                    const mime = fileType?.mime || 'image/jpeg';
+                    updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
+                }
+                return res.json({ message: 'Event updated successfully', event: updatedEvent });
             }
-            return res.status(404).json({error: "Event not found", event});
+            return res.status(404).json({ error: "Event not found", event });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
-    
+
     async deleteEvent(req, res) {
         try {
             const { event_id } = req.params;
             const creator_id = req.user.id;
 
-            
+
             if (!eventValidator.validateId(event_id)) {
                 return res.status(400).json({ error: 'Valid Event ID is required' });
             }
-            
+
             await this.organizerRepository.deleteEvent(creator_id, event_id);
             return res.status(204).send();
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
-    
+
     async responseToEventRequest(req, res) {
         try {
             const { user_id, status_id } = req.body;
             const { event_id } = req.params;
             const creator_id = req.user.id;
-    
+
             if (!eventValidator.validateId(event_id) || !eventValidator.validateId(user_id) || !validators.validatePresence(status_id)) {
                 return res.status(400).json({ error: 'Event ID, User ID, and Status ID are required and must be valid' });
             }
-            
+
             const response = await this.organizerRepository.responseToEventRequest(creator_id, user_id, event_id, status_id);
             return res.json(response);
         } catch (error) {
@@ -131,11 +166,11 @@ class OrganizerController {
         try {
             const { event_id } = req.params;
             const creator_id = req.user.id;
-            
+
             if (!eventValidator.validateId(event_id)) {
                 return res.status(400).json({ error: 'Valid Event ID is required' });
             }
-            
+
             const requests = await this.organizerRepository.getEventRequests(creator_id, event_id);
             return res.json(requests);
         } catch (error) {

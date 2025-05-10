@@ -27,32 +27,52 @@ class UserController {
 
     async getEvents(req, res) {
         try {
-            const events = await this.userRepository.getEvents();
-            return res.json(events);
+          const events = await this.userRepository.getEvents();
+          const eventsData = await Promise.all(
+            events.map(async (event) => {
+              if (event.image) {
+                const { fileTypeFromBuffer } = await import('file-type');
+                const fileType = await fileTypeFromBuffer(event.image);
+                const mime = fileType?.mime || 'image/jpeg';
+                event.image = `data:${mime};base64,${event.image.toString('base64')}`;
+              }
+              return event;
+            })
+          );
+          return res.json(eventsData);
         } catch (error) {
-            return res.status(500).json({ error: error.message });
+          console.error('Ошибка получения событий:', error);
+          return res.status(500).json({ error: error.message });
         }
-    }
+      }
 
-    async getEvent(req, res) {
+      async getEvent(req, res) {
         try {
-            const { event_id } = req.params;
-            const user_id = req.user.id;
-
-            if (!validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'Event ID is required' });
-            }
-
-            const event = await this.userRepository.getEvent(event_id, user_id);
-            if (!event) {
-                return res.status(404).json({ error: 'Event not found' });
-            }
-
-            return res.json(event);
+          const { event_id } = req.params;
+          const user_id = req.user.id;
+    
+          if (!validators.validatePresence(event_id)) {
+            return res.status(400).json({ error: 'Event ID is required' });
+          }
+    
+          const event = await this.userRepository.getEvent(event_id, user_id);
+          if (!event) {
+            return res.status(404).json({ error: 'Event not found' });
+          }
+    
+          if (event.event.image) {
+            const { fileTypeFromBuffer } = await import('file-type');
+            const fileType = await fileTypeFromBuffer(event.event.image);
+            const mime = fileType?.mime || 'image/jpeg';
+            event.event.image = `data:${mime};base64,${event.event.image.toString('base64')}`;
+          }
+    
+          return res.json(event);
         } catch (error) {
-            return res.status(500).json({ error: error.message });
+          console.error('Ошибка получения события:', error);
+          return res.status(500).json({ error: error.message });
         }
-    }
+      }
 
     async getReviews(req, res) {
         try {

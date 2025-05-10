@@ -5,6 +5,7 @@ const models = require('./models/relations');
 const authRouter = require('./routes/authRoutes');
 const adminRouter = require('./routes/adminRoutes');
 const userRouter = require('./routes/userRoutes');
+const guestRouter = require('./routes/guestRouter');
 const organizerRouter = require('./routes/organizerRoutes');
 const { isAdmin, isOrganizer } = require('./middleware/roleMiddleware');
 const auth = require('./middleware/authMiddleware');
@@ -21,6 +22,7 @@ app.use(cors({
 
 // Public routes
 app.use('/api/auth', authRouter);
+app.use('/api/guest', guestRouter);
 
 // User routes - requires authentication
 app.use('/api/user', auth, userRouter);

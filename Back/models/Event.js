@@ -63,6 +63,12 @@ const Event = sequelize.define('Event', {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
         field:"created_at",
       },
+      image : {
+        type: DataTypes.BLOB,
+        allowNull: true,
+        field:"image",
+      },
+
       updated_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),

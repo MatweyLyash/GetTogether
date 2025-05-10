@@ -38,6 +38,7 @@ interface ApiEvent {
   category_id: number;
   price: number | string;
   capacity: number;
+  image: string | null;
   telegram_chat_link: string | null;
   creator_id?: string | number;
   created_at?: string;
@@ -80,6 +81,7 @@ function Events() {
           price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
           capacity: event.capacity, // Mock: assume all slots are free
           location: event.location, // Use location as address
+          image:event.image,
           category: {
             id: String(event.category_id), // Преобразуем ID категории в строку для совместимости с EventCard
             category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name || 
@@ -185,8 +187,11 @@ function Events() {
         `}
       </style>
       <Header />
+      <Heading size="lg" mb="1rem" textAlign="center" pt="2rem">
+            Список мероприятий
+          </Heading>
       <div className={styles.contentContainer}>
-        {/* Sidebar with search/filters */}
+     
         <div className={styles.filterSidebar}>
           <VStack spacing="1rem" align="stretch">
             <Heading size="md">Фильтры</Heading>
@@ -266,9 +271,6 @@ function Events() {
 
         {/* Event list */}
         <div className={styles.eventContainer}>
-          <Heading size="lg" mb="1rem" textAlign="center">
-            Список мероприятий
-          </Heading>
           {isLoading ? (
             <Flex justify="center" py="4rem">
               <Spinner size="xl" />

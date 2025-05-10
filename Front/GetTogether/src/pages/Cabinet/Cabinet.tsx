@@ -63,6 +63,7 @@ interface Event {
   updated_at?: string;
   organizer_verification_key?: string;
   telegram_chat_id?: string | null;
+  image?: string | null; // Base64-строка или null
 }
 
 // Интерфейс для ответа сервера от createEvent
@@ -100,6 +101,10 @@ interface EventRequest {
   user_id: string;
   event_id: string;
   status_id: number;
+  user: {
+    login: string;
+    telegram: string | null;
+  };
 }
 
 function Cabinet() {
@@ -120,7 +125,9 @@ function Cabinet() {
     price: '',
     capacity: '',
     telegram_chat_link: '',
+    image: null as File | null,
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
@@ -345,36 +352,38 @@ function Cabinet() {
       });
       return;
     }
-
-    const eventData = {
-      title: newEvent.title,
-      description: newEvent.description,
-      date: newEvent.date, // Формат: "2025-05-31T04:25"
-      location: newEvent.location,
-      category_id: Number(newEvent.category_id),
-      price: Number(newEvent.price), // Преобразуем в число
-      capacity: Number(newEvent.capacity),
-      telegram_chat_link: newEvent.telegram_chat_link || null,
-    };
-
-    console.log('Отправка данных для создания мероприятия:', eventData);
-
+  
+    const formData = new FormData();
+    formData.append('title', newEvent.title);
+    formData.append('description', newEvent.description);
+    formData.append('date', newEvent.date);
+    formData.append('location', newEvent.location);
+    formData.append('category_id', newEvent.category_id);
+    formData.append('price', newEvent.price);
+    formData.append('capacity', newEvent.capacity);
+    formData.append('telegram_chat_link', newEvent.telegram_chat_link || '');
+    if (newEvent.image) {
+      formData.append('image', newEvent.image);
+    }
+  
+    console.log('Отправка данных для создания мероприятия:', formData);
+  
     setIsLoading(true);
     try {
-      const response:any = await createEvent(eventData);
+      const response = await createEvent(formData);
       console.log('Ответ от сервера:', response);
-
+  
       const event = response.event;
-
+  
       // Проверка возвращаемого объекта
       if (!event || !event.id || !event.title || !event.date || !event.location) {
         throw new Error('Некорректный ответ сервера: отсутствуют обязательные поля');
       }
-
-      // Обновляем список мероприятий через getOwnEvents для синхронизации
+  
+      // Обновляем список мероприятий
       const updatedEvents = await getOwnEvents();
       setOwnEvents(updatedEvents || []);
-
+  
       // Очищаем форму
       setNewEvent({
         title: '',
@@ -385,8 +394,10 @@ function Cabinet() {
         price: '',
         capacity: '',
         telegram_chat_link: '',
+        image: null,
       });
-
+      setImagePreview(null);
+  
       toast({
         title: 'Успех',
         description: response.message || 'Мероприятие создано',
@@ -428,18 +439,24 @@ function Cabinet() {
       });
       return;
     }
+  
+    const formData = new FormData();
+    formData.append('event_id', event_id);
+    formData.append('title', newEvent.title);
+    formData.append('description', newEvent.description);
+    formData.append('date', newEvent.date);
+    formData.append('location', newEvent.location);
+    formData.append('category_id', newEvent.category_id);
+    formData.append('price', newEvent.price);
+    formData.append('capacity', newEvent.capacity);
+    formData.append('telegram_chat_link', newEvent.telegram_chat_link || '');
+    if (newEvent.image) {
+      formData.append('image', newEvent.image);
+    }
+  
     setIsLoading(true);
     try {
-      await updateEvent(event_id, {
-        title: newEvent.title,
-        description: newEvent.description,
-        date: newEvent.date,
-        location: newEvent.location,
-        category_id: Number(newEvent.category_id),
-        price: Number(newEvent.price),
-        capacity: Number(newEvent.capacity),
-        telegram_chat_link: newEvent.telegram_chat_link || null,
-      });
+      await updateEvent(event_id, formData);
       const events = await getOwnEvents();
       setOwnEvents(events || []);
       setNewEvent({
@@ -451,7 +468,9 @@ function Cabinet() {
         price: '',
         capacity: '',
         telegram_chat_link: '',
+        image: null,
       });
+      setImagePreview(null);
       toast({
         title: 'Успех',
         description: 'Мероприятие обновлено',
@@ -633,6 +652,11 @@ function Cabinet() {
           <Text fontWeight="bold">{event.title}</Text>
           <Text>Дата: {new Date(event.date).toLocaleDateString()}</Text>
           <Text>Место: {event.location}</Text>
+          {event.image && (
+          <Box mt="2">
+            <img src={event.image} alt={event.title} style={{ maxWidth: '200px', borderRadius: '8px' }} />
+          </Box>
+        )}
           <Stack direction={isMobile ? 'column' : 'row'} spacing="2" mt="2">
             <Button
               size={buttonSize}
@@ -647,6 +671,7 @@ function Cabinet() {
                   price: event.price.toString(),
                   capacity: event.capacity.toString(),
                   telegram_chat_link: event.telegram_chat_link || '',
+                  image: null as File | null,
                 });
               }}
               isDisabled={isLoading}
@@ -914,6 +939,33 @@ function Cabinet() {
                           />
                         </FormControl>
                         <FormControl>
+                          <FormLabel>Изображение</FormLabel>
+                          <Input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0] || null;
+                              setNewEvent({ ...newEvent, image: file });
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setImagePreview(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              } else {
+                                setImagePreview(null);
+                              }
+                            }}
+                            bg="#E7EBFC"
+                            size={buttonSize}
+                          />
+                          {imagePreview && (
+                            <Box mt="2">
+                              <img src={imagePreview} alt="Превью" style={{ maxWidth: '200px', borderRadius: '8px' }} />
+                            </Box>
+                          )}
+                        </FormControl>
+                        <FormControl>
                           <FormLabel>Ссылка на Telegram-чат</FormLabel>
                           <Input
                             value={newEvent.telegram_chat_link}
@@ -972,6 +1024,7 @@ function Cabinet() {
                                           price: event.price.toString(),
                                           capacity: event.capacity.toString(),
                                           telegram_chat_link: event.telegram_chat_link || '',
+                                          image: null as File | null,
                                         });
                                       }}
                                       isDisabled={isLoading}
@@ -1031,7 +1084,8 @@ function Cabinet() {
                           <Text fontSize={fontSizeText}>Заявки на мероприятие</Text>
                           {eventRequests.map((req) => (
                             <Box key={req.id} borderWidth="1px" borderRadius="md" p="4">
-                              <Text>Пользователь ID: {req.user_id}</Text>
+                              <Text>Имя: {req.user.login}</Text>
+                              <Text>Телеграм: {req.user.telegram}</Text>
                               <Text>
                                 Статус:{' '}
                                 {req.status_id === 1 ? 'Ожидает' : req.status_id === 2 ? 'Подтверждено' : 'Отклонено'}

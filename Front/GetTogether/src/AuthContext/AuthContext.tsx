@@ -35,46 +35,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   console.log('AuthProvider инициализирован');
 
-  // Проверка авторизации при загрузке страницы
   useEffect(() => {
     const checkAuth = async () => {
       console.log('Проверка авторизации...');
-      setIsLoading(true);
       
       try {
-        console.log('Получение всех кук (доступных для JS):', getAllCookies());
-        console.log('Запрос информации о пользователе с сервера...');
+        const userData = await getMe();
+        console.log('Получены данные пользователя:', userData);
         
-        // Поскольку tokens установлены как httpOnly, мы не можем их прочитать из JavaScript
-        // Вместо этого отправляем запрос на сервер, который проверит токены и вернет данные пользователя
-        try {
-          // Сначала пробуем обновить токен
-          await refreshToken();
-          
-          // Затем получаем информацию о пользователе
-          const userData = await getMe();
-          console.log('Получены данные пользователя:', userData);
-          
-          if (userData && userData.id) {
-            setUser(userData);
-            setIsAuthenticated(true);
-            console.log('Пользователь авторизован:', userData);
-          } else {
-            console.warn('Данные пользователя не получены после обновления токена');
-            setIsAuthenticated(false);
-            setUser(null);
-          }
-        } catch (error) {
-          console.warn('Не удалось получить данные пользователя:', error);
+        if (userData && userData.id) {
+          setUser(userData);
+          setIsAuthenticated(true);
+          console.log('Пользователь авторизован:', userData);
+        } else {
+          console.warn('Данные пользователя не получены');
           setIsAuthenticated(false);
           setUser(null);
         }
       } catch (error) {
-        console.error('Ошибка проверки авторизации:', error);
+        console.warn('Не удалось получить данные пользователя:', error);
         setIsAuthenticated(false);
         setUser(null);
       } finally {
-        console.log('Завершение проверки авторизации, isAuthenticated:', isAuthenticated, 'user:', user);
         setIsLoading(false);
       }
     };
@@ -138,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading 
       }}
     >
-      {isLoading ? <div>Загрузка...</div> : children}
+      {children}
     </AuthContext.Provider>
   );
 }
