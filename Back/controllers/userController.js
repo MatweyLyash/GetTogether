@@ -14,6 +14,7 @@ class UserController {
         this.getOwnEventsRegistration = this.getOwnEventsRegistration.bind(this);
         this.createOrganizerRequest = this.createOrganizerRequest.bind(this);
         this.getOwnOrganizerRequests = this.getOwnOrganizerRequests.bind(this);
+        this.getMe = this.getMe.bind(this);
     }
 
     async getCategories(req, res) {
@@ -224,6 +225,19 @@ class UserController {
         } catch (error) {
             console.error('Ошибка привязки Telegram:', error);
             return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    async getMe(req, res) {
+        try {
+            const user_id = req.user.id;
+            const user = await this.userRepository.getMe(user_id);
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            return res.json(user);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
         }
     }
 }

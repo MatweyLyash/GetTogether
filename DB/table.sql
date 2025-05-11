@@ -61,6 +61,7 @@ CREATE TABLE Event (
     image bytea,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
     telegram_chat_link VARCHAR(255),
     telegram_chat_id varchar(255),
 
@@ -127,13 +128,15 @@ select * from users where id=2
 
 select * from event
 
-
+alter table event add column deleted_at timestamp;
 
 update  users set login = 'organizer1' where id=2
 
 select * from event;
 
 select * from status
+
+select * from users
 
 update  users set telegram='@matwanol' where id =1
 
@@ -144,6 +147,8 @@ select * from role
 alter table event alter column telegram_chat_link drop not null;
 
 alter table event add COLUMN image BYTEA;
+
+select * from users
 
 
 

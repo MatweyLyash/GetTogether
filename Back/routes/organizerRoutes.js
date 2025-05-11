@@ -26,7 +26,6 @@ router.put('/event/:event_id', upload.single('image'), OrganizerController.updat
 router.delete('/event/:event_id', OrganizerController.deleteEvent);
 router.put('/event/request/:event_id', OrganizerController.responseToEventRequest);
 router.get('/event/requests/:event_id', OrganizerController.getEventRequests);
-router.get('/me', OrganizerController.getMe);
 
 
 module.exports = router;

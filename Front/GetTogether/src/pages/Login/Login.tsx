@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Heading,
@@ -12,8 +12,8 @@ import {
 } from '@chakra-ui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { login, register } from '../../api/api';
-import { useAuth } from '../../AuthContext/AuthContext';
+import { register } from '../../api/api';
+import {  useAuth } from '../../AuthContext/AuthContext';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import styles from './Login.module.scss';
@@ -23,9 +23,29 @@ function Login() {
   const [loginInput, setLoginInput] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { user, isAuthenticated } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
-  const { loginUser } = useAuth(); // Используем loginUser вместо setIsAuthenticated
+  const { loginUser } = useAuth();
+
+  // Эффект для перенаправления после успешной авторизации
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      switch (user.role_id) {
+        case 1: // Обычный пользователь
+          navigate('/');
+          break;
+        case 2: // Организатор
+          navigate('/cabinet');
+          break;
+        case 3: // Администратор
+          navigate('/admin');
+          break;
+        default:
+          navigate('/');
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // Обработчик авторизации
   const handleLogin = async () => {
@@ -50,7 +70,6 @@ function Login() {
         duration: 3000,
         isClosable: true,
       });
-      navigate('/cabinet');
     } catch (error: any) {
       toast({
         title: 'Ошибка',

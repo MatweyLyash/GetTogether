@@ -113,6 +113,12 @@ class UserRepository {
             where: { user_id }
         });
     }
+
+    async getMe(user_id) {
+        return await models.User.findByPk(user_id, {
+            attributes: ['id', 'login', 'telegram', 'role_id', 'created_at'], // Выбираем нужные поля
+        });
+    }
 }
 
 module.exports.repository = new UserRepository();

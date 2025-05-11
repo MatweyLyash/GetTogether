@@ -8,7 +8,7 @@ import Organizer from './pages/Organizer/Organizer';
 import Cabinet from './pages/Cabinet/Cabinet';
 import Login from './pages/Login/Login';
 import NotFound from './pages/NotFound/NotFound';
-
+import Admin from './pages/Admin/Admin';
 function App() {
   return (
     <AuthProvider>
@@ -20,6 +20,7 @@ function App() {
         <Route path="/organizer/:id" element={<Organizer />} />
         <Route path="/cabinet" element={<Cabinet />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<Admin />} />
         
         {/* Обработка несуществующих маршрутов */}
         <Route path="/not-found" element={<NotFound />} />

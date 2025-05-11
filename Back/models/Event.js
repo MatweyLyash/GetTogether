@@ -58,28 +58,33 @@ const Event = sequelize.define('Event', {
         allowNull:false,
         field:"capacity",
       },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-        field:"created_at",
-      },
       image : {
         type: DataTypes.BLOB,
         allowNull: true,
         field:"image",
       },
-
+      created_at: {
+        type: DataTypes.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        field:"created_at",
+      },
       updated_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
         field:"updated_at",
         onUpdate: Sequelize.literal('CURRENT_TIMESTAMP')
       },
+      deleted_at: {
+        type: DataTypes.DATE,
+        field:"deleted_at",
+      },
     }, {
       timestamps:true,
       tableName:"event",
       updatedAt:"updated_at",
       createdAt:"created_at",
+      deletedAt:"deleted_at",
+      paranoid:true,
     });
 
 module.exports  = Event;

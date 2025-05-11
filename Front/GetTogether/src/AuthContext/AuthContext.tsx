@@ -1,19 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import { refreshToken, login, logout, getMe } from '../api/api';
-import { getCookie, getAllCookies } from '../utils/cookies';
+import {  login, logout, getMe } from '../api/api';
 
 interface User {
   id: string;
   login: string;
   role_id: number;
   telegram: string | null;
-}
-
-interface JwtPayload {
-  sub: string;
-  login: string;
-  role_id: number;
 }
 
 interface AuthContextType {

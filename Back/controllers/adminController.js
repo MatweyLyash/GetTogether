@@ -1,18 +1,16 @@
 const adminRepository = require('./../repository/adminRepository');
 const AdminRepository = adminRepository.repository;
 
+const UserRepository = require('./../repository/userRepository').repository;
+
+const validators = require('../services/baseValidators');
+const eventValidator = require('../services/eventValidator');
+
 
 class AdminController {
-    async getCategories(req, res) {
-    try {
-      const categories = await AdminRepository.getCategories();
-      res.status(200).json(categories);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
 
-    async addCategory(req, res) {
+
+  async addCategory(req, res) {
     try {
       const { category_name } = req.body;
       if (!category_name) {
@@ -25,7 +23,7 @@ class AdminController {
     }
   }
 
-    async renameCategory(req, res) {
+  async renameCategory(req, res) {
     try {
       const { category_id } = req.params;
       const { category_name } = req.body;
@@ -39,7 +37,7 @@ class AdminController {
     }
   }
 
-    async deleteCategory(req, res) {
+  async deleteCategory(req, res) {
     try {
       const { category_id } = req.params;
       await AdminRepository.deleteCategory(category_id);
@@ -49,7 +47,7 @@ class AdminController {
     }
   }
 
-    async getUsers(req, res) {
+  async getUsers(req, res) {
     try {
       const users = await AdminRepository.getUsers();
       res.status(200).json(users);
@@ -58,7 +56,7 @@ class AdminController {
     }
   }
 
-    async userBan(req, res) {
+  async userBan(req, res) {
     try {
       const { user_id } = req.params;
       const { isBan } = req.body;
@@ -69,7 +67,16 @@ class AdminController {
     }
   }
 
-    async organizerResponse(req, res) {
+  async getOrganizerRequests(req, res) {
+    try {
+      const requests = await AdminRepository.getOrganizerRequests();
+      res.status(200).json(requests);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async organizerResponse(req, res) {
     try {
       const { request_id } = req.params;
       const { status_id } = req.body;
@@ -80,7 +87,7 @@ class AdminController {
     }
   }
 
-    async unassignOrganizer(req, res) {
+  async unassignOrganizer(req, res) {
     try {
       const { user_id } = req.params;
       await AdminRepository.unassignOrganizer(user_id);
@@ -90,7 +97,7 @@ class AdminController {
     }
   }
 
-    async getEvents(req, res) {
+  async getEvents(req, res) {
     try {
       const events = await AdminRepository.getEvents();
       res.status(200).json(events);
@@ -98,6 +105,51 @@ class AdminController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  async updateEvent(req, res) {
+          try {
+              const {title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
+              const image = req.file?.buffer;
+              const { event_id } = req.params;
+  
+              if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
+                  title, description, date, location, category_id, price, capacity, telegram_chat_link
+              })) {
+                  return res.status(400).json({ error: 'All fields are required and must be valid' });
+              }
+  
+              const event = await AdminRepository.updateEvent( event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image);
+  
+              if (event == 1) {
+                  const updatedEvent = await UserRepository.getEvent( event_id, null);
+                  if (updatedEvent.image) {
+                      const { fileTypeFromBuffer } = await import('file-type');
+                      const fileType = await fileTypeFromBuffer(updatedEvent.image);
+                      const mime = fileType?.mime || 'image/jpeg';
+                      updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
+                  }
+                  return res.json({ message: 'Event updated successfully', event: updatedEvent });
+              }
+              return res.status(404).json({ error: "Event not found", event });
+          } catch (error) {
+              return res.status(500).json({ error: error.message });
+          }
+      }
+
+  async deleteEvent(req, res) {
+          try {
+              const { event_id } = req.params;  
+  
+              if (!eventValidator.validateId(event_id)) {
+                  return res.status(400).json({ error: 'Valid Event ID is required' });
+              }
+  
+              await AdminRepository.deleteEvent( event_id);
+              return res.status(204).send();
+          } catch (error) {
+              return res.status(500).json({ error: error.message });
+          }
+      }
 }
 
 module.exports.controller = new AdminController();

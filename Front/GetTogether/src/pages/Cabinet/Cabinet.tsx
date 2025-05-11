@@ -172,7 +172,7 @@ function Cabinet() {
         setOrganizerRequests(orgRequests || []);
         setCategories(cats || []);
 
-        if (isOrganizer) {
+        if (isOrganizer || isAdmin) {
           const events = await getOwnEvents();
           setOwnEvents(events || []);
         }
@@ -588,7 +588,7 @@ function Cabinet() {
   const FutureEventsCards = ({ registrations }: { registrations: EventRegistration[] }) => (
     <VStack spacing="4" align="stretch">
       {registrations
-        .filter((reg) => new Date(reg.event.date) > new Date())
+        .filter((reg) => reg.event && new Date(reg.event.date) > new Date())
         .map((reg) => (
           <Box key={reg.id} borderWidth="1px" borderRadius="md" p="4">
             <Text fontWeight="bold">{reg.event.title}</Text>
@@ -606,7 +606,7 @@ function Cabinet() {
   const PastEventsCards = ({ registrations }: { registrations: EventRegistration[] }) => (
     <VStack spacing="4" align="stretch">
       {registrations
-        .filter((reg) => new Date(reg.event.date) <= new Date() && reg.status_id === 2)
+        .filter((reg) => reg.event && new Date(reg.event.date) <= new Date() && reg.status_id === 2)
         .map((reg) => (
           <Box key={reg.id} borderWidth="1px" borderRadius="md" p="4">
             <Text fontWeight="bold">{reg.event.title}</Text>
@@ -780,7 +780,7 @@ function Cabinet() {
                       </Thead>
                       <Tbody>
                         {registrations
-                          .filter((reg) => new Date(reg.event.date) > new Date())
+                          .filter((reg) => reg.event && new Date(reg.event.date) > new Date())
                           .map((reg) => (
                             <Tr key={reg.id}>
                               <Td>{reg.event.title}</Td>
@@ -813,7 +813,7 @@ function Cabinet() {
                       </Thead>
                       <Tbody>
                         {registrations
-                          .filter((reg) => new Date(reg.event.date) <= new Date() && reg.status_id === 2)
+                          .filter((reg) => reg.event && new Date(reg.event.date) <= new Date() && reg.status_id === 2)
                           .map((reg) => (
                             <Tr key={reg.id}>
                               <Td>{reg.event.title}</Td>
@@ -856,7 +856,7 @@ function Cabinet() {
                 </TabPanel>
                 <TabPanel>
                  
-                  {isOrganizer ? (
+                  {isOrganizer || isAdmin ? (
                     <>
                       <VStack spacing="4" mb="2rem" align="stretch">
                         <Text fontSize={fontSizeText}>Создать новое мероприятие</Text>
@@ -1115,7 +1115,11 @@ function Cabinet() {
                     </>
                   ) : (
                     <VStack spacing="4">
-                      <Text fontSize={fontSizeText}>Вы не являетесь организатором</Text>
+                      <Text fontSize={fontSizeText}>
+                        {organizerRequests[0]?.status_id === 2 && user.role_id === 1
+                          ? "Вы больше не организатор. Спасибо за вклад в развитие проекта!"
+                          : "Вы не являетесь организатором"}
+                      </Text>
                       <Button
                         bg="#2E4FD7"
                         color="white"
@@ -1126,11 +1130,13 @@ function Cabinet() {
                       >
                         Запросить статус организатора
                       </Button>
-                      {organizerRequests.length > 0 && (
+                      {organizerRequests[0] && (
                         <Text fontSize={fontSizeText}>
                           Статус запроса:{' '}
                           {organizerRequests[0].status_id === 1
                             ? 'Ожидает'
+                            :organizerRequests[0].status_id ===2 && user.role_id===1
+                            ? 'Отозван'
                             : organizerRequests[0].status_id === 2
                             ? 'Подтверждён'
                             : 'Отклонён'}

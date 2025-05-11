@@ -33,6 +33,10 @@ User.hasMany(Review, { foreignKey: "user_id", as: "reviews" });
 Feedback.belongsTo(User, { foreignKey: "user_id", as: "user" });
 User.hasMany(Feedback, { foreignKey: "user_id", as: "feedbacks" });
 
+// OrganizerRequest ↔ User
+OrganizerRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(OrganizerRequest, { foreignKey: 'user_id', as: 'organizerRequests' });
+
 // OrganizerRequest ↔ Status
 OrganizerRequest.belongsTo(Status, { foreignKey: "status_id", as: "status" });
 Status.hasMany(OrganizerRequest, { foreignKey: "status_id", as: "organizerRequests" });

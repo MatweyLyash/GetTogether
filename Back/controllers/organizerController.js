@@ -15,7 +15,6 @@ class OrganizerController {
         this.deleteEvent = this.deleteEvent.bind(this);
         this.responseToEventRequest = this.responseToEventRequest.bind(this);
         this.getEventRequests = this.getEventRequests.bind(this);
-        this.getMe = this.getMe.bind(this);
     }
 
     async createEvent(req, res) {
@@ -173,19 +172,6 @@ class OrganizerController {
 
             const requests = await this.organizerRepository.getEventRequests(creator_id, event_id);
             return res.json(requests);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
-
-    async getMe(req, res) {
-        try {
-            const user_id = req.user.id;
-            const user = await this.organizerRepository.getMe(user_id);
-            if (!user) {
-                return res.status(404).json({ error: 'User not found' });
-            }
-            return res.json(user);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }

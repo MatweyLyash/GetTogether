@@ -13,7 +13,7 @@ import styles from './Header.module.scss';
 
 function Header() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const { user, isAuthenticated, setIsAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleAuthAction = async () => {
@@ -29,7 +29,7 @@ function Header() {
       navigate('/login');
     }
   };
-
+  const isAdmin = user?.role_id === 3;
   return (
     <Box as="header" className={styles.headerContainer}>
       <Text className={styles.logo}>GetTogether</Text>
@@ -43,6 +43,11 @@ function Header() {
         {isAuthenticated && (
           <Link to="/cabinet" className={styles.navItem}>
             Личный кабинет
+          </Link>
+        )}
+        {(isAdmin && isAuthenticated) && (
+          <Link to="/admin" className={styles.navItem}>
+            Админка
           </Link>
         )}
       </Flex>

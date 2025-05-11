@@ -22,6 +22,11 @@ const guestApi = axios.create({
   withCredentials: true,
 });
 
+const adminApi = axios.create({
+  baseURL: 'http://localhost:5000/api/admin',
+  withCredentials: true,
+});
+
 // Интерфейсы
 interface AuthData {
   login: string;
@@ -98,6 +103,19 @@ interface EventRequest {
   };
 }
 
+interface OrganizerRequest {
+  id: string;
+  user_id: string;
+  status_id: number;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: string;
+    login: string;
+    telegram: string|null;
+  };
+}
+
 // Интерцептор для обработки 401 и обновления токена
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -170,7 +188,7 @@ export async function login(data: AuthData): Promise<AuthResponse> {
 
 export async function getMe(): Promise<User> {
   try {
-    const response = await organizerApi.get<User>('/me');
+    const response = await userApi.get<User>('/me');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -391,7 +409,7 @@ export async function getOwnEvent(event_id: string): Promise<Event> {
 
 export async function updateEvent(event_id: string, formData: FormData): Promise<{ event: Event; message: string }> {
   try {
-    const response = await organizerApi.put<{ event: Event; message: string }>(`/event/${event_id}`, formData, {
+    const response = await adminApi.put<{ event: Event; message: string }>(`/event/${event_id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -407,7 +425,7 @@ export async function updateEvent(event_id: string, formData: FormData): Promise
 
 export async function deleteEvent(event_id: string): Promise<void> {
   try {
-    await organizerApi.delete(`/event/${event_id}`);
+    await adminApi.delete(`/event/${event_id}`);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || 'Ошибка при удалении мероприятия');
@@ -435,6 +453,128 @@ export async function getEventRequests(event_id: string): Promise<EventRequest[]
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || 'Ошибка при получении заявок');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+// Admin Routes
+
+export async function addCategory(data: { category_name: string }): Promise<Category> {
+  try {
+    const response = await adminApi.post<Category>('/categories', data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при добавлении категории');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function renameCategory(categoryId: number, data: { category_name: string }): Promise<Category> {
+  try {
+    const response = await adminApi.put<Category>(`/categories/${categoryId}`, data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при переименовании категории');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function deleteCategory(categoryId: number): Promise<void> {
+  try {
+    await adminApi.delete(`/categories/${categoryId}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при удалении категории');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getUsers(): Promise<User[]> {
+  try {
+    const response = await adminApi.get<User[]>('/users');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении пользователей');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function banUser(userId: string, isBanned: boolean): Promise<User> {
+  try {
+    const response = await adminApi.put<User>(`/users/${userId}/ban`, { isBan: isBanned });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при обновлении статуса бана');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getOrganizerRequests(): Promise<OrganizerRequest[]> {
+  try {
+    const response = await adminApi.get<OrganizerRequest[]>('/organizers/request');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении запросов организаторов');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function organizerResponse(requestId: string, statusId: number): Promise<OrganizerRequest> {
+  try {
+    const response = await adminApi.put<OrganizerRequest>(`/organizer/request/${requestId}`, { status_id: statusId });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при обработке запроса организатора');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function unassignOrganizer(userId: string): Promise<User> {
+  try {
+    const response = await adminApi.put<User>(`/organizer/unassign/${userId}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при снятии роли организатора');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function updateEventByAdmin(eventId: string, data: FormData): Promise<Event> {
+  try {
+    const response = await adminApi.put<Event>(`/event/${eventId}`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при обновлении мероприятия');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function deleteEventByAdmin(eventId: string): Promise<void> {
+  try {
+    await adminApi.delete(`/event/${eventId}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при удалении мероприятия');
     }
     throw new Error('Неизвестная ошибка');
   }
