@@ -7,17 +7,18 @@ BEGIN
         -- Обновляем role_id в таблице Users для соответствующего user_id
         UPDATE Users
         SET role_id = 2, -- Предполагаем, что 2 - это ID роли организатора
-            updated_at = CURRENT_TIMESTAMP
+            "updatedAt" = CURRENT_TIMESTAMP
         WHERE id = NEW.user_id;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+
 -- Триггер, который срабатывает после вставки или обновления в OrganizerRequest
 CREATE TRIGGER organizer_request_role_trigger
 AFTER UPDATE OF status_id
-ON OrganizerRequest
+ON organizerrequest
 FOR EACH ROW
 EXECUTE FUNCTION update_user_role_on_organizer_request();
 
@@ -43,6 +44,6 @@ $$ LANGUAGE plpgsql;
 
 -- Триггер на UPDATE в EventRegistration
 CREATE TRIGGER event_capacity_trigger
-AFTER UPDATE ON EventRegistration
+AFTER UPDATE ON eventregistration
 FOR EACH ROW
 EXECUTE FUNCTION update_event_capacity();

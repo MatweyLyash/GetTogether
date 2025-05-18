@@ -13,7 +13,7 @@ export interface Event {
       id: string;
       rating: number;
       comment: string;
-      created_at: string;
+      createdAt: string;
       reviewUser: { id: string; login: string };
     }>;
   }

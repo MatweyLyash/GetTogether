@@ -99,7 +99,7 @@ class OrganizerRepository {
                 {
                     model: models.User,
                     as: 'user',
-                    attributes: ['id', 'login', 'telegram', 'created_at']
+                    attributes: ['id', 'login', 'telegram', 'createdAt']
                 },
                 {
                     model: models.Event,

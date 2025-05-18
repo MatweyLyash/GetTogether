@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/relations').User; // Импортируем модель User
 
 class AuthController {
   async register(req, res, next) {

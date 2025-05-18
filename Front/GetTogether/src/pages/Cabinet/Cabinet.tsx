@@ -298,6 +298,7 @@ function Cabinet() {
 
   // Link Telegram
   const handleLinkTelegram = async () => {
+    console.log("telegram: ", telegram, "lenght:", telegram.length)
     if (!telegram.startsWith('@')) {
       toast({
         title: 'Ошибка',
@@ -332,6 +333,14 @@ function Cabinet() {
     }
   };
 
+  // Добавим функцию для проверки даты
+  const isDateValid = (date: string) => {
+    const selectedDate = new Date(date);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return selectedDate >= tomorrow;
+  };
+
   // Create event
   const handleCreateEvent = async () => {
     if (
@@ -346,6 +355,18 @@ function Cabinet() {
       toast({
         title: 'Ошибка',
         description: 'Заполните все обязательные поля',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
+    // Проверка даты
+    if (!isDateValid(newEvent.date)) {
+      toast({
+        title: 'Ошибка',
+        description: 'Дата мероприятия должна быть минимум на сутки позже текущего времени',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -433,6 +454,18 @@ function Cabinet() {
       toast({
         title: 'Ошибка',
         description: 'Заполните все обязательные поля',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+  
+    // Проверка даты
+    if (!isDateValid(newEvent.date)) {
+      toast({
+        title: 'Ошибка',
+        description: 'Дата мероприятия должна быть минимум на сутки позже текущего времени',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -888,6 +921,11 @@ function Cabinet() {
                             onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
                             bg="#E7EBFC"
                             size={buttonSize}
+                            min={(() => {
+                              const tomorrow = new Date();
+                              tomorrow.setDate(tomorrow.getDate() + 1);
+                              return tomorrow.toISOString().slice(0, 16);
+                            })()}
                           />
                         </FormControl>
                         <FormControl>
@@ -1147,7 +1185,7 @@ function Cabinet() {
                 </TabPanel>
               </TabPanels>
             </Tabs>
-            {(!isOrganizer && !isAdmin) && (
+            {( !isAdmin) && (
               <VStack spacing="4" mt="2rem" align="stretch">
                 <Text fontSize={fontSizeText}>Привязка Telegram</Text>
                 <FormControl>

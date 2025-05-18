@@ -138,11 +138,13 @@ select * from status
 
 select * from users
 
+
+
 update  users set telegram='@matwanol' where id =1
 
 select * from eventregistration
 
-select * from role
+SELECT * FROM role;
 
 alter table event alter column telegram_chat_link drop not null;
 
@@ -150,6 +152,14 @@ alter table event add COLUMN image BYTEA;
 
 select * from users
 
+update  users set telegram = '@srozel' where id = 2;
+
+
+select * from eventregistration
+
+select * from events
+
+select * from organizerrequest
 
 
 

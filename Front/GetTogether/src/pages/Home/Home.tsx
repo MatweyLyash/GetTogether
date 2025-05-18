@@ -1,41 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Heading, Text, Button, SimpleGrid, Select, Input, Flex, useToast } from '@chakra-ui/react';
+import { Box, Heading, Text, Button, SimpleGrid, Input, Flex, useToast } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import Slider from 'react-slick';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import EventCard from '../../components/EventCard/EventCard';
-import { getCategories, getEvents } from '../../api/api'; // Import real API functions
-import { Event as EventCardEvent } from '../../types/event'; // Импортируем тип Event из types/event
+import { getCategories, getEvents } from '../../api/api';
+import { Event as EventCardEvent } from '../../types/event';
 import styles from './Home.module.scss';
 import { useAuth } from '../../AuthContext/AuthContext';
 
-// Define Category type to match backend and Cabinet.tsx
+// Define Category type
 interface Category {
   id: number;
   category_name: string;
 }
 
-// Define Event type to match backend response
-interface ApiEvent {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  location: string;
-  category_id: number;
-  price: number;
-  capacity: number;
-  telegram_chat_link: string | null;
-  creator_id?: string; // Изменено с number на string?, что соответствует Cabinet.tsx
-  created_at?: string;
-  updated_at?: string;
-  organizer_verification_key?: string;
-  telegram_chat_id?: string | null;
-}
-
-// Интерфейс для ответа API
+// Define Event type for API response
 interface EventApiResponse {
   id: string;
   title: string;
@@ -47,14 +29,14 @@ interface EventApiResponse {
   price: number | string;
   capacity: number;
   telegram_chat_link: string | null;
-  creator_id?: string | number; // Может быть строкой или числом или undefined
+  creator_id?: string | number;
   created_at?: string;
   updated_at?: string;
   organizer_verification_key?: string;
   telegram_chat_id?: string | null;
 }
 
-// Mock API for reviews (since no real API is provided for reviews)
+// Mock API for reviews
 const api = {
   getReviews: async () => {
     return [
@@ -74,9 +56,9 @@ function Home() {
   const [searchQueryByLocation, setSearchQueryByLocation] = useState('');
   const sliderRef = useRef<Slider>(null);
   const toast = useToast();
+  const navigate = useNavigate();
 
-
-  // Загрузка данных с бэка
+  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -86,33 +68,30 @@ function Home() {
           api.getReviews(),
         ]);
 
-        // Map categories to ensure correct type
         const mappedCategories: Category[] = catData.map((cat) => ({
           id: cat.id,
           category_name: cat.category_name,
         }));
 
-        // Map events to match Event type expected by EventCard
         const mappedEvents: EventCardEvent[] = eventData.map((event: EventApiResponse) => ({
           id: String(event.id),
           title: event.title,
           description: event.description,
           date: event.date,
           price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
-          capacity: event.capacity, // Assume all slots are free (adjust based on backend)
-          location: event.location, // Use location as address
+          capacity: event.capacity,
+          location: event.location,
           image: event.image,
           category: {
-            id: String(event.category_id), // Преобразуем id в строку для совместимости с EventCard
-            category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name || 
+            id: String(event.category_id),
+            category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
                           `Категория ${event.category_id}`,
           },
           creator: {
             id: String(event.creator_id || '0'),
-            login: `Organizer_${event.creator_id || '0'}`, // Mock login
-            telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`, // Mock telegram
+            login: `Organizer_${event.creator_id || '0'}`,
+            telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
           },
-          // При необходимости можно добавить пустые отзывы
           reviews: [],
         }));
 
@@ -132,7 +111,7 @@ function Home() {
     fetchData();
   }, [toast]);
 
-  // Настройки для react-slick
+  // Slick settings
   const slickSettings = {
     dots: true,
     infinite: true,
@@ -159,16 +138,25 @@ function Home() {
     ],
   };
 
-  // Обработчик поиска
+  // Handle search
   const handleSearch = () => {
-    if (!searchQueryByTitle && !searchQueryByLocation) return;
-    // Здесь будет запрос на бэк с searchQuery и selectedCategory
-    toast({
-      title: 'Поиск',
-      description: `Ищем события по запросу "${searchQueryByTitle}" и "${searchQueryByLocation}"`,
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
+    if (!searchQueryByTitle && !searchQueryByLocation) {
+      toast({
+        title: 'Ошибка',
+        description: 'Введите название или локацию для поиска',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // Navigate to /events with search parameters in state
+    navigate('/events', {
+      state: {
+        title: searchQueryByTitle,
+        location: searchQueryByLocation,
+      },
     });
   };
 
@@ -196,7 +184,7 @@ function Home() {
       </style>
       <Header />
       <Box className={styles.content}>
-        {/* Баннер с поиском */}
+        {/* Banner with search */}
         <Box className={styles.banner} bgGradient="linear(to-r, #E7EBFC, #FEFEFE)" p={{ base: '2rem', md: '4rem' }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -217,19 +205,13 @@ function Home() {
                 bg="white"
                 size="lg"
               />
-              <Select
+              <Input
                 placeholder="Поиск по месту проведения"
                 value={searchQueryByLocation}
                 onChange={(e) => setSearchQueryByLocation(e.target.value)}
                 bg="white"
                 size="lg"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.category_name}
-                  </option>
-                ))}
-              </Select>
+              />
               <Button
                 bg="#2E4FD7"
                 color="white"
@@ -237,13 +219,13 @@ function Home() {
                 size="lg"
                 onClick={handleSearch}
               >
-                Найти
+                Поиск
               </Button>
             </Flex>
           </motion.div>
         </Box>
 
-        {/* Категории */}
+        {/* Categories */}
         <Box className={styles.categories} p={{ base: '1rem', md: '2rem' }}>
           <Heading as="h3" size={{ base: 'md', md: 'lg' }} mb="1rem">
             Популярные категории
@@ -255,7 +237,10 @@ function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.2 }}
               >
-                <Link to={`/events?category=${cat.id}`}>
+                <Link
+                  to="/events"
+                  state={{ category: String(cat.id) }}
+                >
                   <Box bg="#FEFEFE" p="1rem" borderRadius="md" boxShadow="sm" textAlign="center">
                     <Text fontWeight="medium">{cat.category_name}</Text>
                   </Box>

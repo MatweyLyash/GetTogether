@@ -82,7 +82,7 @@ interface Review {
   user_id: string;
   rating: number;
   comment: string;
-  created_at: string;
+  createdAt: string;
 }
 
 interface OrganizerRequest {
@@ -107,8 +107,8 @@ interface OrganizerRequest {
   id: string;
   user_id: string;
   status_id: number;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   user: {
     id: string;
     login: string;
@@ -344,7 +344,7 @@ export async function linkTelegram(telegram: string): Promise<{ message: string;
 
 export async function getEventById(event_id: string): Promise<EventResponse> {
   try {
-    const response = await userApi.get<EventResponse>(`/event/${event_id}`);
+    const response = await guestApi.get<EventResponse>(`/event/${event_id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

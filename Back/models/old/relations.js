@@ -1,26 +1,11 @@
-'use strict';
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/db'); // Импортируйте ваш sequelize
-
-// Импорт функций моделей и их инициализация
-const UserModel = require('./user');
-const RoleModel = require('./role');
-const StatusModel = require('./status');
-const OrganizerRequestModel = require('./organizerrequest');
-const EventModel = require('./event');
-const ReviewModel = require('./review');
-const CategoryModel = require('./category');
-const EventRegistrationModel = require('./eventregistration');
-
-// Инициализация моделей
-const User = UserModel(sequelize, DataTypes);
-const Role = RoleModel(sequelize, DataTypes);
-const Status = StatusModel(sequelize, DataTypes);
-const OrganizerRequest = OrganizerRequestModel(sequelize, DataTypes);
-const Event = EventModel(sequelize, DataTypes);
-const Review = ReviewModel(sequelize, DataTypes);
-const Category = CategoryModel(sequelize, DataTypes);
-const EventRegistration = EventRegistrationModel(sequelize, DataTypes);
+const User = require('./User');
+const Role = require('./Role');
+const Status = require('./Status');
+const OrganizerRequest = require('./OrganizerRequest');
+const Event = require('./Event');
+const Review = require('./Review');
+const Category = require('./Category')
+const EventRegistration = require('./EventRegistraion')
 
 
 // User ↔ Role

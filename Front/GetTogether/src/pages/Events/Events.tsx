@@ -15,20 +15,21 @@ import {
   FormLabel,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import EventCard from '../../components/EventCard/EventCard';
 import { getEvents, getCategories } from '../../api/api';
-import { Event as EventCardEvent } from '../../types/event'; // Импортируем тип Event из модуля types/event
+import { Event as EventCardEvent } from '../../types/event';
 import styles from './Events.module.scss';
 
-// Define Category type to match backend
+// Define Category type
 interface Category {
   id: number;
   category_name: string;
 }
 
-// Define API Event type to match backend response
+// Define API Event type
 interface ApiEvent {
   id: string;
   title: string;
@@ -58,6 +59,7 @@ function Events() {
   const [endDate, setEndDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
+  const location = useLocation();
 
   // Fetch events and categories
   useEffect(() => {
@@ -66,39 +68,71 @@ function Events() {
       try {
         const [eventData, catData] = await Promise.all([getEvents(), getCategories()]);
 
-        // Map categories
         const mappedCategories: Category[] = catData.map((cat) => ({
           id: cat.id,
           category_name: cat.category_name,
         }));
 
-        // Map events to match EventCardEvent type
         const mappedEvents: EventCardEvent[] = eventData.map((event: ApiEvent) => ({
           id: String(event.id),
           title: event.title,
           description: event.description,
           date: event.date,
           price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
-          capacity: event.capacity, // Mock: assume all slots are free
-          location: event.location, // Use location as address
-          image:event.image,
+          capacity: event.capacity,
+          location: event.location,
+          image: event.image,
           category: {
-            id: String(event.category_id), // Преобразуем ID категории в строку для совместимости с EventCard
-            category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name || 
+            id: String(event.category_id),
+            category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
                           `Категория ${event.category_id}`,
           },
           creator: {
             id: String(event.creator_id || '0'),
-            login: `Organizer_${event.creator_id || '0'}`, // Mock login
-            telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`, // Mock telegram
+            login: `Organizer_${event.creator_id || '0'}`,
+            telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
           },
-          // Добавляем пустой массив отзывов
           reviews: [],
         }));
 
         setCategories(mappedCategories);
         setEvents(mappedEvents);
-        setFilteredEvents(mappedEvents); // Initialize filtered events
+        setFilteredEvents(mappedEvents);
+
+        // Apply filters from location.state
+        const { title, location: loc, category } = (location.state || {}) as {
+          title?: string;
+          location?: string;
+          category?: string;
+        };
+
+        if (title || loc || category) {
+          setSearchTitle(title || '');
+          setSearchLocation(loc || '');
+          setSelectedCategory(category || '');
+
+          // Perform search with the provided filters
+          let filtered = mappedEvents;
+
+          if (title) {
+            filtered = filtered.filter((event) =>
+              event.title.toLowerCase().includes(title.toLowerCase())
+            );
+          }
+
+          if (loc) {
+            filtered = filtered.filter((event) =>
+              event.location.toLowerCase().includes(loc.toLowerCase())
+            );
+          }
+
+          if (category) {
+            filtered = filtered.filter((event) => event.category.id === category);
+          }
+
+          setFilteredEvents(filtered);
+          
+        }
       } catch (error: any) {
         toast({
           title: 'Ошибка загрузки данных',
@@ -112,39 +146,33 @@ function Events() {
       }
     };
     fetchData();
-  }, [toast]);
+  }, [toast, location.state]);
 
   // Handle search and filtering
   const handleSearch = () => {
     let filtered = events;
 
-    // Filter by title
     if (searchTitle) {
       filtered = filtered.filter((event) =>
         event.title.toLowerCase().includes(searchTitle.toLowerCase())
       );
     }
 
-    // Filter by location
     if (searchLocation) {
       filtered = filtered.filter((event) =>
-        event.location.toLowerCase().includes(searchLocation.toLowerCase()) // Изменил location на address
+        event.location.toLowerCase().includes(searchLocation.toLowerCase())
       );
     }
 
-    // Filter by category
     if (selectedCategory) {
-      const categoryId = selectedCategory;
-      filtered = filtered.filter((event) => String(event.category.id) === categoryId); // Изменил category_id на category.id
+      filtered = filtered.filter((event) => event.category.id === selectedCategory);
     }
 
-    // Фильтрация по начальной дате
     if (startDate) {
       const startDateTime = new Date(startDate).getTime();
       filtered = filtered.filter((event) => new Date(event.date).getTime() >= startDateTime);
     }
 
-    // Фильтрация по конечной дате
     if (endDate) {
       const endDateTime = new Date(endDate).getTime();
       filtered = filtered.filter((event) => new Date(event.date).getTime() <= endDateTime);
@@ -152,13 +180,6 @@ function Events() {
 
     setFilteredEvents(filtered);
 
-    toast({
-      title: 'Поиск',
-      description: `Найдено ${filtered.length} мероприятий`,
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
-    });
   };
 
   // Reset filters
@@ -188,10 +209,9 @@ function Events() {
       </style>
       <Header />
       <Heading size="lg" mb="1rem" textAlign="center" pt="2rem">
-            Список мероприятий
-          </Heading>
+        Список мероприятий
+      </Heading>
       <div className={styles.contentContainer}>
-     
         <div className={styles.filterSidebar}>
           <VStack spacing="1rem" align="stretch">
             <Heading size="md">Фильтры</Heading>
@@ -217,13 +237,11 @@ function Events() {
               size="md"
             >
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
+                <option key={cat.id} value={String(cat.id)}>
                   {cat.category_name}
                 </option>
               ))}
             </Select>
-            
-            {/* Фильтр по дате - начальная дата */}
             <FormControl>
               <FormLabel fontSize="sm">Дата проведения (от):</FormLabel>
               <Input
@@ -234,8 +252,6 @@ function Events() {
                 size="md"
               />
             </FormControl>
-            
-            {/* Фильтр по дате - конечная дата */}
             <FormControl>
               <FormLabel fontSize="sm">Дата проведения (до):</FormLabel>
               <Input
@@ -246,7 +262,6 @@ function Events() {
                 size="md"
               />
             </FormControl>
-            
             <Button
               bg="#2E4FD7"
               color="white"
@@ -269,7 +284,6 @@ function Events() {
           </VStack>
         </div>
 
-        {/* Event list */}
         <div className={styles.eventContainer}>
           {isLoading ? (
             <Flex justify="center" py="4rem">
@@ -280,8 +294,8 @@ function Events() {
               Мероприятия не найдены
             </Text>
           ) : (
-            <SimpleGrid 
-              columns={{ base: 1, md: 1, lg: 2 }} 
+            <SimpleGrid
+              columns={{ base: 1, md: 1, lg: 2 }}
               spacing="1.5rem"
             >
               {filteredEvents.map((event) => (

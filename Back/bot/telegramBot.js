@@ -83,9 +83,9 @@ bot.onText(/\/link (.+)/, async (msg, match) => {
     }
 
     // Сохраняем текущий updated_at
-    const originalUpdatedAt = new Date(user.updated_at);
+    const originalUpdatedAt = new Date(user.updatedAt);
     user.telegram = telegramTag; // Устанавливаем тег сразу
-    user.updated_at = new Date(); // Обновляем updated_at
+    user.updatedAt = new Date(); // Обновляем updated_at
     await user.save();
 
     // Запускаем таймер на 2 минуты
@@ -93,12 +93,12 @@ bot.onText(/\/link (.+)/, async (msg, match) => {
       try {
         // Перезагружаем пользователя из базы
         const updatedUser = await models.User.findByPk(user.id);
-        const currentUpdatedAt = new Date(updatedUser.updated_at);
+        const currentUpdatedAt = new Date(updatedUser.updatedAt);
 
-        // Проверяем, изменился ли updated_at
+        // Проверяем, изменился ли updatedAt
         if (currentUpdatedAt.getTime() === originalUpdatedAt.getTime()) {
-          updatedUser.telegram = null; // Сбрасываем, если updated_at не изменился
-          updatedUser.updated_at = new Date();
+          updatedUser.telegram = null; // Сбрасываем, если updatedAt не изменился
+          updatedUser.updatedAt = new Date(); // Обновляем updatedAt
           await updatedUser.save();
           bot.sendMessage(chatId, `Привязка аккаунта "${login}" отменена, так как не была подтверждена в течение 2 минут.`);
         }

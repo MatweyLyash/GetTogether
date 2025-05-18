@@ -32,7 +32,7 @@ import styles from './Event.module.scss';
 
 function EventPage() {
   const { id } = useParams<{ id: string }>();
-  const [eventData, setEventData] = useState<EventResponse | null>(null);
+  const [eventData, setEventData] = useState<EventResponse | EventType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const { isAuthenticated, user } = useAuth();
@@ -48,6 +48,13 @@ function EventPage() {
         setEventData(data);
       } catch (error: any) {
         console.error('Ошибка при загрузке мероприятия:', error);
+        toast({
+          title: 'Ошибка',
+          description: 'Не удалось загрузить мероприятие',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
       } finally {
         setIsLoading(false);
       }
@@ -115,7 +122,7 @@ function EventPage() {
     );
   }
 
-  if (!eventData || !eventData.event) {
+  if (!eventData) {
     return (
       <Box className={styles.container}>
         <Header />
@@ -130,8 +137,11 @@ function EventPage() {
     );
   }
 
-  const { event, registration } = eventData;
-  const isOrganizer = user?.id === event.creator.id;
+  // Определяем event и registration в зависимости от структуры eventData
+  const event = (eventData as EventResponse).event || eventData;
+  const registration = (eventData as EventResponse).registration || null;
+
+  const isOrganizer = user?.id === String(event.creator.id);
   const isRegistered = registration !== null;
   const registrationClosed = event.capacity <= 0;
   const eventDate = new Date(event.date);
@@ -255,7 +265,7 @@ function EventPage() {
                 <Text whiteSpace="pre-line">{event.description}</Text>
               </Box>
 
-              {isRegistered && registration.telegram_invite_link && (
+              {isRegistered && registration?.telegram_invite_link && (
                 <Box bg="blue.50" p={4} borderRadius="md">
                   <HStack>
                     <FaTelegram size={24} color="#0088cc" />
@@ -293,7 +303,7 @@ function EventPage() {
                     h="20"
                     isDisabled
                   >
-                    Заяка на регистрацию передана. <br/>Ожидайте подтверждения от организатора
+                    Заявка на регистрацию передана. <br/>Ожидайте подтверждения от организатора
                   </Button>
                 )}
 
@@ -351,12 +361,12 @@ function EventPage() {
                   </Flex>
                   <Text>{review.comment}</Text>
                   <Text fontSize="sm" color="gray.500" mt={2}>
-                    {new Date(review.created_at).toLocaleDateString('ru-RU')}
+                    {new Date(review.createdAt).toLocaleDateString('ru-RU')}
                   </Text>
                 </Box>
               ))}
             </VStack>
-      </Box>
+          </Box>
         )}
       </Container>
       <Footer />

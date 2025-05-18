@@ -29,7 +29,7 @@ class UserRepository {
                 { 
                     model: models.Review,
                     as: 'reviews',
-                    attributes: ['id', 'rating', 'comment', 'created_at'],
+                    attributes: ['id', 'rating', 'comment', 'createdAt'],
                     include: [
                         { 
                             model: models.User,
@@ -48,7 +48,7 @@ class UserRepository {
                   include: [
                     { model: models.Category, as: 'category', attributes: ['id', 'category_name'] },
                     { model: models.User, as: 'creator', attributes: ['id', 'login', 'telegram'] },
-                    { model: models.Review, as: 'reviews', attributes: ['id', 'rating', 'comment', 'created_at'], include: [{ model: models.User, as: 'reviewUser', attributes: ['id', 'login'] }] }
+                    { model: models.Review, as: 'reviews', attributes: ['id', 'rating', 'comment', 'createdAt'], include: [{ model: models.User, as: 'reviewUser', attributes: ['id', 'login'] }] }
                   ]
                 });
           
@@ -116,7 +116,7 @@ class UserRepository {
 
     async getMe(user_id) {
         return await models.User.findByPk(user_id, {
-            attributes: ['id', 'login', 'telegram', 'role_id', 'created_at'], // Выбираем нужные поля
+            attributes: ['id', 'login', 'telegram', 'role_id', 'createdAt'], // Выбираем нужные поля
         });
     }
 }

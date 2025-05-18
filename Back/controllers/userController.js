@@ -50,25 +50,27 @@ class UserController {
       async getEvent(req, res) {
         try {
           const { event_id } = req.params;
-          const user_id = req.user.id;
-    
+          const user_id = req.user?.id;
+      
           if (!validators.validatePresence(event_id)) {
             return res.status(400).json({ error: 'Event ID is required' });
           }
-    
-          const event = await this.userRepository.getEvent(event_id, user_id);
-          if (!event) {
+      
+          const result = await this.userRepository.getEvent(event_id, user_id);
+          if (!result) {
             return res.status(404).json({ error: 'Event not found' });
           }
-    
-          if (event.event.image) {
+      
+          const event = result.event || result;
+      
+          if (event.image) {
             const { fileTypeFromBuffer } = await import('file-type');
-            const fileType = await fileTypeFromBuffer(event.event.image);
+            const fileType = await fileTypeFromBuffer(event.image);
             const mime = fileType?.mime || 'image/jpeg';
-            event.event.image = `data:${mime};base64,${event.event.image.toString('base64')}`;
+            event.image = `data:${mime};base64,${event.image.toString('base64')}`;
           }
-    
-          return res.json(event);
+      
+          return res.json(result);
         } catch (error) {
           console.error('Ошибка получения события:', error);
           return res.status(500).json({ error: error.message });
@@ -206,9 +208,9 @@ class UserController {
                 return res.status(400).json({ error: 'Telegram tag already linked to another account' });
             }
 
-            // Проверяем, прошло ли 2 минуты с updated_at
+            // Проверяем, прошло ли 2 минуты с updatedAt
             const now = new Date();
-            const updatedAt = new Date(user.updated_at);
+            const updatedAt = new Date(user.updatedAt);
             const timeDiff = (now - updatedAt) / 1000; // Разница в секундах
 
             if (timeDiff > 120) {

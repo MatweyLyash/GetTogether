@@ -1,5 +1,5 @@
 const {  Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../../config/db');
 
 const User = sequelize.define ('User', {
       id: {
@@ -46,7 +46,7 @@ const User = sequelize.define ('User', {
         timestamps: true,
         createdAt: 'created_at',
         updatedAt: 'updated_at',
-        underscored: true,
+        underscored: false,
         tableName:"users"
       }
 );
