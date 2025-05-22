@@ -14,6 +14,7 @@ class UserController {
         this.getOwnEventsRegistration = this.getOwnEventsRegistration.bind(this);
         this.createOrganizerRequest = this.createOrganizerRequest.bind(this);
         this.getOwnOrganizerRequests = this.getOwnOrganizerRequests.bind(this);
+        this.linkTelegram = this.linkTelegram.bind(this);
         this.getMe = this.getMe.bind(this);
     }
 
@@ -28,54 +29,54 @@ class UserController {
 
     async getEvents(req, res) {
         try {
-          const events = await this.userRepository.getEvents();
-          const eventsData = await Promise.all(
-            events.map(async (event) => {
-              if (event.image) {
+            const events = await this.userRepository.getEvents();
+            const eventsData = await Promise.all(
+                events.map(async (event) => {
+                    if (event.image) {
+                        const { fileTypeFromBuffer } = await import('file-type');
+                        const fileType = await fileTypeFromBuffer(event.image);
+                        const mime = fileType?.mime || 'image/jpeg';
+                        event.image = `data:${mime};base64,${event.image.toString('base64')}`;
+                    }
+                    return event;
+                })
+            );
+            return res.json(eventsData);
+        } catch (error) {
+            console.error('Ошибка получения событий:', error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async getEvent(req, res) {
+        try {
+            const { event_id } = req.params;
+            const user_id = req.user?.id;
+
+            if (!validators.validatePresence(event_id)) {
+                return res.status(400).json({ error: 'Event ID is required' });
+            }
+
+            const result = await this.userRepository.getEvent(event_id, user_id);
+            if (!result) {
+                return res.status(404).json({ error: 'Event not found' });
+            }
+
+            const event = result.event || result;
+
+            if (event.image) {
                 const { fileTypeFromBuffer } = await import('file-type');
                 const fileType = await fileTypeFromBuffer(event.image);
                 const mime = fileType?.mime || 'image/jpeg';
                 event.image = `data:${mime};base64,${event.image.toString('base64')}`;
-              }
-              return event;
-            })
-          );
-          return res.json(eventsData);
-        } catch (error) {
-          console.error('Ошибка получения событий:', error);
-          return res.status(500).json({ error: error.message });
-        }
-      }
+            }
 
-      async getEvent(req, res) {
-        try {
-          const { event_id } = req.params;
-          const user_id = req.user?.id;
-      
-          if (!validators.validatePresence(event_id)) {
-            return res.status(400).json({ error: 'Event ID is required' });
-          }
-      
-          const result = await this.userRepository.getEvent(event_id, user_id);
-          if (!result) {
-            return res.status(404).json({ error: 'Event not found' });
-          }
-      
-          const event = result.event || result;
-      
-          if (event.image) {
-            const { fileTypeFromBuffer } = await import('file-type');
-            const fileType = await fileTypeFromBuffer(event.image);
-            const mime = fileType?.mime || 'image/jpeg';
-            event.image = `data:${mime};base64,${event.image.toString('base64')}`;
-          }
-      
-          return res.json(result);
+            return res.json(result);
         } catch (error) {
-          console.error('Ошибка получения события:', error);
-          return res.status(500).json({ error: error.message });
+            console.error('Ошибка получения события:', error);
+            return res.status(500).json({ error: error.message });
         }
-      }
+    }
 
     async getReviews(req, res) {
         try {
@@ -187,49 +188,6 @@ class UserController {
         }
     }
 
-    async linkTelegram(req, res) {
-        try {
-            const { telegram } = req.body;
-            const user_id = req.user.id; // Предполагаем аутентификацию
-
-            // Валидация
-            if (!telegram || !telegram.startsWith('@')) {
-                return res.status(400).json({ error: 'Telegram tag is required' });
-            }
-
-            // Находим пользователя
-            const user = await models.User.findByPk(user_id);
-            if (!user) {
-                return res.status(404).json({ error: 'User not found' });
-            }
-            // Проверяем, не занят ли тег
-            const existingUser = await models.User.findOne({ where: { telegram } });
-            if (existingUser && existingUser.id !== user_id) {
-                return res.status(400).json({ error: 'Telegram tag already linked to another account' });
-            }
-
-            // Проверяем, прошло ли 2 минуты с updatedAt
-            const now = new Date();
-            const updatedAt = new Date(user.updatedAt);
-            const timeDiff = (now - updatedAt) / 1000; // Разница в секундах
-
-            if (timeDiff > 120) {
-                user.telegram = null; // Сбрасываем, если прошло больше 2 минут
-                return res.json({ message: 'linked account time out' });
-            } else {
-                user.telegram = telegram; // Устанавливаем переданный тег
-            }
-            // Сохраняем изменения  
-
-            await user.save();
-
-            return res.json({ message: 'Telegram account successfully linked', telegram });
-        } catch (error) {
-            console.error('Ошибка привязки Telegram:', error);
-            return res.status(500).json({ error: 'Internal server error' });
-        }
-    }
-
     async getMe(req, res) {
         try {
             const user_id = req.user.id;
@@ -240,6 +198,39 @@ class UserController {
             return res.json(user);
         } catch (error) {
             return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async linkTelegram(req, res) {
+        try {
+            const { telegram } = req.body;
+            const user_id = req.user.id; // Предполагаем аутентификацию
+
+            // Валидация
+            if (!telegram || !telegram.startsWith('@')) {
+                return res.status(400).json({ error: 'Не верный тег Telegram' });
+            }
+
+            // Находим пользователя
+            const user = await this.userRepository.getMe(user_id);
+            if (!user) {
+                return res.status(404).json({ error: 'Пользователь не найден' });
+            }
+            const expectedTelegram = user.telegram?.startsWith('PENDING_')
+                ? user.telegram.replace('PENDING_', '')
+                : user.telegram;
+
+            if (expectedTelegram !== telegram) {
+                return res.status(400).json({ message: 'Указанный Telegram-тег не совпадает с ожидаемым' });
+            }
+
+            user.telegram = telegram;
+            user.updatedAt = new Date();
+            await user.save();
+
+            res.status(200).json({ message: 'Telegram-тег успешно привязан', telegram });
+        } catch (error) {
+            res.status(500).json({ message: error.message });
         }
     }
 }

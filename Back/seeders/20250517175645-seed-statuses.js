@@ -3,20 +3,20 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.bulkInsert('status', [
+    await queryInterface.bulkInsert('statuses', [
       {
-        status_name: 'pending',
+        status_name: 'pending'
       },
       {
-        status_name: 'approved',
+        status_name: 'approved'
       },
       {
-        status_name: 'rejected',
+        status_name: 'rejected'
       }
-    ], {});
+    ]);
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('status', null, {});
+    await queryInterface.bulkDelete('statuses', null, {});
   }
 };

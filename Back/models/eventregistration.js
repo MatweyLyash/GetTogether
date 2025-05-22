@@ -1,27 +1,46 @@
+// models/eventregistration.js
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  class EventRegistration extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
-      // define association here
-    }
-  }
+  class EventRegistration extends Model {}
   EventRegistration.init({
-    user_id: DataTypes.INTEGER,
-    event_id: DataTypes.INTEGER,
-    status_id: DataTypes.INTEGER,
-    telegram_invite_link: DataTypes.STRING
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'users', key: 'id' }
+    },
+    event_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'events', key: 'id' }
+    },
+    status_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'statuses', key: 'id' }
+    },
+    telegram_invite_link: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    }
   }, {
     sequelize,
     modelName: 'EventRegistration',
-    tableName: 'eventregistration',
+    tableName: 'eventregistrations',
     timestamps: true,
   });
   return EventRegistration;

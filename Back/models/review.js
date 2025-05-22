@@ -1,28 +1,46 @@
+// models/review.js
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  class Review extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
-      // define association here
-    }
-  }
+  class Review extends Model {}
   Review.init({
-    user_id: DataTypes.INTEGER,
-    event_id: DataTypes.INTEGER,
-    rating: DataTypes.INTEGER,
-    comment: DataTypes.TEXT
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'users', key: 'id' }
+    },
+    event_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'events', key: 'id' }
+    },
+    rating: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+        max: 5
+      }
+    },
+    comment: {
+      type: DataTypes.TEXT
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    }
   }, {
     sequelize,
     modelName: 'Review',
-    tableName: 'review',
+    tableName: 'reviews',
     timestamps: true,
+    updatedAt: false
   });
   return Review;
 };

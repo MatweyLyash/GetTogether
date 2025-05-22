@@ -37,6 +37,10 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
+
+const setupAssociations = require('./relations');
+setupAssociations(db);
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 

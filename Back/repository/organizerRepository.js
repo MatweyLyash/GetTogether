@@ -1,6 +1,5 @@
-const models = require('./../models/relations');
+const models = require('../models');
 const {generateInviteLink} = require('../bot/telegramBot');
-
 
 class OrganizerRepository {
     async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image) {
@@ -53,9 +52,7 @@ class OrganizerRepository {
     }
 
     async responseToEventRequest(creator_id, user_id, event_id, status_id) {
-        console.log("creator_id: " + creator_id, "user_id: " + user_id, "event_id: " + event_id,"status_id" + status_id);
         const event = await models.Event.findOne({ where: { id: event_id, creator_id: creator_id } });
-        console.log(event);
         if (!event) {
             throw new Error('Событие не найдено или у него нет организатора');
         }
@@ -82,8 +79,6 @@ class OrganizerRepository {
       
           // Сохраняем изменения
           await registration.save();
-    
-          await registration.save();
 
           // Возвращаем обновлённую заявку с включённым статусом
           return await models.EventRegistration.findOne({
@@ -103,7 +98,7 @@ class OrganizerRepository {
                 },
                 {
                     model: models.Event,
-                    as: 'event',
+                    as: 'Event',
                     where: { creator_id }, // Проверяем, что событие принадлежит организатору
                     attributes: []
                 }

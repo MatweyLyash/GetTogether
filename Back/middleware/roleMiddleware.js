@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const models = require('../models/relations');
+const models = require('../models');
 
 /**
  * Middleware to check if user has admin role (role_id: 3)

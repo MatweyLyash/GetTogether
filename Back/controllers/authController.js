@@ -1,21 +1,21 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/relations').User; // Импортируем модель User
+const models = require('../models');
 
 class AuthController {
   async register(req, res, next) {
     const { login, password } = req.body;
 
     try {
-      const existingUser = await User.findOne({ where: { login } });
+      const existingUser = await models.User.findOne({ where: { login } });
       if (existingUser) {
-        return res.status(400).json({ message: 'Пользователь с таким telegram уже существует' });
+        return res.status(400).json({ message: 'Пользователь с таким логином уже существует' });
       }
 
       const salt = await bcrypt.genSalt(10);
       const password_hash = await bcrypt.hash(password, salt);
 
-      const user = await User.create({ role_id:1, password_hash, login });
+      const user = await models.User.create({ role_id:1, password_hash, login });
 
       // Generate tokens with extended payload
       const accessToken = jwt.sign({ 
@@ -67,7 +67,7 @@ class AuthController {
     const { login, password } = req.body;
 
     try {
-      const user = await User.findOne({ where: { login } });
+      const user = await models.User.findOne({ where: { login } });
       if (!user) {
         return res.status(400).json({ message: 'Неверный логин или пароль' });
       }
@@ -136,7 +136,7 @@ class AuthController {
 
     try {
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-      const user = await User.findByPk(decoded.sub); // Заменяем decoded.userId на decoded.sub
+      const user = await models.User.findByPk(decoded.sub); // Заменяем decoded.userId на decoded.sub
 
       if (!user) {
         return res.status(401).json({ message: 'Пользователь не найден' });

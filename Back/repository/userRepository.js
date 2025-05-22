@@ -1,4 +1,4 @@
-const models = require('./../models/relations');
+const models = require('../models');
 
 class UserRepository {
     
@@ -99,7 +99,7 @@ class UserRepository {
             where: { user_id},
             include: {
                 model: models.Event,
-                as: 'event'
+                as: 'Event'
             },
         });
     }

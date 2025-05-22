@@ -1,0 +1,371 @@
+{
+    "tables": {
+        "categories": {
+            "tableName": "categories",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "category_name": {
+                    "allowNull": false,
+                    "field": "category_name",
+                    "seqType": "Sequelize.STRING(50)"
+                }
+            },
+            "indexes": []
+        },
+        "events": {
+            "tableName": "events",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "creator_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "users",
+                        "key": "id"
+                    },
+                    "field": "creator_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "category_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "categories",
+                        "key": "id"
+                    },
+                    "field": "category_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "title": {
+                    "allowNull": false,
+                    "field": "title",
+                    "seqType": "Sequelize.STRING(255)"
+                },
+                "description": {
+                    "field": "description",
+                    "seqType": "Sequelize.TEXT"
+                },
+                "date": {
+                    "allowNull": false,
+                    "field": "date",
+                    "seqType": "Sequelize.DATE"
+                },
+                "location": {
+                    "field": "location",
+                    "seqType": "Sequelize.STRING(255)"
+                },
+                "price": {
+                    "defaultValue": {
+                        "value": 0
+                    },
+                    "field": "price",
+                    "seqType": "Sequelize.DECIMAL(10, 2)"
+                },
+                "telegram_chat_link": {
+                    "allowNull": true,
+                    "field": "telegram_chat_link",
+                    "seqType": "Sequelize.STRING(255)"
+                },
+                "telegram_chat_id": {
+                    "allowNull": true,
+                    "field": "telegram_chat_id",
+                    "seqType": "Sequelize.STRING"
+                },
+                "organizer_verification_key": {
+                    "allowNull": true,
+                    "field": "organizer_verification_key",
+                    "seqType": "Sequelize.STRING"
+                },
+                "capacity": {
+                    "allowNull": false,
+                    "field": "capacity",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "image": {
+                    "allowNull": true,
+                    "field": "image",
+                    "seqType": "Sequelize.BLOB"
+                },
+                "createdAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "createdAt",
+                    "seqType": "Sequelize.DATE"
+                },
+                "updatedAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "updatedAt",
+                    "seqType": "Sequelize.DATE"
+                },
+                "deletedAt": {
+                    "field": "deletedAt",
+                    "seqType": "Sequelize.DATE"
+                }
+            },
+            "indexes": []
+        },
+        "eventregistrations": {
+            "tableName": "eventregistrations",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "user_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "users",
+                        "key": "id"
+                    },
+                    "field": "user_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "event_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "events",
+                        "key": "id"
+                    },
+                    "field": "event_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "status_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "statuses",
+                        "key": "id"
+                    },
+                    "field": "status_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "telegram_invite_link": {
+                    "allowNull": true,
+                    "field": "telegram_invite_link",
+                    "seqType": "Sequelize.STRING"
+                },
+                "createdAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "createdAt",
+                    "seqType": "Sequelize.DATE"
+                },
+                "updatedAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "updatedAt",
+                    "seqType": "Sequelize.DATE"
+                }
+            },
+            "indexes": []
+        },
+        "organizerrequests": {
+            "tableName": "organizerrequests",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "user_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "users",
+                        "key": "id"
+                    },
+                    "field": "user_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "status_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "statuses",
+                        "key": "id"
+                    },
+                    "field": "status_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "createdAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "createdAt",
+                    "seqType": "Sequelize.DATE"
+                },
+                "updatedAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "updatedAt",
+                    "seqType": "Sequelize.DATE"
+                }
+            },
+            "indexes": []
+        },
+        "reviews": {
+            "tableName": "reviews",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "user_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "users",
+                        "key": "id"
+                    },
+                    "field": "user_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "event_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "events",
+                        "key": "id"
+                    },
+                    "field": "event_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "rating": {
+                    "allowNull": false,
+                    "field": "rating",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "comment": {
+                    "field": "comment",
+                    "seqType": "Sequelize.TEXT"
+                },
+                "createdAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "createdAt",
+                    "seqType": "Sequelize.DATE"
+                }
+            },
+            "indexes": []
+        },
+        "roles": {
+            "tableName": "roles",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "role_name": {
+                    "allowNull": false,
+                    "field": "role_name",
+                    "seqType": "Sequelize.STRING(50)"
+                }
+            },
+            "indexes": []
+        },
+        "statuses": {
+            "tableName": "statuses",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "status_name": {
+                    "allowNull": false,
+                    "field": "status_name",
+                    "seqType": "Sequelize.STRING(50)"
+                }
+            },
+            "indexes": []
+        },
+        "users": {
+            "tableName": "users",
+            "schema": {
+                "id": {
+                    "primaryKey": true,
+                    "autoIncrement": true,
+                    "field": "id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "role_id": {
+                    "allowNull": false,
+                    "references": {
+                        "model": "roles",
+                        "key": "id"
+                    },
+                    "field": "role_id",
+                    "seqType": "Sequelize.INTEGER"
+                },
+                "telegram": {
+                    "unique": true,
+                    "field": "telegram",
+                    "seqType": "Sequelize.STRING(255)"
+                },
+                "login": {
+                    "allowNull": false,
+                    "field": "login",
+                    "seqType": "Sequelize.STRING(50)"
+                },
+                "password_hash": {
+                    "allowNull": false,
+                    "field": "password_hash",
+                    "seqType": "Sequelize.STRING(255)"
+                },
+                "is_blocked": {
+                    "defaultValue": {
+                        "value": false
+                    },
+                    "field": "is_blocked",
+                    "seqType": "Sequelize.BOOLEAN"
+                },
+                "createdAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "createdAt",
+                    "seqType": "Sequelize.DATE"
+                },
+                "updatedAt": {
+                    "defaultValue": {
+                        "internal": true,
+                        "value": "Sequelize.NOW"
+                    },
+                    "field": "updatedAt",
+                    "seqType": "Sequelize.DATE"
+                }
+            },
+            "indexes": []
+        }
+    },
+    "path": "/home/mathew/Documents/KP/Back/migrations/_current.json",
+    "backupPath": "/home/mathew/Documents/KP/Back/migrations/_current_bak.json",
+    "exists": true,
+    "revision": 10
+}

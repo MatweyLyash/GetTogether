@@ -1,4 +1,4 @@
-const models = require('./../models/relations');
+const models = require('../models');
 const eventValidator = require('../services/eventValidator');
 
 class AdminRepository {

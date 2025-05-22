@@ -1,31 +1,48 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
-      // define association here
-    }
-  }
+  class User extends Model {}
   User.init({
-    role_id: DataTypes.INTEGER,
-    telegram: DataTypes.STRING,
-    login: DataTypes.STRING,
-    password_hash: DataTypes.STRING,
-    is_blocked: DataTypes.BOOLEAN
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    role_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'roles', key: 'id' }
+    },
+    telegram: {
+      type: DataTypes.STRING(255),
+      unique: true
+    },
+    login: {
+      type: DataTypes.STRING(50),
+      allowNull: false
+    },
+    password_hash: {
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
+    is_blocked: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    }
   }, {
     sequelize,
-    modelName: 'users',
+    modelName: 'User',
     tableName: 'users',
     timestamps: true,
-    createdAt: 'createdAt', // Явно указываем имя столбца
-    updatedAt: 'updatedAt',
   });
   return User;
 };

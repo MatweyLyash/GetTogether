@@ -1,25 +1,36 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  class OrganizerRequest extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
-      // define association here
-    }
-  }
+  class OrganizerRequest extends Model {}
   OrganizerRequest.init({
-    user_id: DataTypes.INTEGER,
-    status_id: DataTypes.INTEGER
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'users', key: 'id' }
+    },
+    status_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: 'statuses', key: 'id' }
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    }
   }, {
     sequelize,
     modelName: 'OrganizerRequest',
-    tableName: 'organizerrequest',
+    tableName: 'organizerrequests',
     timestamps: true,
   });
   return OrganizerRequest;

@@ -13,6 +13,7 @@ router.get('/events/registration', UserController.getOwnEventsRegistration);
 router.post('/organizer/request', UserController.createOrganizerRequest);
 router.get('/organizer/request', UserController.getOwnOrganizerRequests);
 
+router.post('/link-telegram', UserController.linkTelegram);
 router.get('/me', UserController.getMe);
 
 

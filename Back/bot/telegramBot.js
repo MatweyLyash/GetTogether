@@ -2,7 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 // const { sequelize } = require('./models');
 // const Event = sequelize.models.Event;
 // const User = sequelize.models.User;
-const models = require('../models/relations');
+const models = require('../models');
 const { v4: uuidv4 } = require('uuid');
 
 // Замени на свой токен
@@ -65,6 +65,7 @@ bot.onText(/\/link (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const login = match[1].trim();
   const telegramTag = `@${msg.from.username}`;
+  const pendingTelegramTag = `PENDING_${telegramTag}`;
 
   try {
     if (msg.chat.type !== 'private') {
@@ -76,41 +77,50 @@ bot.onText(/\/link (.+)/, async (msg, match) => {
       return bot.sendMessage(chatId, `Пользователь с логином "${login}" не найден. Проверьте правильность логина.`);
     }
 
-    // Проверяем, не занят ли тег
-    const existingUser = await models.User.findOne({ where: { telegram: telegramTag } });
+    const existingUser = await models.User.findOne({
+      where: { telegram: telegramTag }
+    });
     if (existingUser && existingUser.id !== user.id) {
       return bot.sendMessage(chatId, `Тег ${telegramTag} уже привязан к другому аккаунту.`);
     }
 
-    // Сохраняем текущий updated_at
-    const originalUpdatedAt = new Date(user.updatedAt);
-    user.telegram = telegramTag; // Устанавливаем тег сразу
-    user.updatedAt = new Date(); // Обновляем updated_at
+    const originalUpdatedAt = user.updatedAt.getTime();
+    user.telegram = pendingTelegramTag;
+    user.updatedAt = new Date();
     await user.save();
-
-    // Запускаем таймер на 2 минуты
-    setTimeout(async () => {
-      try {
-        // Перезагружаем пользователя из базы
-        const updatedUser = await models.User.findByPk(user.id);
-        const currentUpdatedAt = new Date(updatedUser.updatedAt);
-
-        // Проверяем, изменился ли updatedAt
-        if (currentUpdatedAt.getTime() === originalUpdatedAt.getTime()) {
-          updatedUser.telegram = null; // Сбрасываем, если updatedAt не изменился
-          updatedUser.updatedAt = new Date(); // Обновляем updatedAt
-          await updatedUser.save();
-          bot.sendMessage(chatId, `Привязка аккаунта "${login}" отменена, так как не была подтверждена в течение 2 минут.`);
-        }
-      } catch (error) {
-        console.error('Ошибка при сбросе telegram:', error);
-      }
-    }, 120000); // 2 минуты = 120000 мс
 
     bot.sendMessage(
       chatId,
       `Запрос на привязку аккаунта "${login}" отправлен. Перейдите в личный кабинет на сайте и подтвердите привязку, указав ваш Telegram-тег (${telegramTag}).`
     );
+
+    setTimeout(async () => {
+      try {
+        const updatedUser = await models.User.findByPk(user.id);
+        if (!updatedUser) {
+          console.error(`Пользователь с ID ${user.id} не найден при проверке таймера`);
+          return;
+        }
+
+        const currentUpdatedAt = updatedUser.updatedAt.getTime();
+        if (currentUpdatedAt === originalUpdatedAt) {
+          updatedUser.telegram = null;
+          updatedUser.updatedAt = new Date();
+          await updatedUser.save();
+          await bot.sendMessage(
+            chatId,
+            `Привязка аккаунта "${login}" отменена, так как не была подтверждена в течение 2 минут.`
+          );
+        } else if (!updatedUser.telegram.startsWith('PENDING_')) {
+          await bot.sendMessage(
+            chatId,
+            `Привязка аккаунта "${login}" успешна!`
+          );
+        }
+      } catch (error) {
+        console.error(`Ошибка в таймере для пользователя ${user.id}:`, error);
+      }
+    }, 120000);
   } catch (error) {
     console.error('Ошибка привязки аккаунта:', error);
     bot.sendMessage(chatId, `Ошибка: ${error.message}`);
