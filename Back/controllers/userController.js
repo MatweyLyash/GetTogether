@@ -1,5 +1,6 @@
 const UserRepository = require('../repository/userRepository');
 const validators = require('../services/baseValidators');
+const models = require('../models');
 
 class UserController {
     constructor() {
@@ -96,7 +97,7 @@ class UserController {
     async createEventRegistration(req, res) {
         try {
             const { event_id } = req.body;
-            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
+            const user_id = req.user.id; 
 
             if (!validators.validatePresence(event_id)) {
                 return res.status(400).json({ error: 'Event ID is required' });
@@ -112,7 +113,7 @@ class UserController {
     async createReview(req, res) {
         try {
             const { event_id, rating, comment } = req.body;
-            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
+            const user_id = req.user.id; 
 
             if (!validators.validatePresence(event_id)) {
                 return res.status(400).json({ error: 'Event ID is required' });
@@ -133,7 +134,6 @@ class UserController {
                 return res.status(403).json({ error: 'Вы не были подтверждены на этом мероприятии' });
             }
 
-            // 2. Проверка, что мероприятие уже прошло
             const event = await models.Event.findByPk(event_id);
             if (!event) {
                 return res.status(404).json({ error: 'Мероприятие не найдено' });
@@ -142,7 +142,6 @@ class UserController {
                 return res.status(400).json({ error: 'Оставлять отзыв можно только после завершения мероприятия' });
             }
 
-            // 3. Проверка, что отзыв уже не оставлен
             const existing = await models.Review.findOne({ where: { user_id, event_id } });
             if (existing) {
                 return res.status(400).json({ error: 'Вы уже оставили отзыв на это мероприятие' });
@@ -158,7 +157,7 @@ class UserController {
 
     async getOwnEventsRegistration(req, res) {
         try {
-            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
+            const user_id = req.user.id;
             const registrations = await this.userRepository.getOwnEventsRegistration(user_id);
             return res.json(registrations);
         } catch (error) {
@@ -180,7 +179,7 @@ class UserController {
 
     async getOwnOrganizerRequests(req, res) {
         try {
-            const user_id = req.user.id; // Исправлено: req.user.userId → req.user.id
+            const user_id = req.user.id;
             const requests = await this.userRepository.getOwnOrganizerRequests(user_id);
             return res.json(requests);
         } catch (error) {
@@ -204,14 +203,12 @@ class UserController {
     async linkTelegram(req, res) {
         try {
             const { telegram } = req.body;
-            const user_id = req.user.id; // Предполагаем аутентификацию
+            const user_id = req.user.id;
 
-            // Валидация
             if (!telegram || !telegram.startsWith('@')) {
                 return res.status(400).json({ error: 'Не верный тег Telegram' });
             }
 
-            // Находим пользователя
             const user = await this.userRepository.getMe(user_id);
             if (!user) {
                 return res.status(404).json({ error: 'Пользователь не найден' });

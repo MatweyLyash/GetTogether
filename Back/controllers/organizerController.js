@@ -26,7 +26,7 @@ class OrganizerController {
             if (!eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity
             })) {
-                return res.status(400).json({ error: 'All fields are required and must be valid' });
+                return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
             }
             const organizer_verification_key = uuidv4();
 
@@ -103,7 +103,7 @@ class OrganizerController {
             if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity, telegram_chat_link
             })) {
-                return res.status(400).json({ error: 'All fields are required and must be valid' });
+                return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
             }
 
             const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image);

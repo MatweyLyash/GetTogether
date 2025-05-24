@@ -115,7 +115,7 @@ class AdminController {
               if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
                   title, description, date, location, category_id, price, capacity, telegram_chat_link
               })) {
-                  return res.status(400).json({ error: 'All fields are required and must be valid' });
+                  return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
               }
   
               const event = await AdminRepository.updateEvent( event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image);

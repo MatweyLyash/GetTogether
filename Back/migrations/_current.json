@@ -13,6 +13,11 @@
                     "allowNull": false,
                     "field": "category_name",
                     "seqType": "Sequelize.STRING(50)"
+                },
+                "deletedAt": {
+                    "allowNull": true,
+                    "field": "deletedAt",
+                    "seqType": "Sequelize.DATE"
                 }
             },
             "indexes": []
@@ -387,5 +392,5 @@
     "path": "/home/mathew/Documents/KP/Back/migrations/_current.json",
     "backupPath": "/home/mathew/Documents/KP/Back/migrations/_current_bak.json",
     "exists": true,
-    "revision": 11
+    "revision": 12
 }

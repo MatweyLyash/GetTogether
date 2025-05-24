@@ -33,6 +33,8 @@
                         "key": "id"
                     },
                     "field": "creator_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "category_id": {
@@ -42,6 +44,8 @@
                         "key": "id"
                     },
                     "field": "category_id",
+                    "onDelete": "CASCADE",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "title": {
@@ -133,6 +137,8 @@
                         "key": "id"
                     },
                     "field": "user_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "event_id": {
@@ -142,6 +148,8 @@
                         "key": "id"
                     },
                     "field": "event_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "status_id": {
@@ -151,6 +159,8 @@
                         "key": "id"
                     },
                     "field": "status_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "telegram_invite_link": {
@@ -193,6 +203,8 @@
                         "key": "id"
                     },
                     "field": "user_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "status_id": {
@@ -202,6 +214,8 @@
                         "key": "id"
                     },
                     "field": "status_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "createdAt": {
@@ -239,6 +253,8 @@
                         "key": "id"
                     },
                     "field": "user_id",
+                    "onDelete": "CASCADE",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "event_id": {
@@ -248,6 +264,8 @@
                         "key": "id"
                     },
                     "field": "event_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "rating": {
@@ -320,6 +338,8 @@
                         "key": "id"
                     },
                     "field": "role_id",
+                    "onDelete": "NO ACTION",
+                    "onUpdate": "CASCADE",
                     "seqType": "Sequelize.INTEGER"
                 },
                 "telegram": {
@@ -367,5 +387,5 @@
     "path": "/home/mathew/Documents/KP/Back/migrations/_current.json",
     "backupPath": "/home/mathew/Documents/KP/Back/migrations/_current_bak.json",
     "exists": true,
-    "revision": 10
+    "revision": 11
 }

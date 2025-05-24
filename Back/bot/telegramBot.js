@@ -1,7 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
-// const { sequelize } = require('./models');
-// const Event = sequelize.models.Event;
-// const User = sequelize.models.User;
+
 const models = require('../models');
 const { v4: uuidv4 } = require('uuid');
 
