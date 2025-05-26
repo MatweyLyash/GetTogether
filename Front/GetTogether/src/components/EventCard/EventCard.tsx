@@ -21,12 +21,18 @@ function EventCard({ event }: EventCardProps) {
       <Box className={styles.cardContent}>
         <Box className={styles.cardTextContainer}>
           <Text className={styles.cardText}>
-            Дата: {new Date(event.date).toLocaleDateString()}
+            Дата: {new Intl.DateTimeFormat('ru-RU', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(new Date(event.date))}
           </Text>
           <Text className={styles.cardText}>Категория: {event.category.category_name}</Text>
-          <Text className={styles.cardText}>Цена: {event.price} ₽</Text>
+          <Text className={styles.cardText}>Цена: {event.price === 0 ? 'Бесплатно' : `${event.price} BYN`}</Text>
           <Text className={styles.cardText}>Свободные места: {event.capacity}</Text>
-          <Text className={styles.cardText}>Адрес: {event.location}</Text>
+          <Text className={styles.cardText}>Локация: {event.location}</Text>
         </Box>
         <Box className={styles.cardImageContainer}>
           <Image

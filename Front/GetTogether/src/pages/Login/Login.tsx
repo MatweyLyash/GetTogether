@@ -22,11 +22,12 @@ function Login() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [loginInput, setLoginInput] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
-  const { loginUser } = useAuth();
+  const { loginUser } = useAuth(); 
 
   // Эффект для перенаправления после успешной авторизации
   useEffect(() => {
@@ -83,12 +84,41 @@ function Login() {
     }
   };
 
+  // Проверка пароля
+  const validatePassword = (pass: string): boolean => {
+    // Минимум 8 символов, хотя бы одна буква и одна цифра
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    return passwordRegex.test(pass);
+  };
+
   // Обработчик регистрации
   const handleRegister = async () => {
-    if (!loginInput || !password) {
+    if (!loginInput || !password || !confirmPassword) {
       toast({
         title: 'Ошибка',
         description: 'Заполните все поля',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      toast({
+        title: 'Ошибка',
+        description: 'Пароль должен содержать минимум 8 символов, включая буквы латиницы и цифры',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Ошибка',
+        description: 'Пароли не совпадают',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -108,6 +138,7 @@ function Login() {
       });
       setLoginInput('');
       setPassword('');
+      setConfirmPassword('');
       setTab('login');
     } catch (error: any) {
       toast({
@@ -234,6 +265,19 @@ function Login() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Введите пароль"
+                          bg="#E7EBFC"
+                        />
+                        <Text fontSize="xs" color="gray.500" mt={1}>
+                          Минимум 8 символов, включая буквы латиницы и цифры
+                        </Text>
+                      </FormControl>
+                      <FormControl mb="1rem">
+                        <FormLabel>Подтверждение пароля</FormLabel>
+                        <Input
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Повторите пароль"
                           bg="#E7EBFC"
                         />
                       </FormControl>

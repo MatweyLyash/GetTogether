@@ -7,7 +7,7 @@ import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import EventCard from '../../components/EventCard/EventCard';
 import { getCategories, getEvents } from '../../api/api';
-import { Event as EventCardEvent } from '../../types/event';
+import { Event } from '../../types/event';
 import styles from './Home.module.scss';
 import { useAuth } from '../../AuthContext/AuthContext';
 
@@ -24,16 +24,17 @@ interface EventApiResponse {
   description: string;
   date: string;
   location: string;
-  image: string | null;
+  image?: string | null;
   category_id: number;
   price: number | string;
   capacity: number;
-  telegram_chat_link: string | null;
+  telegram_chat_link?: string | null;
   creator_id?: string | number;
   created_at?: string;
   updated_at?: string;
-  organizer_verification_key?: string;
+  organizer_verification_key?: string | null;
   telegram_chat_id?: string | null;
+  deletedAt?: string | null;
 }
 
 // Mock API for reviews
@@ -50,7 +51,7 @@ const api = {
 function Home() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [events, setEvents] = useState<EventCardEvent[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [searchQueryByTitle, setSearchQueryByTitle] = useState('');
   const [searchQueryByLocation, setSearchQueryByLocation] = useState('');
@@ -73,27 +74,40 @@ function Home() {
           category_name: cat.category_name,
         }));
 
-        const mappedEvents: EventCardEvent[] = eventData.map((event: EventApiResponse) => ({
-          id: String(event.id),
-          title: event.title,
-          description: event.description,
-          date: event.date,
-          price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
-          capacity: event.capacity,
-          location: event.location,
-          image: event.image,
-          category: {
-            id: String(event.category_id),
-            category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
-                          `Категория ${event.category_id}`,
-          },
-          creator: {
-            id: String(event.creator_id || '0'),
-            login: `Organizer_${event.creator_id || '0'}`,
-            telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
-          },
-          reviews: [],
-        }));
+        const mappedEvents: Event[] = eventData
+          .filter((event: EventApiResponse) => {
+            const eventDate = new Date(event.date);
+            const currentDate = new Date();
+            return eventDate > currentDate && !event.deletedAt;
+          })
+          .map((event: EventApiResponse) => ({
+            id: String(event.id),
+            title: event.title,
+            description: event.description,
+            date: event.date,
+            price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
+            capacity: event.capacity,
+            location: event.location,
+            image: event.image ?? null,
+            category: {
+              id: String(event.category_id),
+              category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
+                            `Категория ${event.category_id}`,
+            },
+            creator: {
+              id: String(event.creator_id || '0'),
+              login: `Organizer_${event.creator_id || '0'}`,
+              telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
+            },
+            reviews: [],
+            deletedAt: event.deletedAt ?? null,
+            category_id: event.category_id,
+            telegram_chat_link: event.telegram_chat_link ?? null,
+            telegram_chat_id: event.telegram_chat_id ?? null,
+            organizer_verification_key: event.organizer_verification_key ?? null,
+            created_at: event.created_at ?? null,
+            updated_at: event.updated_at ?? null
+          }));
 
         setCategories(mappedCategories);
         setEvents(mappedEvents);
@@ -309,7 +323,7 @@ function Home() {
                     <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem">
                       Создавайте и посещайте уникальные события
                     </Text>
-                    <Link to="/register">
+                    <Link to="/login">
                       <Button
                         bg="#2E4FD7"
                         color="white"

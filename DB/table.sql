@@ -34,14 +34,6 @@ CREATE TABLE OrganizerRequest (
     FOREIGN KEY (status_id) REFERENCES Status(id)
 );
 
-CREATE TABLE Feedback (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (user_id) REFERENCES Users(id)
-);
 
 CREATE TABLE Category (
     id SERIAL PRIMARY KEY,
@@ -96,7 +88,6 @@ create table Review (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
-    FOREIGN KEY (event_id) REFERENCES Event(id) ON DELETE CASCADE
 );
 
 insert into Role (role_name) VALUES('member');
@@ -132,7 +123,7 @@ alter table event add column deleted_at timestamp;
 
 update  users set login = 'organizer1' where id=2
 
-select * from event;
+select * from "Events";
 
 select * from status
 
@@ -157,9 +148,30 @@ update  users set telegram = '@srozel' where id = 2;
 
 select * from eventregistration
 
-select * from events
 
 select * from organizerrequest
 
+SELECT 
+    tc.constraint_name, 
+    tc.table_name, 
+    kcu.column_name, 
+    ccu.table_name AS foreign_table_name, 
+    ccu.column_name AS foreign_column_name 
+FROM 
+    information_schema.table_constraints AS tc 
+    JOIN information_schema.key_column_usage AS kcu 
+      ON tc.constraint_name = kcu.constraint_name 
+    JOIN information_schema.constraint_column_usage AS ccu 
+      ON ccu.constraint_name = tc.constraint_name 
+WHERE 
+    tc.constraint_type = 'FOREIGN KEY' 
+    AND tc.table_name = 'eventregistration' 
+    AND kcu.column_name = 'event_id';
+
+update users set telegram = NULL where id = 5;
 
 
+SELECT * from "SequelizeMeta";
+DELETE FROM "SequelizeMeta" WHERE name = '20250521220759_correct_the_title_of_foreign_key_in_users_and_add_event_add_status.js';
+
+select createdAt from public.;

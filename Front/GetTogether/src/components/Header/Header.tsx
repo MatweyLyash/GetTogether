@@ -5,6 +5,13 @@ import {
   DrawerHeader,
   DrawerOverlay,
   DrawerContent,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext/AuthContext';
@@ -13,22 +20,33 @@ import styles from './Header.module.scss';
 
 function Header() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { 
+    isOpen: isLogoutModalOpen, 
+    onOpen: onLogoutModalOpen, 
+    onClose: onLogoutModalClose 
+  } = useDisclosure();
   const { user, isAuthenticated, setIsAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleAuthAction = async () => {
     if (isAuthenticated) {
-      try {
-        await logout();
-        setIsAuthenticated(false);
-        navigate('/');
-      } catch (error: any) {
-        console.error('Ошибка при выходе:', error.message);
-      }
+      onLogoutModalOpen();
     } else {
       navigate('/login');
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsAuthenticated(false);
+      onLogoutModalClose();
+      navigate('/');
+    } catch (error: any) {
+      console.error('Ошибка при выходе:', error.message);
+    }
+  };
+
   const isAdmin = user?.role_id === 3;
   return (
     <Box as="header" className={styles.headerContainer}>
@@ -90,6 +108,30 @@ function Header() {
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+
+      <Modal isOpen={isLogoutModalOpen} onClose={onLogoutModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Подтверждение выхода</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            Вы уверены, что хотите выйти из аккаунта?
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onLogoutModalClose}>
+              Отмена
+            </Button>
+            <Button 
+              colorScheme="blue" 
+              onClick={handleLogout}
+              bg="#2E4FD7"
+              _hover={{ bg: '#1e3fa9' }}
+            >
+              Выйти
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }

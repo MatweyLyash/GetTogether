@@ -25,7 +25,7 @@ import { FaMapMarkerAlt, FaCalendarAlt, FaRubleSign, FaUserFriends, FaTelegram, 
 import { motion } from 'framer-motion';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
-import { getEventById, registerForEvent } from '../../api/api';
+import { getEventById, getEventByIdWithReg, registerForEvent, cancelEventRegistration } from '../../api/api';
 import { Event as EventType, EventResponse } from '../../types/event';
 import { useAuth } from '../../AuthContext/AuthContext';
 import styles from './Event.module.scss';
@@ -35,7 +35,7 @@ function EventPage() {
   const [eventData, setEventData] = useState<EventResponse | EventType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -44,8 +44,23 @@ function EventPage() {
       if (!id) return;
       setIsLoading(true);
       try {
-        const data = await getEventById(id);
-        setEventData(data);
+        console.log("Auth state:", { isAuthenticated, authLoading, user });
+        
+        // Ждем завершения проверки аутентификации
+        if (authLoading) {
+          console.log("Ожидание завершения проверки аутентификации...");
+          return;
+        }
+
+        if (isAuthenticated && user) {
+          console.log("Загрузка данных с регистрацией для авторизованного пользователя");
+          const data = await getEventByIdWithReg(id);
+          setEventData(data);
+        } else {
+          console.log("Загрузка данных без регистрации для неавторизованного пользователя");
+          const data = await getEventById(id);
+          setEventData(data);
+        }
       } catch (error: any) {
         console.error('Ошибка при загрузке мероприятия:', error);
         toast({
@@ -61,7 +76,25 @@ function EventPage() {
     };
 
     fetchEventData();
-  }, [id, toast]);
+  }, [id, isAuthenticated, authLoading, user, toast]);
+
+  // Диагностика isOrganizer с подробным логированием
+  useEffect(() => {
+    if (eventData && user) {
+      const event = (eventData as EventResponse).event || eventData;
+      console.log('Диагностика isOrganizer:', {
+        userId: user?.id,
+        userIdType: typeof user?.id,
+        creatorId: event?.creator?.id,
+        creatorIdType: typeof event?.creator?.id,
+        userIdString: String(user?.id),
+        creatorIdString: String(event?.creator?.id),
+        isOrganizer: String(user?.id) === String(event?.creator?.id),
+        user: user,
+        creator: event?.creator,
+      });
+    }
+  }, [eventData, user]);
 
   const handleRegister = async () => {
     if (!isAuthenticated) {
@@ -89,10 +122,10 @@ function EventPage() {
       } : null);
       
       toast({
-        title: 'Регистрация успешна',
+        title: 'Успех',
         description: result.telegram_invite_link 
-          ? 'Вы успешно зарегистрированы. Используйте ссылку для присоединения к чату мероприятия.' 
-          : 'Вы успешно зарегистрированы на мероприятие.',
+          ? 'Ваша заявка подтверждена. Используйте ссылку для присоединения к чату мероприятия.' 
+          : 'Ваша заявка отправлена.',
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -100,7 +133,61 @@ function EventPage() {
     } catch (error: any) {
       toast({
         title: 'Ошибка регистрации',
-        description: error.message || 'Не удалось зарегистрироваться на мероприятие',
+        description: error.message || 'Не удалось отправить заявку на участие',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  const handleEditEvent = () => {
+    if (!id) return;
+    navigate('/cabinet', {
+      state: {
+        isEditing: true,
+        eventId: id,
+        eventData: {
+          title: event.title,
+          description: event.description,
+          date: event.date.slice(0, 16),
+          location: event.location,
+          category_id: event.category.id,
+          price: event.price,
+          capacity: event.capacity,
+          telegram_chat_link: event.telegram_chat_link,
+          image: event.image
+        }
+      },
+    });
+  };
+
+  const handleCancelRegistration = async () => {
+    if (!id) return;
+    setIsRegistering(true);
+    try {
+      await cancelEventRegistration(id);
+      setEventData(prev => prev ? {
+        ...prev,
+        registration: { 
+          status: 3,
+          telegram_invite_link: null 
+        }
+      } : null);
+      
+      toast({
+        title: 'Успех',
+        description: 'Заявка на участие отозвана',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message || 'Не удалось отозвать заявку',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -137,17 +224,18 @@ function EventPage() {
     );
   }
 
-  // Определяем event и registration в зависимости от структуры eventData
   const event = (eventData as EventResponse).event || eventData;
   const registration = (eventData as EventResponse).registration || null;
 
-  const isOrganizer = user?.id === String(event.creator.id);
+  // Упрощенное и надежное определение isOrganizer
+  const isOrganizer = String(user?.id) === String(event?.creator?.id);
+  
   const isRegistered = registration !== null;
+  console.log("reg",registration);
   const registrationClosed = event.capacity <= 0;
   const eventDate = new Date(event.date);
   const isPastEvent = eventDate < new Date();
 
-  // Форматирование даты
   const formattedDate = new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
     month: 'long',
@@ -156,6 +244,8 @@ function EventPage() {
     minute: '2-digit',
   }).format(eventDate);
 
+
+  console.log("deleted_at",event.deletedAt);
   return (
     <Box className={styles.container}>
       <Header />
@@ -173,7 +263,6 @@ function EventPage() {
             borderRadius="lg" 
             overflow="hidden"
           >
-            {/* Изображение мероприятия */}
             <Box 
               w={{ base: '100%', lg: '40%' }} 
               h={{ base: '250px', md: '400px' }} 
@@ -197,11 +286,10 @@ function EventPage() {
                 p="2"
                 borderRadius="md"
               >
-                {event.price > 0 ? `${event.price} ₽` : 'Бесплатно'}
+                {event.price > 0 ? `${event.price} BYN` : 'Бесплатно'}
               </Badge>
             </Box>
 
-            {/* Контент мероприятия */}
             <VStack align="stretch" flex="1" p={{ base: 4, md: 6 }} spacing={4}>
               <Box>
                 <Badge colorScheme="blue" mb={2}>
@@ -282,50 +370,73 @@ function EventPage() {
               )}
 
               <Box mt={4}>
-                {!isOrganizer && !isRegistered && !isPastEvent && (
-                  <Button
-                    colorScheme="blue"
-                    size="lg"
-                    w="100%"
-                    isLoading={isRegistering}
-                    isDisabled={registrationClosed}
-                    onClick={handleRegister}
-                  >
-                    {registrationClosed ? 'Места закончились' : 'Зарегистрироваться'}
-                  </Button>
-                )}
-
-                {isRegistered && !isPastEvent && (
-                  <Button
-                    colorScheme="green"
-                    size="lg"
-                    w="100%"
-                    h="20"
-                    isDisabled
-                  >
-                    Заявка на регистрацию передана. <br/>Ожидайте подтверждения от организатора
-                  </Button>
-                )}
-
-                {isPastEvent && (
-                  <Button
-                    colorScheme="gray"
-                    size="lg"
-                    w="100%"
-                    isDisabled
-                  >
-                    Мероприятие завершено
-                  </Button>
-                )}
-
-                {isOrganizer && (
+                {isOrganizer ? (
                   <Button
                     colorScheme="teal"
                     size="lg"
                     w="100%"
-                    onClick={() => navigate(`/organizer/events/${id}`)}
+                    onClick={handleEditEvent}
                   >
-                    Управление мероприятием
+                    Редактировать
+                  </Button>
+                ) : isAuthenticated ? (
+                  <>
+                    {!isRegistered && !isPastEvent && !event.deletedAt && (
+                      <Button
+                        colorScheme="blue"
+                        size="lg"
+                        w="100%"
+                        isLoading={isRegistering}
+                        isDisabled={registrationClosed}
+                        onClick={handleRegister}
+                      >
+                        {registrationClosed ? 'Места закончились' : 'Отправить заявку'}
+                      </Button>
+                    )}
+                    {isRegistered && !isPastEvent && (
+                      <VStack spacing={4} w="100%">
+                        <Button
+                          colorScheme="green"
+                          size="lg"
+                          w="100%"
+                          isDisabled
+                        >
+                          {registration?.status === 1 ? 'Ожидайте ответа от организатора' : 
+                           registration?.status === 2 ? 'Ваша заявка подтверждена' : 
+                           'Заявка отклонена'}
+                        </Button>
+                        {registration?.status === 1 && (
+                          <Button
+                            colorScheme="red"
+                            size="lg"
+                            w="100%"
+                            isLoading={isRegistering}
+                            onClick={handleCancelRegistration}
+                          >
+                            Отозвать заявку
+                          </Button>
+                        )}
+                      </VStack>
+                    )}
+                    {(isPastEvent || event.deletedAt) && (
+                      <Button
+                        colorScheme="gray"
+                        size="lg"
+                        w="100%"
+                        isDisabled
+                      >
+                        Мероприятие завершено
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <Button
+                    colorScheme="blue"
+                    size="lg"
+                    w="100%"
+                    onClick={() => navigate('/login', { state: { from: `/event/${id}` } })}
+                  >
+                    Войти для регистрации
                   </Button>
                 )}
               </Box>
@@ -333,7 +444,6 @@ function EventPage() {
           </Flex>
         </motion.div>
 
-        {/* Секция отзывов */}
         {event.reviews && event.reviews.length > 0 && (
           <Box mt={10}>
             <Heading size="lg" mb={4}>

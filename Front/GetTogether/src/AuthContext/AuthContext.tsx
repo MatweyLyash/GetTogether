@@ -29,30 +29,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      console.log('Проверка авторизации...');
-      
+      console.log('AuthProvider: Начало проверки авторизации');
+      const timeout = setTimeout(() => {
+        console.error('AuthProvider: Тайм-аут проверки авторизации');
+        setIsAuthenticated(false);
+        setUser(null);
+        setIsLoading(false);
+      }, 5000);
       try {
+        console.log('AuthProvider: Вызов getMe');
         const userData = await getMe();
-        console.log('Получены данные пользователя:', userData);
-        
+        console.log('AuthProvider: Получены данные пользователя:', userData);
         if (userData && userData.id) {
           setUser(userData);
           setIsAuthenticated(true);
-          console.log('Пользователь авторизован:', userData);
         } else {
-          console.warn('Данные пользователя не получены');
+          console.warn('AuthProvider: Данные пользователя не получены');
           setIsAuthenticated(false);
           setUser(null);
         }
-      } catch (error) {
-        console.warn('Не удалось получить данные пользователя:', error);
+      } catch (error: any) {
+        console.error('AuthProvider: Ошибка при проверке:', error);
+        if (error.response?.status === 401) {
+          console.log('AuthProvider: Ошибка 401 - пользователь не авторизован');
+        } else {
+          console.error('AuthProvider: Другая ошибка:', error.message);
+        }
         setIsAuthenticated(false);
         setUser(null);
       } finally {
+        clearTimeout(timeout);
+        console.log('AuthProvider: Завершение проверки, isLoading = false');
         setIsLoading(false);
       }
     };
-    
     checkAuth();
   }, []);
 

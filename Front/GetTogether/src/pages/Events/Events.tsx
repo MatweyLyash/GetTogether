@@ -20,7 +20,7 @@ import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import EventCard from '../../components/EventCard/EventCard';
 import { getEvents, getCategories } from '../../api/api';
-import { Event as EventCardEvent } from '../../types/event';
+import { Event } from '../../types/event';
 import styles from './Events.module.scss';
 
 // Define Category type
@@ -39,18 +39,19 @@ interface ApiEvent {
   category_id: number;
   price: number | string;
   capacity: number;
-  image: string | null;
-  telegram_chat_link: string | null;
+  image?: string | null;
+  telegram_chat_link?: string | null;
   creator_id?: string | number;
   created_at?: string;
   updated_at?: string;
-  organizer_verification_key?: string;
+  organizer_verification_key?: string | null;
   telegram_chat_id?: string | null;
+  deletedAt?: string | null;
 }
 
 function Events() {
-  const [events, setEvents] = useState<EventCardEvent[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<EventCardEvent[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTitle, setSearchTitle] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
@@ -73,7 +74,13 @@ function Events() {
           category_name: cat.category_name,
         }));
 
-        const mappedEvents: EventCardEvent[] = eventData.map((event: ApiEvent) => ({
+        const mappedEvents: Event[] = eventData
+          .filter((event: ApiEvent) => {
+            const eventDate = new Date(event.date);
+            const currentDate = new Date();
+            return eventDate > currentDate && !event.deletedAt;
+          })
+          .map((event: ApiEvent) => ({
           id: String(event.id),
           title: event.title,
           description: event.description,
@@ -81,7 +88,7 @@ function Events() {
           price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
           capacity: event.capacity,
           location: event.location,
-          image: event.image,
+            image: event.image ?? null,
           category: {
             id: String(event.category_id),
             category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
@@ -93,6 +100,13 @@ function Events() {
             telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
           },
           reviews: [],
+            deletedAt: event.deletedAt ?? null,
+            category_id: event.category_id,
+            telegram_chat_link: event.telegram_chat_link ?? null,
+            telegram_chat_id: event.telegram_chat_id ?? null,
+            organizer_verification_key: event.organizer_verification_key ?? null,
+            created_at: event.created_at ?? null,
+            updated_at: event.updated_at ?? null
         }));
 
         setCategories(mappedCategories);

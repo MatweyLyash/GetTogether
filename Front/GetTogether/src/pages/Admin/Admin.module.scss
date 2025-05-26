@@ -2,15 +2,18 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    align-self: flex-start;
   }
   
   .content {
     flex: 1;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     padding: 2rem;
-    background-color: #f8f9fa;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
   }
   
   @media (max-width: 768px) {

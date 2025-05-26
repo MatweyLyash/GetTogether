@@ -46,8 +46,8 @@ interface AuthResponse {
 }
 
 interface RefreshTokenResponse {
-    message: string;
-  }
+  message: string;
+}
 
 interface Category {
   id: number;
@@ -61,11 +61,17 @@ interface Event {
   date: string;
   location: string;
   category_id: number;
-  price: number;
+  price: string;
   capacity: number;
   telegram_chat_link: string | null;
   creator_id?: string;
-  image: string | null;
+  created_at?: string;
+  updated_at?: string;
+  deletedAt?: string | null;
+  organizer_verification_key?: string | null;
+  telegram_chat_id?: string | null;
+  image?: any;
+  reviews?: Review[];
 }
 
 interface EventRegistration {
@@ -73,7 +79,10 @@ interface EventRegistration {
   event_id: string;
   user_id: string;
   status_id: number;
-  event: Event;
+  telegram_invite_link?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  Event: Event;
 }
 
 interface Review {
@@ -83,6 +92,10 @@ interface Review {
   rating: number;
   comment: string;
   createdAt: string;
+  reviewUser: {
+    id: string;
+    login: string;
+  };
 }
 
 interface OrganizerRequest {
@@ -112,7 +125,7 @@ interface OrganizerRequest {
   user: {
     id: string;
     login: string;
-    telegram: string|null;
+    telegram: string | null;
   };
 }
 
@@ -153,13 +166,17 @@ const setupInterceptors = (instance: typeof authApi) => {
         isRefreshing = true;
 
         try {
+          console.log('Interceptor: Попытка обновления токена');
           await authApi.post<RefreshTokenResponse>('/refresh-token');
+          console.log('Interceptor: Токен обновлен');
           processQueue(null);
           return instance(originalRequest);
         } catch (refreshError) {
+          console.error('Interceptor: Ошибка обновления токена', refreshError);
           processQueue(refreshError);
-          return Promise.reject(refreshError);
+          return Promise.reject(error);
         } finally {
+          console.log('Interceptor: Завершение обработки');
           isRefreshing = false;
         }
       }
@@ -172,6 +189,8 @@ const setupInterceptors = (instance: typeof authApi) => {
 setupInterceptors(authApi);
 setupInterceptors(userApi);
 setupInterceptors(organizerApi);
+setupInterceptors(guestApi);
+setupInterceptors(adminApi);
 
 // Auth
 export async function login(data: AuthData): Promise<AuthResponse> {
@@ -282,6 +301,18 @@ export async function createEventRegistration(event_id: string): Promise<EventRe
   }
 }
 
+export async function cancelEventRegistration(event_id: string): Promise<EventRegistration> {
+  try {
+    const response = await userApi.put<EventRegistration>(`/events/registration/${event_id}/cancel`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при отзыве заявки на мероприятие');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
 export async function createReview(event_id: string, rating: number, comment: string): Promise<Review> {
   try {
     const response = await userApi.post<Review>('/reviews', { event_id, rating, comment });
@@ -354,6 +385,18 @@ export async function getEventById(event_id: string): Promise<EventResponse> {
   }
 }
 
+export async function getEventByIdWithReg(event_id: string): Promise<EventResponse> {
+  try {
+    const response = await userApi.get<EventResponse>(`/event/${event_id}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении мероприятия');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
 export async function registerForEvent(event_id: string): Promise<{ status: number; telegram_invite_link: string | null }> {
   try {
     const response = await userApi.post<{ status: number; telegram_invite_link: string | null }>('/events/registration', { event_id });
@@ -409,7 +452,7 @@ export async function getOwnEvent(event_id: string): Promise<Event> {
 
 export async function updateEvent(event_id: string, formData: FormData): Promise<{ event: Event; message: string }> {
   try {
-    const response = await adminApi.put<{ event: Event; message: string }>(`/event/${event_id}`, formData, {
+    const response = await organizerApi.put<{ event: Event; message: string }>(`/event/${event_id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -425,7 +468,7 @@ export async function updateEvent(event_id: string, formData: FormData): Promise
 
 export async function deleteEvent(event_id: string): Promise<void> {
   try {
-    await adminApi.delete(`/event/${event_id}`);
+    await organizerApi.delete(`/event/${event_id}`);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || 'Ошибка при удалении мероприятия');
@@ -459,7 +502,6 @@ export async function getEventRequests(event_id: string): Promise<EventRequest[]
 }
 
 // Admin Routes
-
 export async function addCategory(data: { category_name: string }): Promise<Category> {
   try {
     const response = await adminApi.post<Category>('/categories', data);

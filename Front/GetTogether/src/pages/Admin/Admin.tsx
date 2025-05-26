@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Heading,
@@ -25,6 +25,14 @@ import {
   Spinner,
   Flex,
   Image,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +52,8 @@ import {
   updateEvent,
   deleteEvent,
   getOrganizerRequests,
+  deleteEventByAdmin,
+  updateEventByAdmin,
 } from '../../api/api';
 import styles from './Admin.module.scss';
 
@@ -75,6 +85,7 @@ interface User {
   id: string;
   login: string;
   role_id: number;
+  telegram:string|null;
   is_blocked?: boolean;
 }
 
@@ -98,8 +109,13 @@ function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [roleFilter, setRoleFilter] = useState<string>(''); // Фильтр по роли
   const [searchQuery, setSearchQuery] = useState(''); // Поиск по имени
+  const { isOpen: isDeleteCategoryModalOpen, onOpen: onDeleteCategoryModalOpen, onClose: onDeleteCategoryModalClose } = useDisclosure();
+  const { isOpen: isDeleteEventModalOpen, onOpen: onDeleteEventModalOpen, onClose: onDeleteEventModalClose } = useDisclosure();
+  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const toast = useToast();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check admin access
   useEffect(() => {
@@ -246,9 +262,16 @@ function Admin() {
 
   // Delete category
   const handleDeleteCategory = async (categoryId: number) => {
+    setCategoryToDelete(categoryId);
+    onDeleteCategoryModalOpen();
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    
     setIsLoading(true);
     try {
-      await deleteCategory(categoryId);
+      await deleteCategory(categoryToDelete);
       const updatedCategories = await getCategories();
       setCategories(updatedCategories);
       toast({
@@ -268,6 +291,8 @@ function Admin() {
       });
     } finally {
       setIsLoading(false);
+      onDeleteCategoryModalClose();
+      setCategoryToDelete(null);
     }
   };
 
@@ -406,7 +431,7 @@ function Admin() {
         formData.append('image', eventImage);
       }
 
-      await updateEvent(eventId, formData);
+      await updateEventByAdmin(eventId, formData);
       const updatedEvents = await getEvents();
       setEvents((updatedEvents || []).map((event: any) => ({
         ...event,
@@ -437,9 +462,16 @@ function Admin() {
 
   // Delete event
   const handleDeleteEvent = async (eventId: string) => {
+    setEventToDelete(eventId);
+    onDeleteEventModalOpen();
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!eventToDelete) return;
+    
     setIsLoading(true);
     try {
-      await deleteEvent(eventId);
+      await deleteEventByAdmin(eventToDelete);
       const updatedEvents = await getEvents();
       setEvents((updatedEvents || []).map((event: any) => ({
         ...event,
@@ -462,6 +494,8 @@ function Admin() {
       });
     } finally {
       setIsLoading(false);
+      onDeleteEventModalClose();
+      setEventToDelete(null);
     }
   };
 
@@ -495,12 +529,13 @@ function Admin() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            style={{ width: '100%' }}
           >
             <Heading size="xl" mb="2rem">
               Панель администратора
             </Heading>
             <Tabs variant="soft-rounded" colorScheme="blue">
-              <TabList mb="1rem">
+              <TabList mb="1rem" whiteSpace="nowrap">
                 <Tab>Категории</Tab>
                 <Tab>Пользователи</Tab>
                 <Tab>Запросы организаторов</Tab>
@@ -509,7 +544,7 @@ function Admin() {
               <TabPanels>
                 {/* Categories */}
                 <TabPanel>
-                  <VStack spacing="2rem" align="stretch">
+                  <VStack spacing="2rem" align="stretch" width="100%">
                     <Heading size="md">Управление категориями</Heading>
                     <FormControl>
                       <FormLabel>Добавить категорию</FormLabel>
@@ -531,84 +566,84 @@ function Admin() {
                         </Button>
                       </HStack>
                     </FormControl>
-                    <Table variant="simple">
-                      <Thead>
-                        <Tr>
-                          <Th>ID</Th>
-                          <Th>Название</Th>
-                          <Th>Действия</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {categories.map((cat) => (
-                          <Tr key={cat.id}>
-                            <Td>{cat.id}</Td>
-                            <Td>
-                              {editCategory?.id === cat.id ? (
-                                <Input
-                                  value={editCategory.name}
-                                  onChange={(e) =>
-                                    setEditCategory({ id: cat.id, name: e.target.value })
-                                  }
-                                  bg="#E7EBFC"
-                                />
-                              ) : (
-                                cat.category_name
-                              )}
-                            </Td>
-                            <Td>
-                              <HStack spacing="2">
+                    <Box overflowX="auto">
+                      <Table variant="simple" minWidth="600px">
+                        <Thead>
+                          <Tr>
+                            <Th>Название</Th>
+                            <Th>Действия</Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {categories.map((cat) => (
+                            <Tr key={cat.id}>
+                              <Td>
                                 {editCategory?.id === cat.id ? (
-                                  <>
+                                  <Input
+                                    value={editCategory.name}
+                                    onChange={(e) =>
+                                      setEditCategory({ id: cat.id, name: e.target.value })
+                                    }
+                                    bg="#E7EBFC"
+                                  />
+                                ) : (
+                                  cat.category_name
+                                )}
+                              </Td>
+                              <Td>
+                                <HStack spacing="2">
+                                  {editCategory?.id === cat.id ? (
+                                    <>
+                                      <Button
+                                        colorScheme="blue"
+                                        size="sm"
+                                        onClick={() => handleRenameCategory(cat.id)}
+                                        isDisabled={isLoading}
+                                      >
+                                        Сохранить
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setEditCategory(null)}
+                                        isDisabled={isLoading}
+                                      >
+                                        Отмена
+                                      </Button>
+                                    </>
+                                  ) : (
                                     <Button
                                       colorScheme="blue"
                                       size="sm"
-                                      onClick={() => handleRenameCategory(cat.id)}
+                                      onClick={() =>
+                                        setEditCategory({ id: cat.id, name: cat.category_name })
+                                      }
                                       isDisabled={isLoading}
                                     >
-                                      Сохранить
+                                      Переименовать
                                     </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setEditCategory(null)}
-                                      isDisabled={isLoading}
-                                    >
-                                      Отмена
-                                    </Button>
-                                  </>
-                                ) : (
+                                  )}
                                   <Button
-                                    colorScheme="blue"
+                                    colorScheme="red"
                                     size="sm"
-                                    onClick={() =>
-                                      setEditCategory({ id: cat.id, name: cat.category_name })
-                                    }
+                                    onClick={() => handleDeleteCategory(cat.id)}
                                     isDisabled={isLoading}
                                   >
-                                    Переименовать
+                                    Удалить
                                   </Button>
-                                )}
-                                <Button
-                                  colorScheme="red"
-                                  size="sm"
-                                  onClick={() => handleDeleteCategory(cat.id)}
-                                  isDisabled={isLoading}
-                                >
-                                  Удалить
-                                </Button>
-                              </HStack>
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
+                                </HStack>
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
                   </VStack>
                 </TabPanel>
 
                 {/* Users */}
                 <TabPanel>
-                  <VStack spacing="4" align="stretch">
+                  <VStack spacing="4" align="stretch" width="100%">
                     <Heading size="md" mb="2rem">
                       Управление пользователями
                     </Heading>
@@ -636,117 +671,125 @@ function Admin() {
                         />
                       </FormControl>
                     </HStack>
-                    <Table variant="simple">
-                      <Thead>
-                        <Tr>
-                          <Th>ID</Th>
-                          <Th>Логин</Th>
-                          <Th>Роль</Th>
-                          <Th>Статус</Th>
-                          <Th>Действия</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {filteredUsers.map((u) => (
-                          <Tr key={u.id}>
-                            <Td>{u.id}</Td>
-                            <Td>{u.login}</Td>
-                            <Td>
-                              {u.role_id === 1
-                                ? 'Пользователь'
-                                : u.role_id === 2
-                                ? 'Организатор'
-                                : 'Админ'}
-                            </Td>
-                            <Td>{u.is_blocked ? 'Заблокирован' : 'Активен'}</Td>
-                            <Td>
-                              <HStack spacing="2">
-                                <Button
-                                  colorScheme={u.is_blocked ? 'green' : 'red'}
-                                  size="sm"
-                                  onClick={() => handleBanUser(u.id, u.is_blocked || false)}
-                                  isDisabled={isLoading || u.id === user?.id}
-                                >
-                                  {u.is_blocked ? 'Разбанить' : 'Забанить'}
-                                </Button>
-                                {u.role_id === 2 && (
-                                  <Button
-                                    colorScheme="orange"
-                                    size="sm"
-                                    onClick={() => handleUnassignOrganizer(u.id)}
-                                    isDisabled={isLoading}
-                                  >
-                                    Снять роль организатора
-                                  </Button>
-                                )}
-                              </HStack>
-                            </Td>
+                    <Box overflowX="auto">
+                      <Table variant="simple" minWidth="800px">
+                        <Thead>
+                          <Tr>
+                            <Th>ID пользователя</Th>
+                            <Th>Логин</Th>
+                            <Th>Телеграм</Th>
+                            <Th>Роль</Th>
+                            <Th>Статус</Th>
+                            <Th>Действия</Th>
                           </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
+                        </Thead>
+                        <Tbody>
+                          {filteredUsers.map((u) => (
+                            <Tr key={u.id}>
+                              <Td>{u.id}</Td>
+                              <Td>{u.login}</Td>
+                              <Td>{u.telegram ? `${u.telegram}` : 'Нет'}</Td>
+                              <Td>
+                                {u.role_id === 1
+                                  ? 'Пользователь'
+                                  : u.role_id === 2
+                                  ? 'Организатор'
+                                  : 'Админ'}
+                              </Td>
+                              <Td>{u.is_blocked ? 'Заблокирован' : 'Активен'}</Td>
+                              <Td>
+                                <HStack spacing="2">
+                                  <Button
+                                    colorScheme={u.is_blocked ? 'green' : 'red'}
+                                    size="sm"
+                                    onClick={() => handleBanUser(u.id, u.is_blocked || false)}
+                                    isDisabled={isLoading || u.id === user?.id}
+                                  >
+                                    {u.is_blocked ? 'Разбанить' : 'Забанить'}
+                                  </Button>
+                                  {u.role_id === 2 && (
+                                    <Button
+                                      colorScheme="orange"
+                                      size="sm"
+                                      onClick={() => handleUnassignOrganizer(u.id)}
+                                      isDisabled={isLoading}
+                                    >
+                                      Снять роль организатора
+                                    </Button>
+                                  )}
+                                </HStack>
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
                   </VStack>
                 </TabPanel>
 
                 {/* Organizer Requests */}
                 <TabPanel>
-                  <Heading size="md" mb="2rem">
-                    Запросы на роль организатора
-                  </Heading>
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>ID Запроса</Th>
-                        <Th>ID Пользователя</Th>
-                        <Th>Статус</Th>
-                        <Th>Действия</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {organizerRequests.map((req) => (
-                        <Tr key={req.id}>
-                          <Td>{req.id}</Td>
-                          <Td>{req.user_id}</Td>
-                          <Td>
-                            {req.status_id === 1
-                              ? 'Ожидает'
-                              : req.status_id === 2
-                              ? 'Одобрен'
-                              : 'Отклонен'}
-                          </Td>
-                          <Td>
-                            <HStack spacing="2">
-                              <Button
-                                colorScheme="green"
-                                size="sm"
-                                onClick={() => handleOrganizerResponse(req.id, true)}
-                                isDisabled={isLoading || req.status_id !== 1}
-                              >
-                                Одобрить
-                              </Button>
-                              <Button
-                                colorScheme="red"
-                                size="sm"
-                                onClick={() => handleOrganizerResponse(req.id, false)}
-                                isDisabled={isLoading || req.status_id !== 1}
-                              >
-                                Отклонить
-                              </Button>
-                            </HStack>
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
+                  <VStack spacing="4" align="stretch" width="100%">
+                    <Heading size="md" mb="2rem">
+                      Запросы на роль организатора
+                    </Heading>
+                    <Box overflowX="auto">
+                      <Table variant="simple" minWidth="600px">
+                        <Thead>
+                          <Tr>
+                            <Th>ID Пользователя</Th>
+                            <Th>Статус</Th>
+                            <Th>Действия</Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {organizerRequests.map((req) => (
+                            <Tr key={req.id}>
+                              <Td>{req.user_id}</Td>
+                              <Td>
+                                {req.status_id === 1
+                                  ? 'Ожидает'
+                                  : req.status_id === 2
+                                  ? 'Одобрен'
+                                  : 'Отклонен'}
+                              </Td>
+                              <Td>
+                                <HStack spacing="2">
+                                  <Button
+                                    colorScheme="green"
+                                    size="sm"
+                                    onClick={() => handleOrganizerResponse(req.id, true)}
+                                    isDisabled={isLoading || req.status_id !== 1}
+                                  >
+                                    Одобрить
+                                  </Button>
+                                  <Button
+                                    colorScheme="red"
+                                    size="sm"
+                                    onClick={() => handleOrganizerResponse(req.id, false)}
+                                    isDisabled={isLoading || req.status_id !== 1}
+                                  >
+                                    Отклонить
+                                  </Button>
+                                </HStack>
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  </VStack>
                 </TabPanel>
 
                 {/* Events */}
                 <TabPanel>
-                  <VStack spacing="2rem" align="stretch">
+                  <VStack spacing="2rem" align="stretch" width="100%">
                     <Heading size="md">Управление мероприятиями</Heading>
                     {editEvent && (
-                      <VStack spacing="4" align="stretch" bg="#E7EBFC" p="4" borderRadius="md">
-                        <Heading size="sm">Редактировать мероприятие</Heading>
+                      <VStack spacing="4" align="stretch" mb="2rem">
+                        <Text fontSize="lg">
+                          Редактировать мероприятие
+                        </Text>
                         <FormControl>
                           <FormLabel>Название</FormLabel>
                           <Input
@@ -754,7 +797,8 @@ function Admin() {
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, title: e.target.value })
                             }
-                            bg="white"
+                            placeholder="Название мероприятия"
+                            bg="#E7EBFC"
                           />
                         </FormControl>
                         <FormControl>
@@ -764,7 +808,8 @@ function Admin() {
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, description: e.target.value })
                             }
-                            bg="white"
+                            placeholder="Описание мероприятия"
+                            bg="#E7EBFC"
                           />
                         </FormControl>
                         <FormControl>
@@ -775,17 +820,23 @@ function Admin() {
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, date: e.target.value })
                             }
-                            bg="white"
+                            bg="#E7EBFC"
+                            min={(() => {
+                              const tomorrow = new Date();
+                              tomorrow.setDate(tomorrow.getDate() + 1);
+                              return tomorrow.toISOString().slice(0, 16);
+                            })()}
                           />
                         </FormControl>
                         <FormControl>
-                          <FormLabel>Локация</FormLabel>
+                          <FormLabel>Место</FormLabel>
                           <Input
                             value={editEvent.location}
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, location: e.target.value })
                             }
-                            bg="white"
+                            placeholder="Место проведения"
+                            bg="#E7EBFC"
                           />
                         </FormControl>
                         <FormControl>
@@ -795,7 +846,8 @@ function Admin() {
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, category_id: Number(e.target.value) })
                             }
-                            bg="white"
+                            placeholder="Выберите категорию"
+                            bg="#E7EBFC"
                           >
                             {categories.map((cat) => (
                               <option key={cat.id} value={cat.id}>
@@ -812,7 +864,8 @@ function Admin() {
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, price: Number(e.target.value) })
                             }
-                            bg="white"
+                            placeholder="Цена"
+                            bg="#E7EBFC"
                           />
                         </FormControl>
                         <FormControl>
@@ -823,68 +876,75 @@ function Admin() {
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, capacity: Number(e.target.value) })
                             }
-                            bg="white"
+                            placeholder="Вместимость"
+                            bg="#E7EBFC"
                           />
                         </FormControl>
                         <FormControl>
-                          <FormLabel>Ссылка на Telegram</FormLabel>
+                          <FormLabel>Ссылка на Telegram-чат</FormLabel>
                           <Input
                             value={editEvent.telegram_chat_link || ''}
                             onChange={(e) =>
                               setEditEvent({ ...editEvent, telegram_chat_link: e.target.value })
                             }
-                            bg="white"
+                            placeholder="Ссылка на Telegram-чат (опционально)"
+                            bg="#E7EBFC"
                           />
                         </FormControl>
                         <FormControl>
                           <FormLabel>Изображение</FormLabel>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            bg="white"
-                          />
-                        </FormControl>
-                        <VStack spacing="2" align="stretch">
+                          
+                          <Button
+                            bg="#2E4FD7"
+                            color="white"
+                            _hover={{ bg: '#1e3fa9' }}
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            Выбрать изображение
+                          </Button>
                           {editEvent.image && (
-                            <Box>
-                              <Text fontWeight="bold">Текущее изображение:</Text>
+                            <Box mt="4" textAlign="center">
+                              <Text fontWeight="bold" mb="2">Текущее изображение:</Text>
                               <Image
                                 src={editEvent.image}
                                 alt="Текущее изображение мероприятия"
-                                maxW="200px"
-                                maxH="200px"
-                                objectFit="cover"
-                                borderRadius="md"
-                                mt="2"
+                                maxW="400px"
+                                borderRadius="8px"
+                                boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
+                                display="block"
+                                margin="0 auto"
                               />
                             </Box>
                           )}
                           {imagePreview && (
-                            <Box>
-                              <Text fontWeight="bold">Новое изображение (превью):</Text>
+                            <Box mt="4" textAlign="center">
+                              <Text fontWeight="bold" mb="2">Новое изображение (превью):</Text>
                               <Image
                                 src={imagePreview}
                                 alt="Превью нового изображения"
-                                maxW="200px"
-                                maxH="200px"
-                                objectFit="cover"
-                                borderRadius="md"
-                                mt="2"
+                                maxW="400px"
+                                borderRadius="8px"
+                                boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
+                                display="block"
+                                margin="0 auto"
                               />
                             </Box>
                           )}
-                        </VStack>
-                        <HStack>
+                        </FormControl>
+                        <HStack spacing="2">
                           <Button
-                            colorScheme="blue"
+                            bg="#2E4FD7"
+                            color="white"
+                            _hover={{ bg: '#1e3fa9' }}
                             onClick={() => handleUpdateEvent(editEvent.id)}
                             isDisabled={isLoading}
                           >
-                            Сохранить
+                            Сохранить изменения
                           </Button>
                           <Button
-                            variant="outline"
+                            bg="gray.500"
+                            color="white"
+                            _hover={{ bg: 'gray.600' }}
                             onClick={() => {
                               setEditEvent(null);
                               setEventImage(null);
@@ -892,52 +952,52 @@ function Admin() {
                             }}
                             isDisabled={isLoading}
                           >
-                            Отмена
+                            Отменить редактирование
                           </Button>
                         </HStack>
                       </VStack>
                     )}
-                    <Table variant="simple">
-                      <Thead>
-                        <Tr>
-                          <Th>ID</Th>
-                          <Th>Название</Th>
-                          <Th>Дата</Th>
-                          <Th>Локация</Th>
-                          <Th>Действия</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {events.map((event) => (
-                          <Tr key={event.id}>
-                            <Td>{event.id}</Td>
-                            <Td>{event.title}</Td>
-                            <Td>{new Date(event.date).toLocaleDateString()}</Td>
-                            <Td>{event.location}</Td>
-                            <Td>
-                              <HStack spacing="2">
-                                <Button
-                                  colorScheme="blue"
-                                  size="sm"
-                                  onClick={() => setEditEvent(event)}
-                                  isDisabled={isLoading}
-                                >
-                                  Редактировать
-                                </Button>
-                                <Button
-                                  colorScheme="red"
-                                  size="sm"
-                                  onClick={() => handleDeleteEvent(event.id)}
-                                  isDisabled={isLoading}
-                                >
-                                  Удалить
-                                </Button>
-                              </HStack>
-                            </Td>
+                    <Box overflowX="auto">
+                      <Table variant="simple" minWidth="800px">
+                        <Thead>
+                          <Tr>
+                            <Th>Название</Th>
+                            <Th>Дата</Th>
+                            <Th>Локация</Th>
+                            <Th>Действия</Th>
                           </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
+                        </Thead>
+                        <Tbody>
+                          {events.map((event) => (
+                            <Tr key={event.id}>
+                              <Td>{event.title}</Td>
+                              <Td>{new Date(event.date).toLocaleDateString()}</Td>
+                              <Td>{event.location}</Td>
+                              <Td>
+                                <HStack spacing="2">
+                                  <Button
+                                    colorScheme="blue"
+                                    size="sm"
+                                    onClick={() => setEditEvent(event)}
+                                    isDisabled={isLoading}
+                                  >
+                                    Редактировать
+                                  </Button>
+                                  <Button
+                                    colorScheme="red"
+                                    size="sm"
+                                    onClick={() => handleDeleteEvent(event.id)}
+                                    isDisabled={isLoading}
+                                  >
+                                    Удалить
+                                  </Button>
+                                </HStack>
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
                   </VStack>
                 </TabPanel>
               </TabPanels>
@@ -945,6 +1005,73 @@ function Admin() {
           </motion.div>
         </Box>
       )}
+
+      {/* Delete Category Modal */}
+      <Modal isOpen={isDeleteCategoryModalOpen} onClose={onDeleteCategoryModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Подтверждение удаления</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Вы уверены, что хотите удалить эту категорию? При удалении категории все активные мероприятия станут не активными. Не расстраивайте пользователей</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              bg="gray.500"
+              color="white"
+              _hover={{ bg: 'gray.600' }}
+              mr={3}
+              onClick={onDeleteCategoryModalClose}
+              isDisabled={isLoading}
+            >
+              Отмена
+            </Button>
+            <Button
+              bg="red.500"
+              color="white"
+              _hover={{ bg: 'red.600' }}
+              onClick={confirmDeleteCategory}
+              isDisabled={isLoading}
+            >
+              Удалить
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Event Modal */}
+      <Modal isOpen={isDeleteEventModalOpen} onClose={onDeleteEventModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Подтверждение удаления</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Вы уверены, что хотите удалить это мероприятие? Мероприятие станет не активным, а неподтверждённые заявки будут откланены</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              bg="gray.500"
+              color="white"
+              _hover={{ bg: 'gray.600' }}
+              mr={3}
+              onClick={onDeleteEventModalClose}
+              isDisabled={isLoading}
+            >
+              Отмена
+            </Button>
+            <Button
+              bg="red.500"
+              color="white"
+              _hover={{ bg: 'red.600' }}
+              onClick={confirmDeleteEvent}
+              isDisabled={isLoading}
+            >
+              Удалить
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
       <Footer />
     </Box>
   );

@@ -18,9 +18,10 @@ $$ LANGUAGE plpgsql;
 -- Триггер, который срабатывает после вставки или обновления в OrganizerRequest
 CREATE TRIGGER organizer_request_role_trigger
 AFTER UPDATE OF status_id
-ON organizerrequest
+ON organizerrequests
 FOR EACH ROW
 EXECUTE FUNCTION update_user_role_on_organizer_request();
+
 
 
 -- Функция для триггера
@@ -42,8 +43,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+
 -- Триггер на UPDATE в EventRegistration
 CREATE TRIGGER event_capacity_trigger
-AFTER UPDATE ON eventregistration
+AFTER UPDATE ON eventregistrations
 FOR EACH ROW
 EXECUTE FUNCTION update_event_capacity();
