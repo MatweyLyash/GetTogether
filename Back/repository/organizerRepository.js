@@ -1,9 +1,16 @@
 const models = require('../models');
-const {generateInviteLink} = require('../bot/telegramBot');
+const { generateInviteLink } = require('../bot/telegramBot');
 
 class OrganizerRepository {
     async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image) {
-        return await models.Event.create({creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image});
+        const category = await models.Category.findOne({
+            where: { id: category_id, deletedAt: null }
+        });
+        if (!category) {
+            throw new Error('Категория не найдена или удалена');
+        }
+
+        return await models.Event.create({ creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image });
     }
 
     async getOwnEvents(creator_id) {
@@ -19,7 +26,7 @@ class OrganizerRepository {
 
     async getOwnEvent(creator_id, event_id) {
         return await models.Event.findOne({
-            where: { creator_id:creator_id, id: event_id },
+            where: { creator_id: creator_id, id: event_id },
             include: {
                 model: models.Category,
                 as: 'category', // Указываем псевдоним, заданный в belongsTo
@@ -40,15 +47,15 @@ class OrganizerRepository {
             telegram_chat_link
         };
         if (image !== undefined) {
-        updateData.image = image; // Обновляем изображение, если передано
+            updateData.image = image; // Обновляем изображение, если передано
         }
         return await models.Event.update(updateData, {
-        where: { creator_id, id: event_id }
+            where: { creator_id, id: event_id }
         });
     }
 
     async deleteEvent(creator_id, event_id) {
-        return await models.Event.destroy({where:{creator_id, id:event_id}});
+        return await models.Event.destroy({ where: { creator_id, id: event_id } });
     }
 
     async responseToEventRequest(creator_id, user_id, event_id, status_id) {
@@ -59,32 +66,37 @@ class OrganizerRepository {
 
         const registration = await models.EventRegistration.findOne({
             where: { user_id, event_id },
-          });
-        
-          registration.status_id = status_id;
+        });
 
-          // Если статус "approved", генерируем одноразовую ссылку
-          if (status_id === 2) {
+        // Проверяем, есть ли свободные места при одобрении заявки
+        if (status_id === 2 && event.capacity === 0) {
+            throw new Error('Нет свободных мест');
+        }
+
+        registration.status_id = status_id;
+
+        // Если статус "approved", генерируем одноразовую ссылку
+        if (status_id === 2) {
             if (!event.telegram_chat_id) {
-              throw new Error('Телаграмм беседа не привязана');
+                throw new Error('Телаграмм беседа не привязана');
             }
-      
+
             const inviteResult = await generateInviteLink(event_id, user_id);
             if (!inviteResult.success) {
-              throw new Error(`Ошибка генерации ключа: ${inviteResult.message}`);
+                throw new Error(`Ошибка генерации ключа: ${inviteResult.message}`);
             }
-      
-            registration.telegram_invite_link = inviteResult.inviteLink;
-          }
-      
-          // Сохраняем изменения
-          await registration.save();
 
-          // Возвращаем обновлённую заявку с включённым статусом
-          return await models.EventRegistration.findOne({
+            registration.telegram_invite_link = inviteResult.inviteLink;
+        }
+
+        // Сохраняем изменения
+        await registration.save();
+
+        // Возвращаем обновлённую заявку с включённым статусом
+        return await models.EventRegistration.findOne({
             where: { user_id, event_id },
             include: [{ model: models.Status, as: 'status', attributes: ['status_name'] }],
-          });
+        });
     }
 
     async getEventRequests(creator_id, event_id) {

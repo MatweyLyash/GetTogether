@@ -8,6 +8,7 @@ router.get('/events', UserController.getEvents);
 router.get('/event/:event_id', UserController.getEvent);
 
 router.post('/events/registration', UserController.createEventRegistration);
+router.put('/events/registration/:event_id/cancel', UserController.cancelEventRegistration);
 router.post('/reviews', UserController.createReview);
 router.get('/events/registration', UserController.getOwnEventsRegistration);
 router.post('/organizer/request', UserController.createOrganizerRequest);

@@ -29,7 +29,7 @@ bot.onText(/\/verify (.+)/, async (msg, match) => {
     // Проверяем, является ли отправитель организатором
     const organizer = await models.User.findByPk(event.creator_id);
     if (!organizer || !username || organizer.telegram !== `@${username}`) {
-      return bot.sendMessage(chatId, 'Только организатор может привязать группу.');
+      return bot.sendMessage(chatId, 'Только организатор может привязать группу. Перейдите в личный чат с ботом и используйте команду /link <login> для привязки вашего телеграмм аккаунта.');
     }
 
     const admins = await bot.getChatAdministrators(chatId);

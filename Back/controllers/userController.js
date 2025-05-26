@@ -16,6 +16,7 @@ class UserController {
         this.createOrganizerRequest = this.createOrganizerRequest.bind(this);
         this.getOwnOrganizerRequests = this.getOwnOrganizerRequests.bind(this);
         this.linkTelegram = this.linkTelegram.bind(this);
+        this.cancelEventRegistration = this.cancelEventRegistration.bind(this);
         this.getMe = this.getMe.bind(this);
     }
 
@@ -97,7 +98,7 @@ class UserController {
     async createEventRegistration(req, res) {
         try {
             const { event_id } = req.body;
-            const user_id = req.user.id; 
+            const user_id = req.user.id;
 
             if (!validators.validatePresence(event_id)) {
                 return res.status(400).json({ error: 'Event ID is required' });
@@ -110,10 +111,26 @@ class UserController {
         }
     }
 
+    async cancelEventRegistration(req, res) {
+        try {
+            const { event_id } = req.params;
+            const user_id = req.user.id;
+
+            if (!validators.validatePresence(event_id)) {
+                return res.status(400).json({ error: 'Event ID is required' });
+            }
+
+            const registration = await this.userRepository.cancelEventRegistration(user_id, event_id);
+            return res.status(200).json({ message: 'Заявка успешно отозвана', registration });
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     async createReview(req, res) {
         try {
             const { event_id, rating, comment } = req.body;
-            const user_id = req.user.id; 
+            const user_id = req.user.id;
 
             if (!validators.validatePresence(event_id)) {
                 return res.status(400).json({ error: 'Event ID is required' });
