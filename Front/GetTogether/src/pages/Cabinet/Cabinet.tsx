@@ -1239,6 +1239,7 @@ function Cabinet() {
                               <Th>Название</Th>
                               <Th>Дата</Th>
                               <Th>Место</Th>
+                              <Th>Действие</Th>
                               <Th>Отзыв</Th>
                             </Tr>
                           </Thead>
@@ -1250,6 +1251,16 @@ function Cabinet() {
                                   <Td>{reg.Event.title}</Td>
                                   <Td>{formatDateTime(reg.Event.date)}</Td>
                                   <Td>{reg.Event.location}</Td>
+                                  <Td>
+                                    <Button
+                                    size={buttonSize}
+                                    colorScheme="teal"
+                                    onClick={() => navigate(`/event/${reg.Event.id}`)}
+                                    isDisabled={isLoading}
+                                   >
+                                    Перейти
+                                  </Button>
+                                  </Td>
                                   <Td>
                                     {reg.Event?.reviews?.some(review => review.reviewUser.id === user?.id) ? (
                                       <Text mt="2" color="green.500">Отзыв уже отправлен</Text>
@@ -1280,6 +1291,7 @@ function Cabinet() {
                                         >
                                           Отправить отзыв
                                         </Button>
+                                        
                                       </VStack>
                                     )}
                                   </Td>

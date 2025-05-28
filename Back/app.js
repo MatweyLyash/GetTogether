@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cookieParser()); // Add cookie parser middleware
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Разрешить доступ с клиентского домена
+    origin: 'http://localhost:3000', // Разрешить доступ с клиентского домена
     credentials: true
   }));
 

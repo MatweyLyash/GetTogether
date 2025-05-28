@@ -141,37 +141,3 @@ alter table event alter column telegram_chat_link drop not null;
 
 alter table event add COLUMN image BYTEA;
 
-select * from users
-
-update  users set telegram = '@srozel' where id = 2;
-
-
-select * from eventregistration
-
-
-select * from organizerrequest
-
-SELECT 
-    tc.constraint_name, 
-    tc.table_name, 
-    kcu.column_name, 
-    ccu.table_name AS foreign_table_name, 
-    ccu.column_name AS foreign_column_name 
-FROM 
-    information_schema.table_constraints AS tc 
-    JOIN information_schema.key_column_usage AS kcu 
-      ON tc.constraint_name = kcu.constraint_name 
-    JOIN information_schema.constraint_column_usage AS ccu 
-      ON ccu.constraint_name = tc.constraint_name 
-WHERE 
-    tc.constraint_type = 'FOREIGN KEY' 
-    AND tc.table_name = 'eventregistration' 
-    AND kcu.column_name = 'event_id';
-
-update users set telegram = NULL where id = 5;
-
-
-SELECT * from "SequelizeMeta";
-DELETE FROM "SequelizeMeta" WHERE name = '20250521220759_correct_the_title_of_foreign_key_in_users_and_add_event_add_status.js';
-
-select createdAt from public.;

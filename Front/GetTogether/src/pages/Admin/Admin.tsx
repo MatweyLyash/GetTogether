@@ -902,12 +902,12 @@ function Admin() {
                           >
                             Выбрать изображение
                           </Button>
-                          {editEvent.image && (
+                          {imagePreview ? (
                             <Box mt="4" textAlign="center">
-                              <Text fontWeight="bold" mb="2">Текущее изображение:</Text>
+                              <Text fontWeight="bold" mb="2">Новое изображение (превью):</Text>
                               <Image
-                                src={editEvent.image}
-                                alt="Текущее изображение мероприятия"
+                                src={imagePreview}
+                                alt="Превью нового изображения"
                                 maxW="400px"
                                 borderRadius="8px"
                                 boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
@@ -915,13 +915,12 @@ function Admin() {
                                 margin="0 auto"
                               />
                             </Box>
-                          )}
-                          {imagePreview && (
+                          ) : editEvent.image && (
                             <Box mt="4" textAlign="center">
-                              <Text fontWeight="bold" mb="2">Новое изображение (превью):</Text>
+                              <Text fontWeight="bold" mb="2">Текущее изображение:</Text>
                               <Image
-                                src={imagePreview}
-                                alt="Превью нового изображения"
+                                src={editEvent.image}
+                                alt="Текущее изображение мероприятия"
                                 maxW="400px"
                                 borderRadius="8px"
                                 boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
@@ -1071,6 +1070,15 @@ function Admin() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept="image/*"
+        onChange={handleImageChange}
+      />
 
       <Footer />
     </Box>
