@@ -33,6 +33,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -109,6 +110,7 @@ function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [roleFilter, setRoleFilter] = useState<string>(''); // Фильтр по роли
   const [searchQuery, setSearchQuery] = useState(''); // Поиск по имени
+  const [activeTab, setActiveTab] = useState(0); // Для мобильного Select
   const { isOpen: isDeleteCategoryModalOpen, onOpen: onDeleteCategoryModalOpen, onClose: onDeleteCategoryModalClose } = useDisclosure();
   const { isOpen: isDeleteEventModalOpen, onOpen: onDeleteEventModalOpen, onClose: onDeleteEventModalClose } = useDisclosure();
   const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
@@ -116,6 +118,9 @@ function Admin() {
   const toast = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Определяем, мобильная ли версия
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   // Check admin access
   useEffect(() => {
@@ -531,24 +536,51 @@ function Admin() {
             transition={{ duration: 0.5 }}
             style={{ width: '100%' }}
           >
-            <Heading size="xl" mb="2rem">
+            <Heading size={{ base: 'lg', md: 'xl' }} mb="2rem">
               Панель администратора
             </Heading>
-            <Tabs variant="soft-rounded" colorScheme="blue">
-              <TabList mb="1rem" whiteSpace="nowrap">
-                <Tab>Категории</Tab>
-                <Tab>Пользователи</Tab>
-                <Tab>Запросы организаторов</Tab>
-                <Tab>Мероприятия</Tab>
-              </TabList>
+            
+            {/* Мобильный Select для выбора раздела */}
+            {isMobile && (
+              <FormControl mb="1.5rem">
+                <FormLabel fontWeight="bold">Выберите раздел</FormLabel>
+                <Select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(Number(e.target.value))}
+                  bg="#E7EBFC"
+                  size="lg"
+                >
+                  <option value={0}>Категории</option>
+                  <option value={1}>Пользователи</option>
+                  <option value={2}>Запросы организаторов</option>
+                  <option value={3}>Мероприятия</option>
+                </Select>
+              </FormControl>
+            )}
+            
+            <Tabs 
+              variant="soft-rounded" 
+              colorScheme="blue" 
+              index={activeTab} 
+              onChange={(index) => setActiveTab(index)}
+            >
+              {/* Табы только для десктопа */}
+              {!isMobile && (
+                <TabList mb="1rem" flexWrap="wrap" gap="0.5rem">
+                  <Tab>Категории</Tab>
+                  <Tab>Пользователи</Tab>
+                  <Tab>Запросы организаторов</Tab>
+                  <Tab>Мероприятия</Tab>
+                </TabList>
+              )}
               <TabPanels>
                 {/* Categories */}
-                <TabPanel>
+                <TabPanel px={{ base: 0, md: 4 }}>
                   <VStack spacing="2rem" align="stretch" width="100%">
                     <Heading size="md">Управление категориями</Heading>
                     <FormControl>
                       <FormLabel>Добавить категорию</FormLabel>
-                      <HStack>
+                      <VStack spacing="2" align="stretch">
                         <Input
                           value={newCategory}
                           onChange={(e) => setNewCategory(e.target.value)}
@@ -561,13 +593,15 @@ function Admin() {
                           _hover={{ bg: '#1e3fa9' }}
                           onClick={handleAddCategory}
                           isDisabled={isLoading}
+                          width={{ base: '100%', md: 'auto' }}
+                          alignSelf={{ base: 'stretch', md: 'flex-start' }}
                         >
                           Добавить
                         </Button>
-                      </HStack>
+                      </VStack>
                     </FormControl>
                     <Box overflowX="auto">
-                      <Table variant="simple" minWidth="600px">
+                      <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                         <Thead>
                           <Tr>
                             <Th>Название</Th>
@@ -585,18 +619,19 @@ function Admin() {
                                       setEditCategory({ id: cat.id, name: e.target.value })
                                     }
                                     bg="#E7EBFC"
+                                    size="sm"
                                   />
                                 ) : (
                                   cat.category_name
                                 )}
                               </Td>
                               <Td>
-                                <HStack spacing="2">
+                                <VStack spacing="1" align="stretch">
                                   {editCategory?.id === cat.id ? (
                                     <>
                                       <Button
                                         colorScheme="blue"
-                                        size="sm"
+                                        size="xs"
                                         onClick={() => handleRenameCategory(cat.id)}
                                         isDisabled={isLoading}
                                       >
@@ -604,7 +639,7 @@ function Admin() {
                                       </Button>
                                       <Button
                                         variant="outline"
-                                        size="sm"
+                                        size="xs"
                                         onClick={() => setEditCategory(null)}
                                         isDisabled={isLoading}
                                       >
@@ -614,24 +649,24 @@ function Admin() {
                                   ) : (
                                     <Button
                                       colorScheme="blue"
-                                      size="sm"
+                                      size="xs"
                                       onClick={() =>
                                         setEditCategory({ id: cat.id, name: cat.category_name })
                                       }
                                       isDisabled={isLoading}
                                     >
-                                      Переименовать
+                                      Переим.
                                     </Button>
                                   )}
                                   <Button
                                     colorScheme="red"
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => handleDeleteCategory(cat.id)}
                                     isDisabled={isLoading}
                                   >
                                     Удалить
                                   </Button>
-                                </HStack>
+                                </VStack>
                               </Td>
                             </Tr>
                           ))}
@@ -642,13 +677,13 @@ function Admin() {
                 </TabPanel>
 
                 {/* Users */}
-                <TabPanel>
+                <TabPanel px={{ base: 0, md: 4 }}>
                   <VStack spacing="4" align="stretch" width="100%">
-                    <Heading size="md" mb="2rem">
+                    <Heading size="md" mb="1rem">
                       Управление пользователями
                     </Heading>
-                    <HStack spacing="4" mb="4">
-                      <FormControl maxW="200px">
+                    <VStack spacing="4" mb="4" align="stretch">
+                      <FormControl>
                         <FormLabel>Фильтр по роли</FormLabel>
                         <Select
                           value={roleFilter}
@@ -670,38 +705,38 @@ function Admin() {
                           bg="#E7EBFC"
                         />
                       </FormControl>
-                    </HStack>
+                    </VStack>
                     <Box overflowX="auto">
-                      <Table variant="simple" minWidth="800px">
+                      <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                         <Thead>
                           <Tr>
-                            <Th>ID пользователя</Th>
+                            <Th display={{ base: 'none', lg: 'table-cell' }}>ID</Th>
                             <Th>Логин</Th>
-                            <Th>Телеграм</Th>
+                            <Th display={{ base: 'none', md: 'table-cell' }}>Телеграм</Th>
                             <Th>Роль</Th>
-                            <Th>Статус</Th>
+                            <Th display={{ base: 'none', md: 'table-cell' }}>Статус</Th>
                             <Th>Действия</Th>
                           </Tr>
                         </Thead>
                         <Tbody>
                           {filteredUsers.map((u) => (
                             <Tr key={u.id}>
-                              <Td>{u.id}</Td>
+                              <Td display={{ base: 'none', lg: 'table-cell' }}>{u.id}</Td>
                               <Td>{u.login}</Td>
-                              <Td>{u.telegram ? `${u.telegram}` : 'Нет'}</Td>
+                              <Td display={{ base: 'none', md: 'table-cell' }}>{u.telegram ? `${u.telegram}` : 'Нет'}</Td>
                               <Td>
                                 {u.role_id === 1
-                                  ? 'Пользователь'
+                                  ? 'Польз.'
                                   : u.role_id === 2
-                                  ? 'Организатор'
+                                  ? 'Орг.'
                                   : 'Админ'}
                               </Td>
-                              <Td>{u.is_blocked ? 'Заблокирован' : 'Активен'}</Td>
+                              <Td display={{ base: 'none', md: 'table-cell' }}>{u.is_blocked ? 'Заблок.' : 'Активен'}</Td>
                               <Td>
-                                <HStack spacing="2">
+                                <VStack spacing="1" align="stretch">
                                   <Button
                                     colorScheme={u.is_blocked ? 'green' : 'red'}
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => handleBanUser(u.id, u.is_blocked || false)}
                                     isDisabled={isLoading || u.id === user?.id}
                                   >
@@ -710,14 +745,14 @@ function Admin() {
                                   {u.role_id === 2 && (
                                     <Button
                                       colorScheme="orange"
-                                      size="sm"
+                                      size="xs"
                                       onClick={() => handleUnassignOrganizer(u.id)}
                                       isDisabled={isLoading}
                                     >
-                                      Снять роль организатора
+                                      Снять орг.
                                     </Button>
                                   )}
-                                </HStack>
+                                </VStack>
                               </Td>
                             </Tr>
                           ))}
@@ -728,16 +763,16 @@ function Admin() {
                 </TabPanel>
 
                 {/* Organizer Requests */}
-                <TabPanel>
+                <TabPanel px={{ base: 0, md: 4 }}>
                   <VStack spacing="4" align="stretch" width="100%">
-                    <Heading size="md" mb="2rem">
+                    <Heading size="md" mb="1rem">
                       Запросы на роль организатора
                     </Heading>
                     <Box overflowX="auto">
-                      <Table variant="simple" minWidth="600px">
+                      <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                         <Thead>
                           <Tr>
-                            <Th>ID Пользователя</Th>
+                            <Th>ID Польз.</Th>
                             <Th>Статус</Th>
                             <Th>Действия</Th>
                           </Tr>
@@ -754,10 +789,10 @@ function Admin() {
                                   : 'Отклонен'}
                               </Td>
                               <Td>
-                                <HStack spacing="2">
+                                <VStack spacing="1" align="stretch">
                                   <Button
                                     colorScheme="green"
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => handleOrganizerResponse(req.id, true)}
                                     isDisabled={isLoading || req.status_id !== 1}
                                   >
@@ -765,13 +800,13 @@ function Admin() {
                                   </Button>
                                   <Button
                                     colorScheme="red"
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => handleOrganizerResponse(req.id, false)}
                                     isDisabled={isLoading || req.status_id !== 1}
                                   >
                                     Отклонить
                                   </Button>
-                                </HStack>
+                                </VStack>
                               </Td>
                             </Tr>
                           ))}
@@ -782,7 +817,7 @@ function Admin() {
                 </TabPanel>
 
                 {/* Events */}
-                <TabPanel>
+                <TabPanel px={{ base: 0, md: 4 }}>
                   <VStack spacing="2rem" align="stretch" width="100%">
                     <Heading size="md">Управление мероприятиями</Heading>
                     {editEvent && (
@@ -930,13 +965,14 @@ function Admin() {
                             </Box>
                           )}
                         </FormControl>
-                        <HStack spacing="2">
+                        <VStack spacing="2" align="stretch">
                           <Button
                             bg="#2E4FD7"
                             color="white"
                             _hover={{ bg: '#1e3fa9' }}
                             onClick={() => handleUpdateEvent(editEvent.id)}
                             isDisabled={isLoading}
+                            width="100%"
                           >
                             Сохранить изменения
                           </Button>
@@ -950,19 +986,20 @@ function Admin() {
                               setImagePreview(null);
                             }}
                             isDisabled={isLoading}
+                            width="100%"
                           >
                             Отменить редактирование
                           </Button>
-                        </HStack>
+                        </VStack>
                       </VStack>
                     )}
                     <Box overflowX="auto">
-                      <Table variant="simple" minWidth="800px">
+                      <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                         <Thead>
                           <Tr>
                             <Th>Название</Th>
-                            <Th>Дата</Th>
-                            <Th>Локация</Th>
+                            <Th display={{ base: 'none', md: 'table-cell' }}>Дата</Th>
+                            <Th display={{ base: 'none', lg: 'table-cell' }}>Локация</Th>
                             <Th>Действия</Th>
                           </Tr>
                         </Thead>
@@ -970,27 +1007,27 @@ function Admin() {
                           {events.map((event) => (
                             <Tr key={event.id}>
                               <Td>{event.title}</Td>
-                              <Td>{new Date(event.date).toLocaleDateString()}</Td>
-                              <Td>{event.location}</Td>
+                              <Td display={{ base: 'none', md: 'table-cell' }}>{new Date(event.date).toLocaleDateString()}</Td>
+                              <Td display={{ base: 'none', lg: 'table-cell' }}>{event.location}</Td>
                               <Td>
-                                <HStack spacing="2">
+                                <VStack spacing="1" align="stretch">
                                   <Button
                                     colorScheme="blue"
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => setEditEvent(event)}
                                     isDisabled={isLoading}
                                   >
-                                    Редактировать
+                                    Ред.
                                   </Button>
                                   <Button
                                     colorScheme="red"
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => handleDeleteEvent(event.id)}
                                     isDisabled={isLoading}
                                   >
                                     Удалить
                                   </Button>
-                                </HStack>
+                                </VStack>
                               </Td>
                             </Tr>
                           ))}

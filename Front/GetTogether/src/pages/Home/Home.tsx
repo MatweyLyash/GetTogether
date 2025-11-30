@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Heading, Text, Button, SimpleGrid, Input, Flex, useToast } from '@chakra-ui/react';
+import { Box, Heading, Text, Button, SimpleGrid, Input, Flex, useToast, useBreakpointValue, Icon, VStack, Skeleton, SkeletonText, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
+import { SearchIcon } from '@chakra-ui/icons';
 import Slider from 'react-slick';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
@@ -48,6 +49,22 @@ const api = {
   },
 };
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
+
 function Home() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -55,13 +72,22 @@ function Home() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [searchQueryByTitle, setSearchQueryByTitle] = useState('');
   const [searchQueryByLocation, setSearchQueryByLocation] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const sliderRef = useRef<Slider>(null);
   const toast = useToast();
   const navigate = useNavigate();
+  
+  // Responsive values
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const headingSize = useBreakpointValue({ base: 'lg', md: 'xl', lg: '2xl' });
+  const subHeadingSize = useBreakpointValue({ base: 'md', md: 'lg' });
+  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
+  const categoryColumns = useBreakpointValue({ base: 2, sm: 3, md: 4 });
 
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const [catData, eventData, reviewData] = await Promise.all([
           getCategories(),
@@ -113,6 +139,7 @@ function Home() {
         setEvents(mappedEvents);
         setReviews(reviewData);
       } catch (error: any) {
+        setIsLoading(false);
         toast({
           title: 'Ошибка загрузки данных',
           description: error.message || 'Не удалось загрузить данные',
@@ -120,6 +147,8 @@ function Home() {
           duration: 3000,
           isClosable: true,
         });
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -197,146 +226,299 @@ function Home() {
         `}
       </style>
       <Header />
-      <Box className={styles.content}>
-        {/* Banner with search */}
-        <Box className={styles.banner} bgGradient="linear(to-r, #E7EBFC, #FEFEFE)" p={{ base: '2rem', md: '4rem' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Box className={styles.content}>
+          {/* Hero Banner with search */}
+          <Box 
+            className={styles.banner} 
+            bgGradient="linear(135deg, #E7EBFC 0%, #FEFEFE 50%, #E7EBFC 100%)"
+            position="relative"
+            overflow="hidden"
           >
-            <Heading as="h1" size={{ base: 'xl', md: '2xl' }} mb="1rem">
-              Найдите своё следующее приключение
-            </Heading>
-            <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem">
-              Концерты, мастер-классы, вечеринки — всё в одном месте с GetTogether
-            </Text>
-            <Flex gap="1rem" flexDir={{ base: 'column', md: 'row' }}>
-              <Input
-                placeholder="Поиск по названию"
-                value={searchQueryByTitle}
-                onChange={(e) => setSearchQueryByTitle(e.target.value)}
-                bg="white"
-                size="lg"
-              />
-              <Input
-                placeholder="Поиск по месту проведения"
-                value={searchQueryByLocation}
-                onChange={(e) => setSearchQueryByLocation(e.target.value)}
-                bg="white"
-                size="lg"
-              />
-              <Button
-                bg="#2E4FD7"
-                color="white"
-                _hover={{ bg: '#1e3fa9' }}
-                size="lg"
-                onClick={handleSearch}
-              >
-                Поиск
-              </Button>
-            </Flex>
-          </motion.div>
-        </Box>
-
-        {/* Categories */}
-        <Box className={styles.categories} p={{ base: '1rem', md: '2rem' }}>
-          <Heading as="h3" size={{ base: 'md', md: 'lg' }} mb="1rem">
-            Популярные категории
-          </Heading>
-          <SimpleGrid columns={{ base: 2, md: 4 }} spacing="1rem">
-            {categories.map((cat) => (
-              <motion.div
-                key={cat.id}
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Link
-                  to="/events"
-                  state={{ category: String(cat.id) }}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <VStack spacing={{ base: 4, md: 6 }} align="center">
+                <Heading 
+                  as="h1" 
+                  size={headingSize} 
+                  textAlign="center"
+                  bgGradient="linear(to-r, #2E4FD7, #5A7AE8)"
+                  bgClip="text"
                 >
-                  <Box bg="#FEFEFE" p="1rem" borderRadius="md" boxShadow="sm" textAlign="center">
-                    <Text fontWeight="medium">{cat.category_name}</Text>
-                  </Box>
-                </Link>
-              </motion.div>
-            ))}
-          </SimpleGrid>
-        </Box>
-
-        {/* Карусель */}
-        <Box className={styles.carousel} p={{ base: '1rem', md: '2rem' }}>
-          <Heading as="h3" size={{ base: 'md', md: 'lg' }} mb="1rem">
-            Ближайшие мероприятия
-          </Heading>
-          <Slider ref={sliderRef} {...slickSettings}>
-            {events.map((event) => (
-              <div key={event.id} className={styles.slide}>
-                <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  transition={{ duration: 0.2 }}
+                  Найдите своё следующее приключение
+                </Heading>
+                <Text 
+                  fontSize={{ base: 'md', md: 'lg' }} 
+                  color="gray.600"
+                  textAlign="center"
+                  maxW="600px"
                 >
-                  <EventCard event={event} />
-                </motion.div>
-              </div>
-            ))}
-          </Slider>
-        </Box>
-
-        {/* Отзывы */}
-        <Box className={styles.reviews} p={{ base: '1rem', md: '2rem' }}>
-          <Heading as="h3" size={{ base: 'md', md: 'lg' }} mb="1rem">
-            Что говорят участники
-          </Heading>
-          <SimpleGrid columns={{ base: 1, md: 3 }} spacing="1rem">
-            {reviews.map((review) => (
-              <motion.div
-                key={review.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Box bg="#FEFEFE" p="1rem" borderRadius="md" boxShadow="sm">
-                  <Text fontWeight="bold">{review.user.login}</Text>
-                  <Text fontSize="sm" mb="0.5rem">
-                    {events.find((e) => e.id === review.event_id)?.title}
-                  </Text>
-                  <Text>{review.comment}</Text>
-                  <Text color="#2E4FD7">{'★'.repeat(review.rating)}</Text>
-                </Box>
-              </motion.div>
-            ))}
-          </SimpleGrid>
-        </Box>
-
-        {/* Призыв к регистрации */}
-        {!user && (
-                  <Box className={styles.cta} p={{ base: '2rem', md: '4rem' }} textAlign="center" bg="#E7EBFC">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                  Концерты, мастер-классы, вечеринки — всё в одном месте с GetTogether
+                </Text>
+                <Flex 
+                  gap={{ base: 3, md: 4 }} 
+                  flexDir={{ base: 'column', md: 'row' }}
+                  w="100%"
+                  maxW="700px"
+                  mt={2}
+                >
+                  <InputGroup size={buttonSize} flex={1}>
+                    <InputLeftElement pointerEvents="none">
+                      <SearchIcon color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Поиск по названию"
+                      value={searchQueryByTitle}
+                      onChange={(e) => setSearchQueryByTitle(e.target.value)}
+                      bg="white"
+                      borderRadius="lg"
+                      borderColor="gray.200"
+                      _hover={{ borderColor: '#2E4FD7' }}
+                      _focus={{ borderColor: '#2E4FD7', boxShadow: '0 0 0 1px #2E4FD7' }}
+                    />
+                  </InputGroup>
+                  <InputGroup size={buttonSize} flex={1}>
+                    <InputLeftElement pointerEvents="none">
+                      <Icon viewBox="0 0 24 24" color="gray.400">
+                        <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                      </Icon>
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Поиск по месту"
+                      value={searchQueryByLocation}
+                      onChange={(e) => setSearchQueryByLocation(e.target.value)}
+                      bg="white"
+                      borderRadius="lg"
+                      borderColor="gray.200"
+                      _hover={{ borderColor: '#2E4FD7' }}
+                      _focus={{ borderColor: '#2E4FD7', boxShadow: '0 0 0 1px #2E4FD7' }}
+                    />
+                  </InputGroup>
+                  <Button
+                    bg="#2E4FD7"
+                    color="white"
+                    _hover={{ bg: '#1e3fa9', transform: 'translateY(-2px)' }}
+                    _active={{ transform: 'translateY(0)' }}
+                    size={buttonSize}
+                    onClick={handleSearch}
+                    leftIcon={<SearchIcon />}
+                    borderRadius="lg"
+                    transition="all 0.2s"
+                    boxShadow="md"
+                    minW={{ base: 'full', md: '120px' }}
                   >
-                    <Heading as="h3" size={{ base: 'md', md: 'lg' }} mb="1rem">
-                      Присоединяйтесь к GetTogether!
-                    </Heading>
-                    <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem">
-                      Создавайте и посещайте уникальные события
-                    </Text>
-                    <Link to="/login">
-                      <Button
-                        bg="#2E4FD7"
-                        color="white"
-                        _hover={{ bg: '#1e3fa9' }}
-                        size={{ base: 'md', md: 'lg' }}
+                    Поиск
+                  </Button>
+                </Flex>
+              </VStack>
+            </motion.div>
+          </Box>
+
+          {/* Categories */}
+          <Box className={styles.categories}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Heading as="h3" size={subHeadingSize} mb={4}>
+                Популярные категории
+              </Heading>
+              {isLoading ? (
+                <SimpleGrid columns={categoryColumns} spacing={4}>
+                  {[...Array(4)].map((_, i) => (
+                    <Skeleton key={i} height="60px" borderRadius="lg" />
+                  ))}
+                </SimpleGrid>
+              ) : (
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <SimpleGrid columns={categoryColumns} spacing={4}>
+                    {categories.map((cat, index) => (
+                      <motion.div
+                        key={cat.id}
+                        variants={itemVariants}
+                        whileHover={{ scale: 1.05, y: -5 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        Зарегистрироваться
-                      </Button>
-                    </Link>
-                  </motion.div>
+                        <Link
+                          to="/events"
+                          state={{ category: String(cat.id) }}
+                        >
+                          <Box 
+                            bg="white" 
+                            p={4} 
+                            borderRadius="lg" 
+                            boxShadow="sm" 
+                            textAlign="center"
+                            border="1px solid"
+                            borderColor="gray.100"
+                            _hover={{ 
+                              boxShadow: 'lg', 
+                              borderColor: '#2E4FD7',
+                              bg: '#F8F9FE'
+                            }}
+                            transition="all 0.2s"
+                          >
+                            <Text fontWeight="medium" color="gray.700">{cat.category_name}</Text>
+                          </Box>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </SimpleGrid>
+                </motion.div>
+              )}
+            </motion.div>
+          </Box>
+
+          {/* Карусель */}
+          <Box className={styles.carousel}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Heading as="h3" size={subHeadingSize} mb={4}>
+                Ближайшие мероприятия
+              </Heading>
+              {isLoading ? (
+                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                  {[...Array(3)].map((_, i) => (
+                    <Box key={i} p={4} bg="white" borderRadius="lg" boxShadow="sm">
+                      <Skeleton height="200px" borderRadius="md" mb={4} />
+                      <SkeletonText noOfLines={3} spacing={2} />
+                    </Box>
+                  ))}
+                </SimpleGrid>
+              ) : events.length > 0 ? (
+                <Slider ref={sliderRef} {...slickSettings}>
+                  {events.map((event) => (
+                    <div key={event.id} className={styles.slide}>
+                      <motion.div
+                        whileHover={{ scale: 1.03, y: -5 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <EventCard event={event} />
+                      </motion.div>
+                    </div>
+                  ))}
+                </Slider>
+              ) : (
+                <Box textAlign="center" py={10} bg="gray.50" borderRadius="lg">
+                  <Text color="gray.500">Нет предстоящих мероприятий</Text>
                 </Box>
-        )}
-      </Box>
+              )}
+            </motion.div>
+          </Box>
+
+          {/* Отзывы */}
+          <Box className={styles.reviews}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <Heading as="h3" size={subHeadingSize} mb={4}>
+                Что говорят участники
+              </Heading>
+              {isLoading ? (
+                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                  {[...Array(3)].map((_, i) => (
+                    <Box key={i} p={4} bg="white" borderRadius="lg" boxShadow="sm">
+                      <SkeletonText noOfLines={4} spacing={3} />
+                    </Box>
+                  ))}
+                </SimpleGrid>
+              ) : (
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                    {reviews.map((review, index) => (
+                      <motion.div
+                        key={review.id}
+                        variants={itemVariants}
+                        whileHover={{ y: -5 }}
+                      >
+                        <Box 
+                          bg="white" 
+                          p={5} 
+                          borderRadius="lg" 
+                          boxShadow="sm"
+                          border="1px solid"
+                          borderColor="gray.100"
+                          _hover={{ boxShadow: 'md' }}
+                          transition="all 0.2s"
+                        >
+                          <Text fontWeight="bold" color="#2E4FD7">{review.user.login}</Text>
+                          <Text fontSize="sm" color="gray.500" mb={2}>
+                            {events.find((e) => e.id === review.event_id)?.title}
+                          </Text>
+                          <Text color="gray.700" mb={2}>{review.comment}</Text>
+                          <Text color="#FFB800" fontSize="lg">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</Text>
+                        </Box>
+                      </motion.div>
+                    ))}
+                  </SimpleGrid>
+                </motion.div>
+              )}
+            </motion.div>
+          </Box>
+
+          {/* Призыв к регистрации */}
+          {!user && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Box 
+                className={styles.cta} 
+                p={{ base: 6, md: 10 }} 
+                textAlign="center" 
+                bgGradient="linear(135deg, #E7EBFC 0%, #D5DFFB 100%)"
+                borderRadius="xl"
+              >
+                <VStack spacing={4}>
+                  <Heading as="h3" size={subHeadingSize}>
+                    Присоединяйтесь к GetTogether!
+                  </Heading>
+                  <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.600" maxW="500px">
+                    Создавайте и посещайте уникальные события
+                  </Text>
+                  <Link to="/login">
+                    <Button
+                      bg="#2E4FD7"
+                      color="white"
+                      _hover={{ bg: '#1e3fa9', transform: 'translateY(-2px)' }}
+                      _active={{ transform: 'translateY(0)' }}
+                      size={buttonSize}
+                      borderRadius="lg"
+                      boxShadow="md"
+                      transition="all 0.2s"
+                      px={8}
+                    >
+                      Зарегистрироваться
+                    </Button>
+                  </Link>
+                </VStack>
+              </Box>
+            </motion.div>
+          )}
+        </Box>
+      </motion.div>
       <Footer />
     </Box>
   );

@@ -102,7 +102,12 @@ function Header() {
               {isAuthenticated && (
                 <Link to="/cabinet" onClick={onClose}>
                   Личный кабинет
-              </Link>
+                </Link>
+              )}
+              {isAdmin && isAuthenticated && (
+                <Link to="/admin" onClick={onClose}>
+                  Админка
+                </Link>
               )}
             </Flex>
           </DrawerBody>

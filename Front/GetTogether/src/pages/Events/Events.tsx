@@ -13,7 +13,14 @@ import {
   useToast,
   FormControl,
   FormLabel,
+  useBreakpointValue,
+  Collapse,
+  useDisclosure,
+  IconButton,
+  HStack,
+  Badge,
 } from '@chakra-ui/react';
+import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import Header from '../../components/Header/Header';
@@ -61,6 +68,12 @@ function Events() {
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const location = useLocation();
+  
+  // Адаптивные значения
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const headingSize = useBreakpointValue({ base: 'lg', md: 'xl' });
+  const buttonSize = useBreakpointValue({ base: 'sm', md: 'md' });
+  const { isOpen: isFilterOpen, onToggle: onFilterToggle } = useDisclosure({ defaultIsOpen: true });
 
   // Fetch events and categories
   useEffect(() => {
@@ -222,110 +235,238 @@ function Events() {
         `}
       </style>
       <Header />
-      <Heading size="lg" mb="1rem" textAlign="center" pt="2rem">
-        Список мероприятий
-      </Heading>
-      <div className={styles.contentContainer}>
-        <div className={styles.filterSidebar}>
-          <VStack spacing="1rem" align="stretch">
-            <Heading size="md">Фильтры</Heading>
-            <Input
-              placeholder="Поиск по названию"
-              value={searchTitle}
-              onChange={(e) => setSearchTitle(e.target.value)}
-              bg="white"
-              size="md"
-            />
-            <Input
-              placeholder="Поиск по локации"
-              value={searchLocation}
-              onChange={(e) => setSearchLocation(e.target.value)}
-              bg="white"
-              size="md"
-            />
-            <Select
-              placeholder="Выберите категорию"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              bg="white"
-              size="md"
-            >
-              {categories.map((cat) => (
-                <option key={cat.id} value={String(cat.id)}>
-                  {cat.category_name}
-                </option>
-              ))}
-            </Select>
-            <FormControl>
-              <FormLabel fontSize="sm">Дата проведения (от):</FormLabel>
-              <Input
-                type="datetime-local"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                bg="white"
-                size="md"
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel fontSize="sm">Дата проведения (до):</FormLabel>
-              <Input
-                type="datetime-local"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                bg="white"
-                size="md"
-              />
-            </FormControl>
-            <Button
-              bg="#2E4FD7"
-              color="white"
-              _hover={{ bg: '#1e3fa9' }}
-              size="md"
-              onClick={handleSearch}
-              isDisabled={isLoading}
-            >
-              Применить
-            </Button>
-            <Button
-              variant="outline"
-              colorScheme="blue"
-              size="md"
-              onClick={handleReset}
-              isDisabled={isLoading}
-            >
-              Сбросить
-            </Button>
-          </VStack>
-        </div>
+      
+      <Box className={styles.content} py="6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{ width: '100%' }}
+        >
+          <Heading 
+            as="h1" 
+            size={headingSize} 
+            mb="1.5rem" 
+            color="#2E4FD7"
+            textAlign={{ base: 'center', md: 'left' }}
+          >
+            Список мероприятий
+          </Heading>
+          
+          <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="gray.600">
+            Найдено мероприятий: {filteredEvents.length}
+          </Text>
 
-        <div className={styles.eventContainer}>
-          {isLoading ? (
-            <Flex justify="center" py="4rem">
-              <Spinner size="xl" />
-            </Flex>
-          ) : filteredEvents.length === 0 ? (
-            <Text textAlign="center" fontSize="lg" color="gray.600">
-              Мероприятия не найдены
-            </Text>
-          ) : (
-            <SimpleGrid
-              columns={{ base: 1, md: 1, lg: 2 }}
-              spacing="1.5rem"
-            >
-              {filteredEvents.map((event) => (
+          <div className={styles.contentContainer}>
+            {/* Фильтры */}
+            <Box className={styles.filterSidebar}>
+              {/* Кнопка сворачивания фильтров на мобильных */}
+              {isMobile && (
+                <HStack 
+                  justify="space-between" 
+                  mb={isFilterOpen ? "1rem" : 0}
+                  cursor="pointer"
+                  onClick={onFilterToggle}
+                >
+                  <Heading size="md">Фильтры</Heading>
+                  <IconButton
+                    aria-label="Toggle filters"
+                    icon={isFilterOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                    variant="ghost"
+                    size="sm"
+                  />
+                </HStack>
+              )}
+              
+              {!isMobile && <Heading size="md" mb="1rem">Фильтры</Heading>}
+              
+              <Collapse in={isMobile ? isFilterOpen : true} animateOpacity>
+                <VStack spacing="1rem" align="stretch">
+                  <FormControl>
+                    <FormLabel fontSize="sm">Название</FormLabel>
+                    <Input
+                      placeholder="Поиск по названию"
+                      value={searchTitle}
+                      onChange={(e) => setSearchTitle(e.target.value)}
+                      bg="white"
+                      size={buttonSize}
+                    />
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel fontSize="sm">Локация</FormLabel>
+                    <Input
+                      placeholder="Поиск по локации"
+                      value={searchLocation}
+                      onChange={(e) => setSearchLocation(e.target.value)}
+                      bg="white"
+                      size={buttonSize}
+                    />
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel fontSize="sm">Категория</FormLabel>
+                    <Select
+                      placeholder="Все категории"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      bg="white"
+                      size={buttonSize}
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={String(cat.id)}>
+                          {cat.category_name}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel fontSize="sm">Дата (от)</FormLabel>
+                    <Input
+                      type="datetime-local"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      bg="white"
+                      size={buttonSize}
+                    />
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel fontSize="sm">Дата (до)</FormLabel>
+                    <Input
+                      type="datetime-local"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      bg="white"
+                      size={buttonSize}
+                    />
+                  </FormControl>
+                  
+                  <VStack spacing="2" pt="1rem">
+                    <Button
+                      bg="#2E4FD7"
+                      color="white"
+                      _hover={{ bg: '#1e3fa9' }}
+                      size={buttonSize}
+                      width="100%"
+                      onClick={handleSearch}
+                      isDisabled={isLoading}
+                    >
+                      Применить фильтры
+                    </Button>
+                    <Button
+                      variant="outline"
+                      colorScheme="blue"
+                      size={buttonSize}
+                      width="100%"
+                      onClick={handleReset}
+                      isDisabled={isLoading}
+                    >
+                      Сбросить
+                    </Button>
+                  </VStack>
+                  
+                  {/* Показать активные фильтры */}
+                  {(searchTitle || searchLocation || selectedCategory || startDate || endDate) && (
+                    <Box pt="1rem">
+                      <Text fontSize="sm" color="gray.600" mb="0.5rem">Активные фильтры:</Text>
+                      <Flex flexWrap="wrap" gap="0.5rem">
+                        {searchTitle && (
+                          <Badge colorScheme="blue" variant="subtle">
+                            Название: {searchTitle}
+                          </Badge>
+                        )}
+                        {searchLocation && (
+                          <Badge colorScheme="green" variant="subtle">
+                            Локация: {searchLocation}
+                          </Badge>
+                        )}
+                        {selectedCategory && (
+                          <Badge colorScheme="purple" variant="subtle">
+                            {categories.find(c => String(c.id) === selectedCategory)?.category_name}
+                          </Badge>
+                        )}
+                        {startDate && (
+                          <Badge colorScheme="orange" variant="subtle">
+                            От: {new Date(startDate).toLocaleDateString()}
+                          </Badge>
+                        )}
+                        {endDate && (
+                          <Badge colorScheme="orange" variant="subtle">
+                            До: {new Date(endDate).toLocaleDateString()}
+                          </Badge>
+                        )}
+                      </Flex>
+                    </Box>
+                  )}
+                </VStack>
+              </Collapse>
+            </Box>
+
+            {/* Список мероприятий */}
+            <div className={styles.eventContainer}>
+              {isLoading ? (
+                <Flex justify="center" align="center" py="4rem" minH="300px">
+                  <VStack spacing="4">
+                    <Spinner size="xl" color="#2E4FD7" thickness="4px" />
+                    <Text color="gray.600">Загрузка мероприятий...</Text>
+                  </VStack>
+                </Flex>
+              ) : filteredEvents.length === 0 ? (
                 <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <EventCard event={event} />
+                  <Flex 
+                    justify="center" 
+                    align="center" 
+                    py="4rem" 
+                    minH="300px"
+                    direction="column"
+                    bg="#F7F9FC"
+                    borderRadius="md"
+                  >
+                    <Text fontSize={{ base: 'lg', md: 'xl' }} color="gray.600" mb="2">
+                      Мероприятия не найдены
+                    </Text>
+                    <Text fontSize="sm" color="gray.500">
+                      Попробуйте изменить параметры поиска
+                    </Text>
+                    <Button
+                      mt="4"
+                      variant="outline"
+                      colorScheme="blue"
+                      size={buttonSize}
+                      onClick={handleReset}
+                    >
+                      Сбросить фильтры
+                    </Button>
+                  </Flex>
                 </motion.div>
-              ))}
-            </SimpleGrid>
-          )}
-        </div>
-      </div>
+              ) : (
+                <SimpleGrid
+                  columns={{ base: 1, lg: 2 }}
+                  spacing="1.5rem"
+                >
+                  {filteredEvents.map((event, index) => (
+                    <motion.div
+                      key={event.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <EventCard event={event} />
+                    </motion.div>
+                  ))}
+                </SimpleGrid>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </Box>
+      
       <Footer />
     </Box>
   );

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import {  login, logout, getMe } from '../api/api';
 
 interface User {
@@ -24,11 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isCheckingAuth = useRef(false); // Защита от повторных вызовов
 
   console.log('AuthProvider инициализирован');
 
   useEffect(() => {
     const checkAuth = async () => {
+      // Предотвращаем повторный вызов (StrictMode)
+      if (isCheckingAuth.current) return;
+      isCheckingAuth.current = true;
+
       console.log('AuthProvider: Начало проверки авторизации');
       const timeout = setTimeout(() => {
         console.error('AuthProvider: Тайм-аут проверки авторизации');

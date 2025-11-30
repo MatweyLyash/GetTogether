@@ -1172,12 +1172,33 @@ function Cabinet() {
                 </HStack>
               </VStack>
             ) : (
-              <Tabs variant="soft-rounded" colorScheme="blue" index={tabIndex} onChange={(index) => setTabIndex(index)}>
-                <TabList mb="1rem" whiteSpace="nowrap">
-                  <Tab fontSize={fontSizeText}>Будущие</Tab>
-                  <Tab fontSize={fontSizeText}>Прошедшие</Tab>
-                  <Tab fontSize={fontSizeText}>Мои созданные</Tab>
-                </TabList>
+              <>
+                {/* Мобильный Select для выбора раздела */}
+                {isMobile && (
+                  <FormControl mb="1.5rem">
+                    <FormLabel fontWeight="bold">Выберите раздел</FormLabel>
+                    <Select
+                      value={tabIndex}
+                      onChange={(e) => setTabIndex(Number(e.target.value))}
+                      bg="#E7EBFC"
+                      size="lg"
+                    >
+                      <option value={0}>Будущие мероприятия</option>
+                      <option value={1}>Прошедшие мероприятия</option>
+                      <option value={2}>Мои созданные</option>
+                    </Select>
+                  </FormControl>
+                )}
+                
+                <Tabs variant="soft-rounded" colorScheme="blue" index={tabIndex} onChange={(index) => setTabIndex(index)}>
+                  {/* Табы только для десктопа */}
+                  {!isMobile && (
+                    <TabList mb="1rem" flexWrap="wrap" gap="0.5rem">
+                      <Tab fontSize={fontSizeText}>Будущие</Tab>
+                      <Tab fontSize={fontSizeText}>Прошедшие</Tab>
+                      <Tab fontSize={fontSizeText}>Мои созданные</Tab>
+                    </TabList>
+                  )}
                 <TabPanels>
                   <TabPanel>
                     <Text fontSize={fontSizeText} mb="1rem">
@@ -1744,6 +1765,7 @@ function Cabinet() {
                   </TabPanel>
                 </TabPanels>
               </Tabs>
+              </>
             )}
             {!isAdmin && (!user?.telegram || user?.telegram.startsWith('PENDING_')) && (
               <VStack spacing="4" mt="2rem" align="stretch" width="100%">

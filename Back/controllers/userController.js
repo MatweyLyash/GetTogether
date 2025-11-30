@@ -1,5 +1,6 @@
 const UserRepository = require('../repository/userRepository');
 const validators = require('../services/baseValidators');
+const qrCodeService = require('../services/qrCodeService');
 const models = require('../models');
 
 class UserController {
@@ -18,6 +19,7 @@ class UserController {
         this.linkTelegram = this.linkTelegram.bind(this);
         this.cancelEventRegistration = this.cancelEventRegistration.bind(this);
         this.getMe = this.getMe.bind(this);
+        this.getRegistrationQRCode = this.getRegistrationQRCode.bind(this);
     }
 
     async getCategories(req, res) {
@@ -245,6 +247,78 @@ class UserController {
             res.status(200).json({ message: 'Telegram-тег успешно привязан', telegram });
         } catch (error) {
             res.status(500).json({ message: error.message });
+        }
+    }
+
+    /**
+     * Получить QR-код для подтверждённой регистрации на мероприятие
+     * GET /api/user/events/registration/:registration_id/qrcode
+     */
+    async getRegistrationQRCode(req, res) {
+        try {
+            const { registration_id } = req.params;
+            const user_id = req.user.id;
+
+            if (!validators.validatePresence(registration_id)) {
+                return res.status(400).json({ error: 'Registration ID is required' });
+            }
+
+            // Находим регистрацию с включённым событием
+            const registration = await models.EventRegistration.findOne({
+                where: { 
+                    id: registration_id,
+                    user_id: user_id // Убеждаемся, что это регистрация текущего пользователя
+                },
+                include: [
+                    {
+                        model: models.Event,
+                        as: 'Event',
+                        attributes: ['id', 'title', 'date', 'location']
+                    },
+                    {
+                        model: models.User,
+                        as: 'user',
+                        attributes: ['id', 'login']
+                    }
+                ]
+            });
+
+            if (!registration) {
+                return res.status(404).json({ error: 'Регистрация не найдена' });
+            }
+
+            // Проверяем, что регистрация одобрена (status_id === 2)
+            if (registration.status_id !== 2) {
+                return res.status(403).json({ 
+                    error: 'QR-код доступен только для подтверждённых регистраций',
+                    currentStatus: registration.status_id
+                });
+            }
+
+            // Генерируем QR-код
+            const qrCodeData = await qrCodeService.generateRegistrationQRCode({
+                registrationId: registration.id,
+                eventId: registration.Event.id,
+                userId: registration.user_id,
+                eventTitle: registration.Event.title,
+                userLogin: registration.user.login,
+                eventDate: registration.Event.date
+            });
+
+            return res.json({
+                message: 'QR-код успешно сгенерирован',
+                qrCode: qrCodeData,
+                registration: {
+                    id: registration.id,
+                    eventTitle: registration.Event.title,
+                    eventDate: registration.Event.date,
+                    eventLocation: registration.Event.location,
+                    status: 'Подтверждено'
+                }
+            });
+        } catch (error) {
+            console.error('Ошибка генерации QR-кода:', error);
+            return res.status(500).json({ error: error.message });
         }
     }
 }

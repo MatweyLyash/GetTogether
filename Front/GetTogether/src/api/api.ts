@@ -1,30 +1,30 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { Event as EventCardEvent, EventResponse } from '../types/event';
 
-const BASE_API_URL = '192.168.1.14';
+const BASE_API_URL = 'localhost';
 // Настройка Axios
 const authApi = axios.create({
-  baseURL: 'http://${BASE_API_URL}:5000/api/auth',
+  baseURL: `http://${BASE_API_URL}:5000/api/auth`,
   withCredentials: true,
 });
 
 const userApi = axios.create({
-  baseURL: 'http://${BASE_API_URL}:5000/api/user',
+  baseURL: `http://${BASE_API_URL}:5000/api/user`,
   withCredentials: true,
 });
 
 const organizerApi = axios.create({
-  baseURL: 'http://${BASE_API_URL}:5000/api/organizer',
+  baseURL: `http://${BASE_API_URL}:5000/api/organizer`,
   withCredentials: true,
 });
 
 const guestApi = axios.create({
-  baseURL: 'http://${BASE_API_URL}:5000/api/guest',
+  baseURL: `http://${BASE_API_URL}:5000/api/guest`,
   withCredentials: true,
 });
 
 const adminApi = axios.create({
-  baseURL: 'http://${BASE_API_URL}/api/admin',
+  baseURL: `http://${BASE_API_URL}:5000/api/admin`,
   withCredentials: true,
 });
 
