@@ -29,6 +29,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
+    qr_code: {
+      type: DataTypes.BLOB,
+      allowNull: true,
+      comment: 'QR code as binary data (PNG image), generated when registration is approved'
+    },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW

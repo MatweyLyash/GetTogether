@@ -20,12 +20,20 @@ import {
   StatNumber,
   IconButton,
   Container,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { FaMapMarkerAlt, FaCalendarAlt, FaRubleSign, FaUserFriends, FaTelegram, FaStar, FaMoneyBill } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaCalendarAlt, FaRubleSign, FaUserFriends, FaTelegram, FaStar, FaMoneyBill, FaQrcode } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
-import { getEventById, getEventByIdWithReg, registerForEvent, cancelEventRegistration } from '../../api/api';
+import { getEventById, getEventByIdWithReg, registerForEvent, cancelEventRegistration, getRegistrationQRCode } from '../../api/api';
 import { Event as EventType, EventResponse } from '../../types/event';
 import { useAuth } from '../../AuthContext/AuthContext';
 import styles from './Event.module.scss';
@@ -39,13 +47,18 @@ function EventPage() {
   const toast = useToast();
   const navigate = useNavigate();
 
+  // QR Code Modal state
+  const { isOpen: isQRModalOpen, onOpen: onQRModalOpen, onClose: onQRModalClose } = useDisclosure();
+  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
+  const [isQRLoading, setIsQRLoading] = useState(false);
+
   useEffect(() => {
     const fetchEventData = async () => {
       if (!id) return;
       setIsLoading(true);
       try {
         console.log("Auth state:", { isAuthenticated, authLoading, user });
-        
+
         // Ждем завершения проверки аутентификации
         if (authLoading) {
           console.log("Ожидание завершения проверки аутентификации...");
@@ -115,16 +128,17 @@ function EventPage() {
       const result = await registerForEvent(id);
       setEventData(prev => prev ? {
         ...prev,
-        registration: { 
-          status: 1, 
-          telegram_invite_link: result.telegram_invite_link 
+        registration: {
+          id: result.id,
+          status: result.status,
+          telegram_invite_link: result.telegram_invite_link
         }
       } : null);
-      
+
       toast({
         title: 'Успех',
-        description: result.telegram_invite_link 
-          ? 'Ваша заявка подтверждена. Используйте ссылку для присоединения к чату мероприятия.' 
+        description: result.telegram_invite_link
+          ? 'Ваша заявка подтверждена. Используйте ссылку для присоединения к чату мероприятия.'
           : 'Ваша заявка отправлена.',
         status: 'success',
         duration: 5000,
@@ -169,14 +183,19 @@ function EventPage() {
     setIsRegistering(true);
     try {
       await cancelEventRegistration(id);
-      setEventData(prev => prev ? {
-        ...prev,
-        registration: { 
-          status: 3,
-          telegram_invite_link: null 
-        }
-      } : null);
-      
+      setEventData(prev => {
+        if (!prev) return null;
+        const currentReg = (prev as EventResponse).registration;
+        return {
+          ...prev,
+          registration: currentReg ? {
+            ...currentReg,
+            status: 3,
+            telegram_invite_link: null
+          } : null
+        };
+      });
+
       toast({
         title: 'Успех',
         description: 'Заявка на участие отозвана',
@@ -194,6 +213,30 @@ function EventPage() {
       });
     } finally {
       setIsRegistering(false);
+    }
+  };
+
+  const handleGetQRCode = async () => {
+    console.log('registration', registration);
+    if (!registration?.id) return;
+    console.log("aboba");
+    setIsQRLoading(true);
+    onQRModalOpen();
+
+    try {
+      const response = await getRegistrationQRCode(registration.id);
+      setQrCodeImage(response.qrCode);
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка получения QR-кода',
+        description: error.message || 'Не удалось загрузить QR-код',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      onQRModalClose();
+    } finally {
+      setIsQRLoading(false);
     }
   };
 
@@ -229,9 +272,9 @@ function EventPage() {
 
   // Упрощенное и надежное определение isOrganizer
   const isOrganizer = String(user?.id) === String(event?.creator?.id);
-  
+
   const isRegistered = registration !== null;
-  console.log("reg",registration);
+  console.log("reg", registration);
   const registrationClosed = event.capacity <= 0;
   const eventDate = new Date(event.date);
   const isPastEvent = eventDate < new Date();
@@ -245,7 +288,7 @@ function EventPage() {
   }).format(eventDate);
 
 
-  console.log("deleted_at",event.deletedAt);
+  console.log("deleted_at", event.deletedAt);
   return (
     <Box className={styles.container}>
       <Header />
@@ -255,32 +298,32 @@ function EventPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Flex 
-            direction={{ base: 'column', lg: 'row' }} 
+          <Flex
+            direction={{ base: 'column', lg: 'row' }}
             gap={{ base: 6, lg: 10 }}
-            bg="white" 
-            boxShadow="lg" 
-            borderRadius="lg" 
+            bg="white"
+            boxShadow="lg"
+            borderRadius="lg"
             overflow="hidden"
           >
-            <Box 
-              w={{ base: '100%', lg: '40%' }} 
-              h={{ base: '250px', md: '400px' }} 
+            <Box
+              w={{ base: '100%', lg: '40%' }}
+              h={{ base: '250px', md: '400px' }}
               position="relative"
               overflow="hidden"
             >
-              <Image 
-                src={event.image || 'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'} 
+              <Image
+                src={event.image || 'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'}
                 alt={event.title}
-                w="100%" 
-                h="100%" 
+                w="100%"
+                h="100%"
                 objectFit="cover"
                 fallbackSrc="https://via.placeholder.com/800x600?text=Event+Image"
               />
-              <Badge 
-                position="absolute" 
-                top="4" 
-                right="4" 
+              <Badge
+                position="absolute"
+                top="4"
+                right="4"
                 colorScheme={event.price > 0 ? "yellow" : "green"}
                 fontSize="md"
                 p="2"
@@ -335,7 +378,7 @@ function EventPage() {
 
                 <Stat>
                   <HStack align="center">
-                   <FaMoneyBill color="#2E4FD7" />
+                    <FaMoneyBill color="#2E4FD7" />
                     <StatLabel>Стоимость</StatLabel>
                   </HStack>
                   <StatNumber fontSize="md">
@@ -401,10 +444,23 @@ function EventPage() {
                           w="100%"
                           isDisabled
                         >
-                          {registration?.status === 1 ? 'Ожидайте ответа от организатора' : 
-                           registration?.status === 2 ? 'Ваша заявка подтверждена' : 
-                           'Заявка отклонена'}
+                          {registration?.status === 1 ? 'Ожидайте ответа от организатора' :
+                            registration?.status === 2 ? 'Ваша заявка подтверждена' :
+                              'Заявка отклонена'}
                         </Button>
+
+                        {registration?.status === 2 && (
+                          <Button
+                            leftIcon={<FaQrcode />}
+                            colorScheme="purple"
+                            size="lg"
+                            w="100%"
+                            onClick={handleGetQRCode}
+                          >
+                            Получить QR-код
+                          </Button>
+                        )}
+
                         {registration?.status === 1 && (
                           <Button
                             colorScheme="red"
@@ -451,11 +507,11 @@ function EventPage() {
             </Heading>
             <VStack spacing={4} align="stretch">
               {event.reviews.map((review) => (
-                <Box 
-                  key={review.id} 
-                  bg="white" 
-                  p={4} 
-                  borderRadius="md" 
+                <Box
+                  key={review.id}
+                  bg="white"
+                  p={4}
+                  borderRadius="md"
                   boxShadow="md"
                 >
                   <Flex justify="space-between" align="center" mb={2}>
@@ -480,6 +536,34 @@ function EventPage() {
         )}
       </Container>
       <Footer />
+
+      {/* QR Code Modal */}
+      <Modal isOpen={isQRModalOpen} onClose={onQRModalClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Ваш QR-код для входа</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody display="flex" flexDirection="column" alignItems="center" pb={6}>
+            {isQRLoading ? (
+              <Spinner size="xl" my={10} />
+            ) : qrCodeImage ? (
+              <VStack spacing={4}>
+                <Image src={qrCodeImage} alt="QR Code" boxSize="250px" />
+                <Text textAlign="center" color="gray.600">
+                  Покажите этот QR-код организатору при входе на мероприятие
+                </Text>
+              </VStack>
+            ) : (
+              <Text color="red.500">Не удалось загрузить QR-код</Text>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onQRModalClose}>
+              Закрыть
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }

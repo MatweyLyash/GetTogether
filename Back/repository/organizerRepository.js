@@ -1,5 +1,6 @@
 const models = require('../models');
 const { generateInviteLink } = require('../bot/telegramBot');
+const qrCodeService = require('../services/qrCodeService');
 
 class OrganizerRepository {
     async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image) {
@@ -87,6 +88,15 @@ class OrganizerRepository {
             }
 
             registration.telegram_invite_link = inviteResult.inviteLink;
+
+            // Генерируем QR-код для подтверждённой регистрации
+            const qrCodeBuffer = await qrCodeService.generateRegistrationQRCodeBuffer({
+                registrationId: registration.id,
+                eventId: event_id,
+                userId: user_id,
+                eventTitle: event.title
+            });
+            registration.qr_code = qrCodeBuffer;
         }
 
         // Сохраняем изменения

@@ -74,6 +74,7 @@ class UserRepository {
                 return {
                     event,
                     registration: registration ? {
+                        id: registration.id,
                         status: registration.status_id,
                         telegram_invite_link
                     } : null

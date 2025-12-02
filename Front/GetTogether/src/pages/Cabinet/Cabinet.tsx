@@ -205,7 +205,7 @@ function Cabinet() {
   // Check authentication and redirect if needed
   useEffect(() => {
     console.log('Cabinet: Проверка аутентификации, authLoading =', authLoading, 'isAuthenticated =', isAuthenticated, 'user =', user);
-    
+
     if (!authLoading) {
       if (!isAuthenticated || !user) {
         console.log('Cabinet: Перенаправление на страницу входа');
@@ -217,21 +217,21 @@ function Cabinet() {
   // Fetch user data
   useEffect(() => {
     console.log('Cabinet: useEffect для загрузки данных, authLoading =', authLoading, 'user =', user);
-    
+
     const fetchData = async () => {
       if (authLoading || !isAuthenticated || !user) {
         console.log('Cabinet: Пропуск загрузки данных - пользователь не авторизован или идет проверка');
         return;
       }
-      
+
       console.log('Cabinet: Начало загрузки данных пользователя');
       setIsLoading(true);
-      
+
       try {
         const regs = await getOwnEventsRegistration();
         console.log('Cabinet: Получены регистрации:', regs);
         setRegistrations(regs || []);
-        
+
         const orgRequests = await getOwnOrganizerRequests();
         const cats = await getCategories();
 
@@ -423,7 +423,7 @@ function Cabinet() {
       });
       return;
     }
-  
+
     if (!isDateValid(newEvent.date)) {
       toast({
         title: 'Ошибка',
@@ -434,7 +434,7 @@ function Cabinet() {
       });
       return;
     }
-  
+
     const formData = new FormData();
     formData.append('title', newEvent.title);
     formData.append('description', newEvent.description);
@@ -447,23 +447,23 @@ function Cabinet() {
     if (newEvent.image) {
       formData.append('image', newEvent.image);
     }
-  
+
     console.log('Отправка данных для создания мероприятия:', formData);
-  
+
     setIsLoading(true);
     try {
       const response = await createEvent(formData);
       console.log('Ответ от сервера:', response);
-  
+
       const event = response.event;
-  
+
       if (!event || !event.id || !event.title || !event.date || !event.location) {
         throw new Error('Некорректный ответ сервера: отсутствуют обязательные поля');
       }
-  
+
       const updatedEvents = await getOwnEvents();
       setOwnEvents(updatedEvents || []);
-  
+
       setNewEvent({
         title: '',
         description: '',
@@ -478,10 +478,10 @@ function Cabinet() {
       setImagePreview(null);
       setIsEditing(false);
       setEditingEventId(null);
-  
+
       toast({
         title: 'Успех',
-        description: response.message || `Мероприятие создано. На данный момент у пользователей не будет возможности записаться на мероприятие. Вам необходимо привязать своё мероприятие к телеграмм группе при помощи бота @GetTogetherPSKPbot. Пригласите его в свою группу и дайте ему права администратора. Введите /verify ${ event.organizer_verification_key} `,
+        description: response.message || `Мероприятие создано. На данный момент у пользователей не будет возможности записаться на мероприятие. Вам необходимо привязать своё мероприятие к телеграмм группе при помощи бота @GetTogetherPSKPbot. Пригласите его в свою группу и дайте ему права администратора. Введите /verify ${event.organizer_verification_key} `,
         status: 'success',
         duration: 15000,
         isClosable: true,
@@ -531,7 +531,7 @@ function Cabinet() {
       });
       return;
     }
-  
+
     if (!isDateValid(newEvent.date)) {
       toast({
         title: 'Ошибка',
@@ -542,7 +542,7 @@ function Cabinet() {
       });
       return;
     }
-  
+
     const formData = new FormData();
     formData.append('event_id', event_id);
     formData.append('title', newEvent.title);
@@ -556,7 +556,7 @@ function Cabinet() {
     if (newEvent.image) {
       formData.append('image', newEvent.image);
     }
-  
+
     setIsLoading(true);
     try {
       await updateEvent(event_id, formData);
@@ -620,7 +620,7 @@ function Cabinet() {
 
   const handleConfirmDelete = async () => {
     if (!eventToDelete) return;
-    
+
     setIsLoading(true);
     try {
       await deleteEvent(eventToDelete);
@@ -972,13 +972,13 @@ function Cabinet() {
       <Header />
 
       {authLoading ? (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <Text fontSize={fontSizeText}>Загрузка данных пользователя...</Text>
-      </Box>
-    ) : !isAuthenticated || !user ? (
-      <Navigate to="/login" replace />
-    ) : (
-      <Box className={styles.content} py="6">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+          <Text fontSize={fontSizeText}>Загрузка данных пользователя...</Text>
+        </Box>
+      ) : !isAuthenticated || !user ? (
+        <Navigate to="/login" replace />
+      ) : (
+        <Box className={styles.content} py="6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -991,7 +991,7 @@ function Cabinet() {
             <Text fontSize={fontSizeText} mb="2rem" color="gray.600">
               Пользователь: {user?.login || 'Гость'}
             </Text>
-            
+
             {isEditing ? (
               <VStack spacing="4" mb="2rem" align="stretch" width="100%">
                 <FormControl>
@@ -1189,7 +1189,7 @@ function Cabinet() {
                     </Select>
                   </FormControl>
                 )}
-                
+
                 <Tabs variant="soft-rounded" colorScheme="blue" index={tabIndex} onChange={(index) => setTabIndex(index)}>
                   {/* Табы только для десктопа */}
                   {!isMobile && (
@@ -1199,572 +1199,572 @@ function Cabinet() {
                       <Tab fontSize={fontSizeText}>Мои созданные</Tab>
                     </TabList>
                   )}
-                <TabPanels>
-                  <TabPanel>
-                    <Text fontSize={fontSizeText} mb="1rem">
-                      Ваши будущие мероприятия
-                    </Text>
-                    {isMobile ? (
-                      <FutureEventsCards registrations={registrations} />
-                    ) : (
-                      <Box overflowX="auto">
-                        <Table variant="simple" minWidth="800px">
-                          <Thead>
-                            <Tr>
-                              <Th>Название</Th>
-                              <Th>Дата</Th>
-                              <Th>Место</Th>
-                              <Th>Статус</Th>
-                              <Th>Действия</Th>
-                            </Tr>
-                          </Thead>
-                          <Tbody>
-                            {registrations
-                              .filter((reg) => reg.Event && new Date(reg.Event.date) > new Date())
-                              .map((reg) => (
-                                <Tr key={reg.id}>
-                                  <Td>{reg.Event.title}</Td>
-                                  <Td>{formatDateTime(reg.Event.date)}</Td>
-                                  <Td>{reg.Event.location}</Td>
-                                  <Td>
-                                    {reg.status_id === 1 ? 'Ожидает' : reg.status_id === 2 ? 'Подтверждено' : 'Отклонено'}
-                                  </Td>
-                                  <Td>
-                                    <Button
-                                      size={buttonSize}
-                                      colorScheme="teal"
-                                      onClick={() => navigate(`/event/${reg.event_id}`)}
-                                      isDisabled={isLoading}
-                                    >
-                                      Перейти
-                                    </Button>
-                                  </Td>
-                                </Tr>
-                              ))}
-                          </Tbody>
-                        </Table>
-                      </Box>
-                    )}
-                  </TabPanel>
-                  <TabPanel>
-                    <Text fontSize={fontSizeText} mb="1rem">
-                      Прошедшие мероприятия
-                    </Text>
-                    {isMobile ? (
-                      <PastEventsCards registrations={registrations} />
-                    ) : (
-                      <Box overflowX="auto">
-                        <Table variant="simple" minWidth="800px">
-                          <Thead>
-                            <Tr>
-                              <Th>Название</Th>
-                              <Th>Дата</Th>
-                              <Th>Место</Th>
-                              <Th>Действие</Th>
-                              <Th>Отзыв</Th>
-                            </Tr>
-                          </Thead>
-                          <Tbody>
-                            {registrations
-                              .filter((reg) => reg.Event && new Date(reg.Event.date) <= new Date() && reg.status_id === 2)
-                              .map((reg) => (
-                                <Tr key={reg.id}>
-                                  <Td>{reg.Event.title}</Td>
-                                  <Td>{formatDateTime(reg.Event.date)}</Td>
-                                  <Td>{reg.Event.location}</Td>
-                                  <Td>
-                                    <Button
-                                    size={buttonSize}
-                                    colorScheme="teal"
-                                    onClick={() => navigate(`/event/${reg.Event.id}`)}
-                                    isDisabled={isLoading}
-                                   >
-                                    Перейти
-                                  </Button>
-                                  </Td>
-                                  <Td>
-                                    {reg.Event?.reviews?.some(review => review.reviewUser.id === user?.id) ? (
-                                      <Text mt="2" color="green.500">Отзыв уже отправлен</Text>
-                                    ) : (
-                                      <VStack spacing="2" mt="2">
-                                        <Select
-                                          value={review.rating}
-                                          onChange={(e) => setReview({ ...review, rating: Number(e.target.value) })}
-                                          size={buttonSize}
-                                        >
-                                          {[1, 2, 3, 4, 5].map((num) => (
-                                            <option key={num} value={num}>
-                                              {num}
-                                            </option>
-                                          ))}
-                                        </Select>
-                                        <Textarea
-                                          value={review.comment}
-                                          onChange={(e) => setReview({ ...review, comment: e.target.value })}
-                                          placeholder="Ваш отзыв"
-                                          size={buttonSize}
-                                        />
-                                        <Button
-                                          colorScheme="blue"
-                                          size={buttonSize}
-                                          onClick={() => handleCreateReview(reg.event_id)}
-                                          isDisabled={isLoading}
-                                        >
-                                          Отправить отзыв
-                                        </Button>
-                                        
-                                      </VStack>
-                                    )}
-                                  </Td>
-                                </Tr>
-                              ))}
-                          </Tbody>
-                        </Table>
-                      </Box>
-                    )}
-                  </TabPanel>
-                  <TabPanel>
-                    {isOrganizer || isAdmin ? (
-                      <>
-                        <VStack spacing="4" mb="2rem" align="stretch" width="100%">
-                          <Text fontSize={fontSizeText}>
-                            {isEditing ? 'Редактировать мероприятие' : 'Создать новое мероприятие'}
-                          </Text>
-                          <FormControl>
-                            <FormLabel>Название</FormLabel>
-                            <Input
-                              value={newEvent.title}
-                              onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                              placeholder="Название мероприятия"
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                            />
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Описание</FormLabel>
-                            <Textarea
-                              value={newEvent.description}
-                              onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                              placeholder="Описание мероприятия"
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                            />
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Дата</FormLabel>
-                            <Input
-                              type="datetime-local"
-                              value={newEvent.date}
-                              onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                              min={(() => {
-                                const tomorrow = new Date();
-                                tomorrow.setDate(tomorrow.getDate() + 1);
-                                return tomorrow.toISOString().slice(0, 16);
-                              })()}
-                            />
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Место</FormLabel>
-                            <Input
-                              value={newEvent.location}
-                              onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                              placeholder="Место проведения"
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                            />
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Категория</FormLabel>
-                            <Select
-                              value={newEvent.category_id}
-                              onChange={(e) => setNewEvent({ ...newEvent, category_id: e.target.value })}
-                              placeholder="Выберите категорию"
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                            >
-                              {categories.map((cat) => (
-                                <option key={cat.id} value={cat.id}>
-                                  {cat.category_name}
-                                </option>
-                              ))}
-                            </Select>
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Цена</FormLabel>
-                            <Input
-                              type="number"
-                              value={newEvent.price}
-                              onChange={(e) => setNewEvent({ ...newEvent, price: e.target.value })}
-                              placeholder="Цена"
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                            />
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Вместимость</FormLabel>
-                            <Input
-                              type="number"
-                              value={newEvent.capacity}
-                              onChange={(e) => setNewEvent({ ...newEvent, capacity: e.target.value })}
-                              placeholder="Вместимость"
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                            />
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Изображение</FormLabel>
-                            <Input
-                              type="file"
-                              accept="image/jpeg,image/jpg,image/png"
-                              ref={fileInputRef}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0] || null;
-                                setNewEvent({ ...newEvent, image: file });
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    setImagePreview(reader.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                } else {
-                                  setImagePreview(null);
-                                }
-                              }}
-                            />
-                            <Button
-                              bg="#2E4FD7"
-                              color="white"
-                              _hover={{ bg: '#1e3fa9' }}
-                              size={buttonSize}
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              Выбрать изображение
-                            </Button>
-                            {imagePreview && (
-                              <Box mt="4" textAlign="center">
-                                <img
-                                  src={imagePreview}
-                                  alt="Превью"
-                                  style={{
-                                    maxWidth: '400px',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                    display: 'block',
-                                    margin: '0 auto',
-                                  }}
-                                />
-                              </Box>
-                            )}
-                          </FormControl>
-                          <FormControl>
-                            <FormLabel>Ссылка на Telegram-чат</FormLabel>
-                            <Input
-                              value={newEvent.telegram_chat_link}
-                              onChange={(e) => setNewEvent({ ...newEvent, telegram_chat_link: e.target.value })}
-                              placeholder="Ссылка на Telegram-чат"
-                              bg="#E7EBFC"
-                              size={buttonSize}
-                            />
-                          </FormControl>
-                          <HStack spacing="2">
-                            {isEditing ? (
-                              <>
-                                <Button
-                                  bg="#2E4FD7"
-                                  color="white"
-                                  _hover={{ bg: '#1e3fa9' }}
-                                  onClick={() => editingEventId && handleUpdateEvent(editingEventId)}
-                                  isDisabled={isLoading}
-                                  size={buttonSize}
-                                >
-                                  Сохранить изменения
-                                </Button>
-                                <Button
-                                  bg="gray.500"
-                                  color="white"
-                                  _hover={{ bg: 'gray.600' }}
-                                  onClick={() => {
-                                    setIsEditing(false);
-                                    setEditingEventId(null);
-                                    setNewEvent({
-                                      title: '',
-                                      description: '',
-                                      date: '',
-                                      location: '',
-                                      category_id: '',
-                                      price: '',
-                                      capacity: '',
-                                      telegram_chat_link: '',
-                                      image: null,
-                                    });
+                  <TabPanels>
+                    <TabPanel>
+                      <Text fontSize={fontSizeText} mb="1rem">
+                        Ваши будущие мероприятия
+                      </Text>
+                      {isMobile ? (
+                        <FutureEventsCards registrations={registrations} />
+                      ) : (
+                        <Box overflowX="auto">
+                          <Table variant="simple" minWidth="800px">
+                            <Thead>
+                              <Tr>
+                                <Th>Название</Th>
+                                <Th>Дата</Th>
+                                <Th>Место</Th>
+                                <Th>Статус</Th>
+                                <Th>Действия</Th>
+                              </Tr>
+                            </Thead>
+                            <Tbody>
+                              {registrations
+                                .filter((reg) => reg.Event && new Date(reg.Event.date) > new Date())
+                                .map((reg) => (
+                                  <Tr key={reg.id}>
+                                    <Td>{reg.Event.title}</Td>
+                                    <Td>{formatDateTime(reg.Event.date)}</Td>
+                                    <Td>{reg.Event.location}</Td>
+                                    <Td>
+                                      {reg.status_id === 1 ? 'Ожидает' : reg.status_id === 2 ? 'Подтверждено' : 'Отклонено'}
+                                    </Td>
+                                    <Td>
+                                      <Button
+                                        size={buttonSize}
+                                        colorScheme="teal"
+                                        onClick={() => navigate(`/event/${reg.event_id}`)}
+                                        isDisabled={isLoading}
+                                      >
+                                        Перейти
+                                      </Button>
+                                    </Td>
+                                  </Tr>
+                                ))}
+                            </Tbody>
+                          </Table>
+                        </Box>
+                      )}
+                    </TabPanel>
+                    <TabPanel>
+                      <Text fontSize={fontSizeText} mb="1rem">
+                        Прошедшие мероприятия
+                      </Text>
+                      {isMobile ? (
+                        <PastEventsCards registrations={registrations} />
+                      ) : (
+                        <Box overflowX="auto">
+                          <Table variant="simple" minWidth="800px">
+                            <Thead>
+                              <Tr>
+                                <Th>Название</Th>
+                                <Th>Дата</Th>
+                                <Th>Место</Th>
+                                <Th>Действие</Th>
+                                <Th>Отзыв</Th>
+                              </Tr>
+                            </Thead>
+                            <Tbody>
+                              {registrations
+                                .filter((reg) => reg.Event && new Date(reg.Event.date) <= new Date() && reg.status_id === 2)
+                                .map((reg) => (
+                                  <Tr key={reg.id}>
+                                    <Td>{reg.Event.title}</Td>
+                                    <Td>{formatDateTime(reg.Event.date)}</Td>
+                                    <Td>{reg.Event.location}</Td>
+                                    <Td>
+                                      <Button
+                                        size={buttonSize}
+                                        colorScheme="teal"
+                                        onClick={() => navigate(`/event/${reg.Event.id}`)}
+                                        isDisabled={isLoading}
+                                      >
+                                        Перейти
+                                      </Button>
+                                    </Td>
+                                    <Td>
+                                      {reg.Event?.reviews?.some(review => review.reviewUser.id === user?.id) ? (
+                                        <Text mt="2" color="green.500">Отзыв уже отправлен</Text>
+                                      ) : (
+                                        <VStack spacing="2" mt="2">
+                                          <Select
+                                            value={review.rating}
+                                            onChange={(e) => setReview({ ...review, rating: Number(e.target.value) })}
+                                            size={buttonSize}
+                                          >
+                                            {[1, 2, 3, 4, 5].map((num) => (
+                                              <option key={num} value={num}>
+                                                {num}
+                                              </option>
+                                            ))}
+                                          </Select>
+                                          <Textarea
+                                            value={review.comment}
+                                            onChange={(e) => setReview({ ...review, comment: e.target.value })}
+                                            placeholder="Ваш отзыв"
+                                            size={buttonSize}
+                                          />
+                                          <Button
+                                            colorScheme="blue"
+                                            size={buttonSize}
+                                            onClick={() => handleCreateReview(reg.event_id)}
+                                            isDisabled={isLoading}
+                                          >
+                                            Отправить отзыв
+                                          </Button>
+
+                                        </VStack>
+                                      )}
+                                    </Td>
+                                  </Tr>
+                                ))}
+                            </Tbody>
+                          </Table>
+                        </Box>
+                      )}
+                    </TabPanel>
+                    <TabPanel>
+                      {isOrganizer || isAdmin ? (
+                        <>
+                          <VStack spacing="4" mb="2rem" align="stretch" width="100%">
+                            <Text fontSize={fontSizeText}>
+                              {isEditing ? 'Редактировать мероприятие' : 'Создать новое мероприятие'}
+                            </Text>
+                            <FormControl>
+                              <FormLabel>Название</FormLabel>
+                              <Input
+                                value={newEvent.title}
+                                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                                placeholder="Название мероприятия"
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                              />
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Описание</FormLabel>
+                              <Textarea
+                                value={newEvent.description}
+                                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                                placeholder="Описание мероприятия"
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                              />
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Дата</FormLabel>
+                              <Input
+                                type="datetime-local"
+                                value={newEvent.date}
+                                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                                min={(() => {
+                                  const tomorrow = new Date();
+                                  tomorrow.setDate(tomorrow.getDate() + 1);
+                                  return tomorrow.toISOString().slice(0, 16);
+                                })()}
+                              />
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Место</FormLabel>
+                              <Input
+                                value={newEvent.location}
+                                onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                                placeholder="Место проведения"
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                              />
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Категория</FormLabel>
+                              <Select
+                                value={newEvent.category_id}
+                                onChange={(e) => setNewEvent({ ...newEvent, category_id: e.target.value })}
+                                placeholder="Выберите категорию"
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                              >
+                                {categories.map((cat) => (
+                                  <option key={cat.id} value={cat.id}>
+                                    {cat.category_name}
+                                  </option>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Цена</FormLabel>
+                              <Input
+                                type="number"
+                                value={newEvent.price}
+                                onChange={(e) => setNewEvent({ ...newEvent, price: e.target.value })}
+                                placeholder="Цена"
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                              />
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Вместимость</FormLabel>
+                              <Input
+                                type="number"
+                                value={newEvent.capacity}
+                                onChange={(e) => setNewEvent({ ...newEvent, capacity: e.target.value })}
+                                placeholder="Вместимость"
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                              />
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Изображение</FormLabel>
+                              <Input
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png"
+                                ref={fileInputRef}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  setNewEvent({ ...newEvent, image: file });
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      setImagePreview(reader.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  } else {
                                     setImagePreview(null);
-                                    setTabIndex(2);
-                                  }}
-                                  isDisabled={isLoading}
-                                  size={buttonSize}
-                                >
-                                  Отменить редактирование
-                                </Button>
-                              </>
-                            ) : (
+                                  }
+                                }}
+                              />
                               <Button
                                 bg="#2E4FD7"
                                 color="white"
                                 _hover={{ bg: '#1e3fa9' }}
-                                onClick={handleCreateEvent}
-                                isDisabled={isLoading}
                                 size={buttonSize}
+                                onClick={() => fileInputRef.current?.click()}
                               >
-                                Создать мероприятие
+                                Выбрать изображение
                               </Button>
-                            )}
-                          </HStack>
-                        </VStack>
-                        {isMobile ? (
-                          <OwnEventsCards events={ownEvents} />
-                        ) : (
-                          <Box>
-                            <Text fontSize={fontSizeText} mb="1rem">
-                              Мои созданные мероприятия
-                            </Text>
-                            {/* Active Events Table */}
-                            <Box mb="6">
-                              <Text fontSize={fontSizeText} fontWeight="bold" mb="4">
-                                Активные мероприятия
-                              </Text>
-                              <Box overflowX="auto">
-                                <Table variant="simple" minWidth="800px">
-                                  <Thead>
-                                    <Tr>
-                                      <Th>Название</Th>
-                                      <Th>Дата</Th>
-                                      <Th>Место</Th>
-                                      <Th>Действия</Th>
-                                    </Tr>
-                                  </Thead>
-                                  <Tbody>
-                                    {ownEvents
-                                      .filter((event) => new Date(event.date) > new Date())
-                                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                                      .map((event) => (
-                                        <Tr key={event.id} id={`event-${event.id}`}>
-                                          <Td>{event.title}</Td>
-                                          <Td>{formatDateTime(event.date)}</Td>
-                                          <Td>{event.location}</Td>
-                                          <Td>
-                                            <HStack spacing="2">
-                                              <Button
-                                                size={buttonSize}
-                                                colorScheme="blue"
-                                                onClick={() => {
-                                                  setNewEvent({
-                                                    title: event.title,
-                                                    description: event.description,
-                                                    date: event.date.slice(0, 16),
-                                                    location: event.location,
-                                                    category_id: event.category_id.toString(),
-                                                    price: event.price.toString(),
-                                                    capacity: event.capacity.toString(),
-                                                    telegram_chat_link: event.telegram_chat_link || '',
-                                                    image: null as File | null,
-                                                  });
-                                                  if (event.image) {
-                                                    setImagePreview(event.image);
-                                                  }
-                                                  setIsEditing(true);
-                                                  setEditingEventId(event.id);
-                                                }}
-                                                isDisabled={isLoading}
-                                              >
-                                                Редактировать
-                                              </Button>
-                                              <Button
-                                                size={buttonSize}
-                                                colorScheme="red"
-                                                onClick={() => handleDeleteClick(event.id)}
-                                                isDisabled={isLoading}
-                                              >
-                                                Удалить
-                                              </Button>
-                                              <Button
-                                                size={buttonSize}
-                                                colorScheme="green"
-                                                onClick={() => handleFetchEventRequests(event.id)}
-                                                isDisabled={isLoading}
-                                              >
-                                                Просмотреть заявки
-                                              </Button>
-                                              <Button
-                                                size={buttonSize}
-                                                colorScheme="purple"
-                                                onClick={() =>
-                                                  toast({
-                                                    title: 'Ключ верификации',
-                                                    description: event.organizer_verification_key || 'Ключ отсутствует',
-                                                    status: 'info',
-                                                    duration: 5000,
-                                                    isClosable: true,
-                                                  })
-                                                }
-                                                isDisabled={isLoading || !event.organizer_verification_key}
-                                              >
-                                                Показать ключ
-                                              </Button>
-                                            </HStack>
-                                          </Td>
-                                        </Tr>
-                                      ))}
-                                  </Tbody>
-                                </Table>
-                                {ownEvents.filter((event) => new Date(event.date) > new Date()).length === 0 && (
-                                  <Text fontSize={fontSizeText} color="gray.600" mt="4">
-                                    Нет активных мероприятий
-                                  </Text>
-                                )}
-                              </Box>
-                            </Box>
-                            {/* Archived Events Table */}
-                            <Box>
-                              <Text fontSize={fontSizeText} fontWeight="bold" mb="4">
-                                Архив
-                              </Text>
-                              <Box overflowX="auto">
-                                <Table variant="simple" minWidth="800px">
-                                  <Thead>
-                                    <Tr>
-                                      <Th>Название</Th>
-                                      <Th>Дата</Th>
-                                      <Th>Место</Th>
-                                      <Th>Действия</Th>
-                                    </Tr>
-                                  </Thead>
-                                  <Tbody>
-                                    {ownEvents
-                                      .filter((event) => new Date(event.date) <= new Date())
-                                      .map((event) => (
-                                        <Tr key={event.id} id={`event-${event.id}`}>
-                                          <Td>{event.title}</Td>
-                                          <Td>{formatDateTime(event.date)}</Td>
-                                          <Td>{event.location}</Td>
-                                          <Td>
-                                            <HStack spacing="2">
-                                              <Button
-                                                size={buttonSize}
-                                                colorScheme="teal"
-                                                onClick={() => navigate(`/event/${event.id}`)}
-                                                isDisabled={isLoading}
-                                              >
-                                                Перейти
-                                              </Button>
-                                              <Button
-                                                size={buttonSize}
-                                                colorScheme="green"
-                                                onClick={() => handleFetchEventRequests(event.id)}
-                                                isDisabled={isLoading}
-                                              >
-                                                Просмотреть заявки
-                                              </Button>
-                                              <Button
-                                                size={buttonSize}
-                                                colorScheme="purple"
-                                                onClick={() =>
-                                                  toast({
-                                                    title: 'Ключ верификации',
-                                                    description: event.organizer_verification_key || 'Ключ отсутствует',
-                                                    status: 'info',
-                                                    duration: 5000,
-                                                    isClosable: true,
-                                                  })
-                                                }
-                                                isDisabled={isLoading || !event.organizer_verification_key}
-                                              >
-                                                Показать ключ
-                                              </Button>
-                                            </HStack>
-                                          </Td>
-                                        </Tr>
-                                      ))}
-                                  </Tbody>
-                                </Table>
-                                {ownEvents.filter((event) => new Date(event.date) <= new Date()).length === 0 && (
-                                  <Text fontSize={fontSizeText} color="gray.600" mt="4">
-                                    Нет мероприятий в архиве
-                                  </Text>
-                                )}
-                              </Box>
-                            </Box>
-                          </Box>
-                        )}
-                        {eventRequests.length > 0 && (
-                          <VStack spacing="4" mt="2rem" align="stretch" width="100%">
-                            <Text fontSize={fontSizeText}>Заявки на мероприятие</Text>
-                            {eventRequests.map((req) => (
-                              <Box key={req.id} borderWidth="1px" borderRadius="md" p="4">
-                                <Text>Имя: {req.user.login}</Text>
-                                <Text>Телеграм: {req.user.telegram}</Text>
-                                <Text>
-                                  Статус:{' '}
-                                  {req.status_id === 1 ? 'Ожидает' : req.status_id === 2 ? 'Подтверждено' : 'Отклонено'}
-                                </Text>
-                                <Stack direction={isMobile ? 'column' : 'row'} spacing="2" mt="2">
+                              {imagePreview && (
+                                <Box mt="4" textAlign="center">
+                                  <img
+                                    src={imagePreview}
+                                    alt="Превью"
+                                    style={{
+                                      maxWidth: '400px',
+                                      borderRadius: '8px',
+                                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                                      display: 'block',
+                                      margin: '0 auto',
+                                    }}
+                                  />
+                                </Box>
+                              )}
+                            </FormControl>
+                            <FormControl>
+                              <FormLabel>Ссылка на Telegram-чат</FormLabel>
+                              <Input
+                                value={newEvent.telegram_chat_link}
+                                onChange={(e) => setNewEvent({ ...newEvent, telegram_chat_link: e.target.value })}
+                                placeholder="Ссылка на Telegram-чат"
+                                bg="#E7EBFC"
+                                size={buttonSize}
+                              />
+                            </FormControl>
+                            <HStack spacing="2">
+                              {isEditing ? (
+                                <>
                                   <Button
+                                    bg="#2E4FD7"
+                                    color="white"
+                                    _hover={{ bg: '#1e3fa9' }}
+                                    onClick={() => editingEventId && handleUpdateEvent(editingEventId)}
+                                    isDisabled={isLoading}
                                     size={buttonSize}
-                                    colorScheme="green"
-                                    onClick={() => handleResponseToEventRequest(req.event_id, req.user_id, 2)}
-                                    isDisabled={isLoading || req.status_id !== 1}
                                   >
-                                    Подтвердить
+                                    Сохранить изменения
                                   </Button>
                                   <Button
+                                    bg="gray.500"
+                                    color="white"
+                                    _hover={{ bg: 'gray.600' }}
+                                    onClick={() => {
+                                      setIsEditing(false);
+                                      setEditingEventId(null);
+                                      setNewEvent({
+                                        title: '',
+                                        description: '',
+                                        date: '',
+                                        location: '',
+                                        category_id: '',
+                                        price: '',
+                                        capacity: '',
+                                        telegram_chat_link: '',
+                                        image: null,
+                                      });
+                                      setImagePreview(null);
+                                      setTabIndex(2);
+                                    }}
+                                    isDisabled={isLoading}
                                     size={buttonSize}
-                                    colorScheme="red"
-                                    onClick={() => handleResponseToEventRequest(req.event_id, req.user_id, 3)}
-                                    isDisabled={isLoading || req.status_id !== 1}
                                   >
-                                    Отклонить
+                                    Отменить редактирование
                                   </Button>
-                                </Stack>
-                              </Box>
-                            ))}
+                                </>
+                              ) : (
+                                <Button
+                                  bg="#2E4FD7"
+                                  color="white"
+                                  _hover={{ bg: '#1e3fa9' }}
+                                  onClick={handleCreateEvent}
+                                  isDisabled={isLoading}
+                                  size={buttonSize}
+                                >
+                                  Создать мероприятие
+                                </Button>
+                              )}
+                            </HStack>
                           </VStack>
-                        )}
-                      </>
-                    ) : (
-                      <VStack spacing="4" width="100%">
-                        <Text fontSize={fontSizeText}>
-                          {organizerRequests[0]?.status_id === 2 && user?.role_id === 1
-                            ? "Вы больше не организатор. Спасибо за вклад в развитие проекта!"
-                            : "Вы не являетесь организатором"}
-                        </Text>
-                        <Button
-                          bg="#2E4FD7"
-                          color="white"
-                          _hover={{ bg: '#1e3fa9' }}
-                          onClick={onOpen}
-                          isDisabled={isLoading || organizerRequests.length > 0}
-                          size={buttonSize}
-                        >
-                          Запросить статус организатора
-                        </Button>
-                        {organizerRequests[0] && (
+                          {isMobile ? (
+                            <OwnEventsCards events={ownEvents} />
+                          ) : (
+                            <Box>
+                              <Text fontSize={fontSizeText} mb="1rem">
+                                Мои созданные мероприятия
+                              </Text>
+                              {/* Active Events Table */}
+                              <Box mb="6">
+                                <Text fontSize={fontSizeText} fontWeight="bold" mb="4">
+                                  Активные мероприятия
+                                </Text>
+                                <Box overflowX="auto">
+                                  <Table variant="simple" minWidth="800px">
+                                    <Thead>
+                                      <Tr>
+                                        <Th>Название</Th>
+                                        <Th>Дата</Th>
+                                        <Th>Место</Th>
+                                        <Th>Действия</Th>
+                                      </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                      {ownEvents
+                                        .filter((event) => new Date(event.date) > new Date())
+                                        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                                        .map((event) => (
+                                          <Tr key={event.id} id={`event-${event.id}`}>
+                                            <Td>{event.title}</Td>
+                                            <Td>{formatDateTime(event.date)}</Td>
+                                            <Td>{event.location}</Td>
+                                            <Td>
+                                              <HStack spacing="2">
+                                                <Button
+                                                  size={buttonSize}
+                                                  colorScheme="blue"
+                                                  onClick={() => {
+                                                    setNewEvent({
+                                                      title: event.title,
+                                                      description: event.description,
+                                                      date: event.date.slice(0, 16),
+                                                      location: event.location,
+                                                      category_id: event.category_id.toString(),
+                                                      price: event.price.toString(),
+                                                      capacity: event.capacity.toString(),
+                                                      telegram_chat_link: event.telegram_chat_link || '',
+                                                      image: null as File | null,
+                                                    });
+                                                    if (event.image) {
+                                                      setImagePreview(event.image);
+                                                    }
+                                                    setIsEditing(true);
+                                                    setEditingEventId(event.id);
+                                                  }}
+                                                  isDisabled={isLoading}
+                                                >
+                                                  Редактировать
+                                                </Button>
+                                                <Button
+                                                  size={buttonSize}
+                                                  colorScheme="red"
+                                                  onClick={() => handleDeleteClick(event.id)}
+                                                  isDisabled={isLoading}
+                                                >
+                                                  Удалить
+                                                </Button>
+                                                <Button
+                                                  size={buttonSize}
+                                                  colorScheme="green"
+                                                  onClick={() => handleFetchEventRequests(event.id)}
+                                                  isDisabled={isLoading}
+                                                >
+                                                  Просмотреть заявки
+                                                </Button>
+                                                <Button
+                                                  size={buttonSize}
+                                                  colorScheme="purple"
+                                                  onClick={() =>
+                                                    toast({
+                                                      title: 'Ключ верификации',
+                                                      description: event.organizer_verification_key || 'Ключ отсутствует',
+                                                      status: 'info',
+                                                      duration: 5000,
+                                                      isClosable: true,
+                                                    })
+                                                  }
+                                                  isDisabled={isLoading || !event.organizer_verification_key}
+                                                >
+                                                  Показать ключ
+                                                </Button>
+                                              </HStack>
+                                            </Td>
+                                          </Tr>
+                                        ))}
+                                    </Tbody>
+                                  </Table>
+                                  {ownEvents.filter((event) => new Date(event.date) > new Date()).length === 0 && (
+                                    <Text fontSize={fontSizeText} color="gray.600" mt="4">
+                                      Нет активных мероприятий
+                                    </Text>
+                                  )}
+                                </Box>
+                              </Box>
+                              {/* Archived Events Table */}
+                              <Box>
+                                <Text fontSize={fontSizeText} fontWeight="bold" mb="4">
+                                  Архив
+                                </Text>
+                                <Box overflowX="auto">
+                                  <Table variant="simple" minWidth="800px">
+                                    <Thead>
+                                      <Tr>
+                                        <Th>Название</Th>
+                                        <Th>Дата</Th>
+                                        <Th>Место</Th>
+                                        <Th>Действия</Th>
+                                      </Tr>
+                                    </Thead>
+                                    <Tbody>
+                                      {ownEvents
+                                        .filter((event) => new Date(event.date) <= new Date())
+                                        .map((event) => (
+                                          <Tr key={event.id} id={`event-${event.id}`}>
+                                            <Td>{event.title}</Td>
+                                            <Td>{formatDateTime(event.date)}</Td>
+                                            <Td>{event.location}</Td>
+                                            <Td>
+                                              <HStack spacing="2">
+                                                <Button
+                                                  size={buttonSize}
+                                                  colorScheme="teal"
+                                                  onClick={() => navigate(`/event/${event.id}`)}
+                                                  isDisabled={isLoading}
+                                                >
+                                                  Перейти
+                                                </Button>
+                                                <Button
+                                                  size={buttonSize}
+                                                  colorScheme="green"
+                                                  onClick={() => handleFetchEventRequests(event.id)}
+                                                  isDisabled={isLoading}
+                                                >
+                                                  Просмотреть заявки
+                                                </Button>
+                                                <Button
+                                                  size={buttonSize}
+                                                  colorScheme="purple"
+                                                  onClick={() =>
+                                                    toast({
+                                                      title: 'Ключ верификации',
+                                                      description: event.organizer_verification_key || 'Ключ отсутствует',
+                                                      status: 'info',
+                                                      duration: 5000,
+                                                      isClosable: true,
+                                                    })
+                                                  }
+                                                  isDisabled={isLoading || !event.organizer_verification_key}
+                                                >
+                                                  Показать ключ
+                                                </Button>
+                                              </HStack>
+                                            </Td>
+                                          </Tr>
+                                        ))}
+                                    </Tbody>
+                                  </Table>
+                                  {ownEvents.filter((event) => new Date(event.date) <= new Date()).length === 0 && (
+                                    <Text fontSize={fontSizeText} color="gray.600" mt="4">
+                                      Нет мероприятий в архиве
+                                    </Text>
+                                  )}
+                                </Box>
+                              </Box>
+                            </Box>
+                          )}
+                          {eventRequests.length > 0 && (
+                            <VStack spacing="4" mt="2rem" align="stretch" width="100%">
+                              <Text fontSize={fontSizeText}>Заявки на мероприятие</Text>
+                              {eventRequests.map((req) => (
+                                <Box key={req.id} borderWidth="1px" borderRadius="md" p="4">
+                                  <Text>Имя: {req.user.login}</Text>
+                                  <Text>Телеграм: {req.user.telegram}</Text>
+                                  <Text>
+                                    Статус:{' '}
+                                    {req.status_id === 1 ? 'Ожидает' : req.status_id === 2 ? 'Подтверждено' : 'Отклонено'}
+                                  </Text>
+                                  <Stack direction={isMobile ? 'column' : 'row'} spacing="2" mt="2">
+                                    <Button
+                                      size={buttonSize}
+                                      colorScheme="green"
+                                      onClick={() => handleResponseToEventRequest(req.event_id, req.user_id, 2)}
+                                      isDisabled={isLoading || req.status_id !== 1}
+                                    >
+                                      Подтвердить
+                                    </Button>
+                                    <Button
+                                      size={buttonSize}
+                                      colorScheme="red"
+                                      onClick={() => handleResponseToEventRequest(req.event_id, req.user_id, 3)}
+                                      isDisabled={isLoading || req.status_id !== 1}
+                                    >
+                                      Отклонить
+                                    </Button>
+                                  </Stack>
+                                </Box>
+                              ))}
+                            </VStack>
+                          )}
+                        </>
+                      ) : (
+                        <VStack spacing="4" width="100%">
                           <Text fontSize={fontSizeText}>
-                            Статус запроса:{' '}
-                            {organizerRequests[0].status_id === 1
-                              ? 'Ожидает'
-                              : organizerRequests[0].status_id === 2 && user?.role_id === 1
-                              ? 'Отозван'
-                              : organizerRequests[0].status_id === 2
-                              ? 'Подтверждён'
-                              : 'Отклонён'}
+                            {organizerRequests[0]?.status_id === 2 && user?.role_id === 1
+                              ? "Вы больше не организатор. Спасибо за вклад в развитие проекта!"
+                              : "Вы не являетесь организатором"}
                           </Text>
-                        )}
-                      </VStack>
-                    )}
-                  </TabPanel>
-                </TabPanels>
-              </Tabs>
+                          <Button
+                            bg="#2E4FD7"
+                            color="white"
+                            _hover={{ bg: '#1e3fa9' }}
+                            onClick={onOpen}
+                            isDisabled={isLoading || organizerRequests.length > 0}
+                            size={buttonSize}
+                          >
+                            Запросить статус организатора
+                          </Button>
+                          {organizerRequests[0] && (
+                            <Text fontSize={fontSizeText}>
+                              Статус запроса:{' '}
+                              {organizerRequests[0].status_id === 1
+                                ? 'Ожидает'
+                                : organizerRequests[0].status_id === 2 && user?.role_id === 1
+                                  ? 'Отозван'
+                                  : organizerRequests[0].status_id === 2
+                                    ? 'Подтверждён'
+                                    : 'Отклонён'}
+                            </Text>
+                          )}
+                        </VStack>
+                      )}
+                    </TabPanel>
+                  </TabPanels>
+                </Tabs>
               </>
             )}
             {!isAdmin && (!user?.telegram || user?.telegram.startsWith('PENDING_')) && (
@@ -1812,7 +1812,7 @@ function Cabinet() {
             <Button variant="ghost" mr={3} onClick={onClose}>
               Отмена
             </Button>
-            <Button 
+            <Button
               bg="#2E4FD7"
               color="white"
               _hover={{ bg: '#1e3fa9' }}

@@ -295,19 +295,20 @@ class UserController {
                 });
             }
 
-            // Генерируем QR-код
-            const qrCodeData = await qrCodeService.generateRegistrationQRCode({
-                registrationId: registration.id,
-                eventId: registration.Event.id,
-                userId: registration.user_id,
-                eventTitle: registration.Event.title,
-                userLogin: registration.user.login,
-                eventDate: registration.Event.date
-            });
+            // Возвращаем сохранённый QR-код из БД
+            if (!registration.qr_code) {
+                return res.status(404).json({ 
+                    error: 'QR-код ещё не был сгенерирован. Пожалуйста, обновите страницу и попробуйте позже.'
+                });
+            }
+
+            // Преобразуем QR-код в base64 Data URL (как и для фото событий)
+            const qrCodeBase64 = registration.qr_code.toString('base64');
+            const qrCodeDataUrl = `data:image/png;base64,${qrCodeBase64}`;
 
             return res.json({
-                message: 'QR-код успешно сгенерирован',
-                qrCode: qrCodeData,
+                message: 'QR-код успешно получен',
+                qrCode: qrCodeDataUrl,
                 registration: {
                     id: registration.id,
                     eventTitle: registration.Event.title,

@@ -354,6 +354,21 @@ export async function getOwnOrganizerRequests(): Promise<OrganizerRequest[]> {
   try {
     const response = await userApi.get<OrganizerRequest[]>('/organizer/request');
     return response.data;
+  } catch (error){
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export interface RegistrationResponse {
+  id: string;
+  status: number;
+  telegram_invite_link: string | null;
+}
+
+export async function registerForEvent(event_id: string): Promise<RegistrationResponse> {
+  try {
+    const response = await userApi.post<RegistrationResponse>('/events/registration', { event_id });
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || 'Ошибка при получении запросов организатора');
@@ -398,13 +413,25 @@ export async function getEventByIdWithReg(event_id: string): Promise<EventRespon
   }
 }
 
-export async function registerForEvent(event_id: string): Promise<{ status: number; telegram_invite_link: string | null }> {
+export interface QRCodeResponse {
+  message: string;
+  qrCode: string;
+  registration: {
+    id: string;
+    eventTitle: string;
+    eventDate: string;
+    eventLocation: string;
+    status: string;
+  };
+}
+
+export async function getRegistrationQRCode(registration_id: string): Promise<QRCodeResponse> {
   try {
-    const response = await userApi.post<{ status: number; telegram_invite_link: string | null }>('/events/registration', { event_id });
+    const response = await userApi.get<QRCodeResponse>(`/events/registration/${registration_id}/qrcode`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error || 'Ошибка при регистрации на мероприятие');
+      throw new Error(error.response?.data?.error || 'Ошибка при получении QR-кода');
     }
     throw new Error('Неизвестная ошибка');
   }
