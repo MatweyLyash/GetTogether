@@ -127,6 +127,49 @@ class OrganizerRepository {
             ]
         });
     }
+
+    async verifyRegistration(creator_id, registration_id, event_id, user_id) {
+        // 1. Проверяем, что событие принадлежит организатору
+        const event = await models.Event.findOne({ where: { id: event_id, creator_id: creator_id } });
+        if (!event) {
+            throw new Error('Событие не найдено или вы не являетесь его организатором');
+        }
+
+        // 2. Ищем регистрацию
+        const registration = await models.EventRegistration.findOne({
+            where: { id: registration_id, event_id, user_id },
+            include: [
+                { model: models.User, as: 'user', attributes: ['login'] },
+                { model: models.Event, as: 'Event', attributes: ['title', 'date'] }
+            ]
+        });
+
+        if (!registration) {
+            throw new Error('Регистрация не найдена');
+        }
+
+        // 3. Проверяем статус
+        if (registration.status_id !== 2) {
+            throw new Error('Регистрация не подтверждена');
+        }
+
+        // 4. Проверяем, что QR-код ещё не был использован
+        if (registration.qr_code === null || registration.qr_code === '') {
+            throw new Error('QR-код уже был использован');
+        }
+
+        // 5. Очищаем QR-код (делаем его одноразовым)
+        registration.qr_code = null;
+        await registration.save();
+
+        return {
+            valid: true,
+            user: registration.user.login,
+            event: registration.Event.title,
+            date: registration.Event.date,
+            status: 'Подтверждено'
+        };
+    }
 }
 
 module.exports.repository = new OrganizerRepository();

@@ -15,9 +15,9 @@ app.use(express.json());
 app.use(cookieParser()); // Add cookie parser middleware
 
 app.use(cors({
-    origin: ['http://192.168.1.14:3000', 'http://127.0.0.1:3000', 'http://localhost:3000'],
-    credentials: true
-  }));
+  origin: true,
+  credentials: true
+}));
 
 // Public routes
 app.use('/api/auth', authRouter);

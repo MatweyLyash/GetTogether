@@ -18,7 +18,6 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  IconButton,
   Container,
   Modal,
   ModalOverlay,
@@ -29,7 +28,7 @@ import {
   ModalCloseButton,
   useDisclosure,
 } from '@chakra-ui/react';
-import { FaMapMarkerAlt, FaCalendarAlt, FaRubleSign, FaUserFriends, FaTelegram, FaStar, FaMoneyBill, FaQrcode } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaCalendarAlt, FaUserFriends, FaTelegram, FaStar, FaMoneyBill, FaQrcode } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';

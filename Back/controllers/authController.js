@@ -15,10 +15,10 @@ class AuthController {
       const salt = await bcrypt.genSalt(10);
       const password_hash = await bcrypt.hash(password, salt);
 
-      const user = await models.User.create({ role_id:1, password_hash, login });
+      const user = await models.User.create({ role_id: 1, password_hash, login });
 
       // Generate tokens with extended payload
-      const accessToken = jwt.sign({ 
+      const accessToken = jwt.sign({
         sub: user.id,
         login: user.login,
         role_id: user.role_id,
@@ -26,7 +26,7 @@ class AuthController {
         expiresIn: '15m',
       });
 
-      const refreshToken = jwt.sign({ 
+      const refreshToken = jwt.sign({
         sub: user.id,
         login: user.login,
         role_id: user.role_id,
@@ -37,20 +37,20 @@ class AuthController {
       // Set cookies
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        secure: true, // Always secure for HTTPS
+        sameSite: 'none', // Required for cross-origin (different ports)
         maxAge: 15 * 60 * 1000 // 15 minutes
       });
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        secure: true, // Always secure for HTTPS
+        sameSite: 'none', // Required for cross-origin (different ports)
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
-      res.status(201).json({ 
-        message: 'Пользователь успешно зарегистрирован', 
+      res.status(201).json({
+        message: 'Пользователь успешно зарегистрирован',
         user: {
           id: user.id,
           login: user.login,
@@ -82,7 +82,7 @@ class AuthController {
       }
 
       // Generate tokens with extended payload
-      const accessToken = jwt.sign({ 
+      const accessToken = jwt.sign({
         sub: user.id, // Заменяем userId на sub
         login: user.login,
         role_id: user.role_id,
@@ -90,7 +90,7 @@ class AuthController {
         expiresIn: '15m',
       });
 
-      const refreshToken = jwt.sign({ 
+      const refreshToken = jwt.sign({
         sub: user.id, // Заменяем userId на sub
         login: user.login,
         role_id: user.role_id,
@@ -101,20 +101,20 @@ class AuthController {
       // Set cookies
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        secure: true, // Always secure for HTTPS
+        sameSite: 'none', // Required for cross-origin (different ports)
         maxAge: 15 * 60 * 1000 // 15 minutes
       });
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        secure: true, // Always secure for HTTPS
+        sameSite: 'none', // Required for cross-origin (different ports)
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
-      res.status(200).json({ 
-        message: 'Успешная авторизация', 
+      res.status(200).json({
+        message: 'Успешная авторизация',
         user: {
           id: user.id,
           login: user.login,
@@ -147,7 +147,7 @@ class AuthController {
       }
 
       // Generate new access token with extended payload
-      const accessToken = jwt.sign({ 
+      const accessToken = jwt.sign({
         sub: user.id, // Заменяем userId на sub
         login: user.login,
         role_id: user.role_id,
@@ -157,8 +157,8 @@ class AuthController {
 
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        secure: true, // Always secure for HTTPS
+        sameSite: 'none', // Required for cross-origin (different ports)
         maxAge: 15 * 60 * 1000 // 15 minutes
       });
 

@@ -15,6 +15,7 @@ class OrganizerController {
         this.deleteEvent = this.deleteEvent.bind(this);
         this.responseToEventRequest = this.responseToEventRequest.bind(this);
         this.getEventRequests = this.getEventRequests.bind(this);
+        this.verifyEventRegistration = this.verifyEventRegistration.bind(this);
     }
 
     async createEvent(req, res) {
@@ -173,6 +174,41 @@ class OrganizerController {
             const requests = await this.organizerRepository.getEventRequests(creator_id, event_id);
             return res.json(requests);
         } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async verifyEventRegistration(req, res) {
+        try {
+            const { qrData } = req.body;
+            const creator_id = req.user.id;
+
+            if (!qrData) {
+                return res.status(400).json({ error: 'QR Data is required' });
+            }
+
+            let parsedData;
+            try {
+                parsedData = JSON.parse(qrData);
+            } catch (e) {
+                return res.status(400).json({ error: 'Invalid QR Data format' });
+            }
+
+            const { registrationId, eventId, userId } = parsedData;
+
+            if (!registrationId || !eventId || !userId) {
+                return res.status(400).json({ error: 'Incomplete QR Data' });
+            }
+
+            const result = await this.organizerRepository.verifyRegistration(creator_id, registrationId, eventId, userId);
+            return res.json(result);
+
+        } catch (error) {
+            if (error.message === 'Событие не найдено или вы не являетесь его организатором' ||
+                error.message === 'Регистрация не найдена' ||
+                error.message === 'Регистрация не подтверждена') {
+                return res.status(400).json({ error: error.message });
+            }
             return res.status(500).json({ error: error.message });
         }
     }

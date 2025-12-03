@@ -1,30 +1,30 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { Event as EventCardEvent, EventResponse } from '../types/event';
+import { EventResponse } from '../types/event';
 
-const BASE_API_URL = 'localhost';
+const BASE_API_URL = '192.168.1.20';
 // Настройка Axios
 const authApi = axios.create({
-  baseURL: `http://${BASE_API_URL}:5000/api/auth`,
+  baseURL: `https://${BASE_API_URL}:5000/api/auth`,
   withCredentials: true,
 });
 
 const userApi = axios.create({
-  baseURL: `http://${BASE_API_URL}:5000/api/user`,
+  baseURL: `https://${BASE_API_URL}:5000/api/user`,
   withCredentials: true,
 });
 
 const organizerApi = axios.create({
-  baseURL: `http://${BASE_API_URL}:5000/api/organizer`,
+  baseURL: `https://${BASE_API_URL}:5000/api/organizer`,
   withCredentials: true,
 });
 
 const guestApi = axios.create({
-  baseURL: `http://${BASE_API_URL}:5000/api/guest`,
+  baseURL: `https://${BASE_API_URL}:5000/api/guest`,
   withCredentials: true,
 });
 
 const adminApi = axios.create({
-  baseURL: `http://${BASE_API_URL}:5000/api/admin`,
+  baseURL: `https://${BASE_API_URL}:5000/api/admin`,
   withCredentials: true,
 });
 
@@ -354,7 +354,7 @@ export async function getOwnOrganizerRequests(): Promise<OrganizerRequest[]> {
   try {
     const response = await userApi.get<OrganizerRequest[]>('/organizer/request');
     return response.data;
-  } catch (error){
+  } catch (error) {
     throw new Error('Неизвестная ошибка');
   }
 }
@@ -371,7 +371,27 @@ export async function registerForEvent(event_id: string): Promise<RegistrationRe
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.error || 'Ошибка при получении запросов организатора');
+      throw new Error(error.response?.data?.error || 'Ошибка при регистрации на мероприятие');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export interface VerificationResponse {
+  valid: boolean;
+  user: string;
+  event: string;
+  date: string;
+  status: string;
+}
+
+export async function verifyRegistration(qrData: string): Promise<VerificationResponse> {
+  try {
+    const response = await organizerApi.post<VerificationResponse>('/verify-registration', { qrData });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при проверке QR-кода');
     }
     throw new Error('Неизвестная ошибка');
   }

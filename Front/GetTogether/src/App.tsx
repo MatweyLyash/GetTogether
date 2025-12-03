@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext/AuthContext';
-import {Text, Box} from '@chakra-ui/react';
+import { Text, Box } from '@chakra-ui/react';
 import Home from './pages/Home/Home';
 import Events from './pages/Events/Events';
 import Event from './pages/Event/Event';
@@ -9,6 +9,7 @@ import Cabinet from './pages/Cabinet/Cabinet';
 import Login from './pages/Login/Login';
 import NotFound from './pages/NotFound/NotFound';
 import Admin from './pages/Admin/Admin';
+import Scanner from './pages/Scanner/Scanner';
 
 function ProtectedRoute() {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -44,6 +45,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/cabinet" element={<Cabinet />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/scanner" element={<Scanner />} />
           </Route>
           <Route path="/not-found" element={<NotFound />} />
           <Route path="*" element={<Navigate to="/not-found" replace />} />

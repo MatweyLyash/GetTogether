@@ -1,0 +1,10 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  >div:nth-child(2) {
+    // Target the Container (second child after Header)
+    flex: 1;
+  }
+}
