@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { EventResponse } from '../types/event';
 
-const BASE_API_URL = '192.168.1.20';
+const BASE_API_URL = '10.215.84.222';
 // Настройка Axios
 const authApi = axios.create({
   baseURL: `https://${BASE_API_URL}:5000/api/auth`,

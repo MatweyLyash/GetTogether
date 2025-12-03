@@ -298,7 +298,7 @@ class UserController {
             // Возвращаем сохранённый QR-код из БД
             if (!registration.qr_code) {
                 return res.status(404).json({ 
-                    error: 'QR-код ещё не был сгенерирован. Пожалуйста, обновите страницу и попробуйте позже.'
+                    error: 'QR-код  был использован ранее.'
                 });
             }
 

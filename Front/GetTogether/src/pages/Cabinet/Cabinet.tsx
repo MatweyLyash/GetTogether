@@ -163,6 +163,7 @@ function Cabinet() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  const [modalType, setModalType] = useState<'organizer' | 'delete' | null>(null);
 
   const isMobile = useBreakpointValue({ base: true, md: false });
   const fontSizeHeading = useBreakpointValue({ base: 'lg', md: 'xl' });
@@ -615,6 +616,7 @@ function Cabinet() {
 
   const handleDeleteClick = (eventId: string) => {
     setEventToDelete(eventId);
+    setModalType('delete');
     onOpen();
   };
 
@@ -742,10 +744,20 @@ function Cabinet() {
               <Text>
                 Статус: {reg.status_id === 1 ? 'Ожидает' : reg.status_id === 2 ? 'Подтверждено' : 'Отклонено'}
               </Text>
+              <Button
+                mt="2"
+                size={buttonSize}
+                colorScheme="teal"
+                onClick={() => navigate(`/event/${reg.event_id}`)}
+                isDisabled={isLoading}
+              >
+                Перейти
+              </Button>
             </Box>
           ))
-        )}
-      </VStack>
+        )
+        }
+      </VStack >
     );
   };
 
@@ -758,6 +770,16 @@ function Cabinet() {
             <Text fontWeight="bold">{reg.Event.title}</Text>
             <Text>Дата: {formatDateTime(reg.Event.date)}</Text>
             <Text>Место: {reg.Event.location}</Text>
+            <Button
+              mt="2"
+              mb="2"
+              size={buttonSize}
+              colorScheme="teal"
+              onClick={() => navigate(`/event/${reg.event_id}`)}
+              isDisabled={isLoading}
+            >
+              Перейти
+            </Button>
             {reg.Event?.reviews?.some(review => review.reviewUser.id === user?.id) ? (
               <Text mt="2" color="green.500">Отзыв уже отправлен</Text>
             ) : (
@@ -1742,7 +1764,10 @@ function Cabinet() {
                             bg="#2E4FD7"
                             color="white"
                             _hover={{ bg: '#1e3fa9' }}
-                            onClick={onOpen}
+                            onClick={() => {
+                              setModalType('organizer');
+                              onOpen();
+                            }}
                             isDisabled={isLoading || organizerRequests.length > 0}
                             size={buttonSize}
                           >
@@ -1803,24 +1828,45 @@ function Cabinet() {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Подтверждение запроса</ModalHeader>
+          <ModalHeader>
+            {modalType === 'delete' && 'Подтверждение удаления'}
+            {modalType === 'organizer' && 'Подтверждение запроса'}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text>Вы уверены, что хотите запросить статус организатора?</Text>
+            {modalType === 'delete' && (
+              <Text>Вы уверены, что хотите удалить это мероприятие?</Text>
+            )}
+            {modalType === 'organizer' && (
+              <Text>Вы уверены, что хотите запросить статус организатора?</Text>
+            )}
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onClose}>
               Отмена
             </Button>
-            <Button
-              bg="#2E4FD7"
-              color="white"
-              _hover={{ bg: '#1e3fa9' }}
-              onClick={handleCreateOrganizerRequest}
-              isLoading={isLoading}
-            >
-              Подтвердить
-            </Button>
+            {modalType === 'delete' && (
+              <Button
+                bg="red.500"
+                color="white"
+                _hover={{ bg: 'red.600' }}
+                onClick={handleConfirmDelete}
+                isLoading={isLoading}
+              >
+                Удалить
+              </Button>
+            )}
+            {modalType === 'organizer' && (
+              <Button
+                bg="#2E4FD7"
+                color="white"
+                _hover={{ bg: '#1e3fa9' }}
+                onClick={handleCreateOrganizerRequest}
+                isLoading={isLoading}
+              >
+                Подтвердить
+              </Button>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>

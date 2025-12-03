@@ -148,7 +148,7 @@ function Scanner() {
                     <Box
                         id="reader"
                         width="100%"
-                        height="700px"
+                        height="500px"
                         overflow="hidden"
                         borderRadius="md"
                         display={isScanning ? 'block' : 'none'}
