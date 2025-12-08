@@ -64,6 +64,7 @@ bot.onText(/\/link (.+)/, async (msg, match) => {
   const login = match[1].trim();
   const telegramTag = `@${msg.from.username}`;
   const pendingTelegramTag = `PENDING_${telegramTag}`;
+  const telegramUserId = msg.from.id; // ID пользователя в Telegram (user.id)
 
   try {
     if (msg.chat.type !== 'private') {
@@ -82,10 +83,21 @@ bot.onText(/\/link (.+)/, async (msg, match) => {
       return bot.sendMessage(chatId, `Тег ${telegramTag} уже привязан к другому аккаунту.`);
     }
 
+    // Сохраняем chat_id (который равен telegramUserId для личных чатов) в специальное хранилище
+    // Используем формат: сохраняем в поле telegram как @username и отдельно chat_id
+    // Для упрощения: будем использовать chatId напрямую при отправке через username
     const originalUpdatedAt = user.updatedAt.getTime();
     user.telegram = pendingTelegramTag;
     user.updatedAt = new Date();
     await user.save();
+    
+    // Сохраняем связь telegramUserId -> chatId для отправки уведомлений
+    // Используем простой объект в памяти или можно создать отдельную таблицу
+    // Пока используем глобальный объект для хранения соответствий
+    if (!global.telegramChatIds) {
+      global.telegramChatIds = new Map();
+    }
+    global.telegramChatIds.set(telegramTag, chatId);
 
     bot.sendMessage(
       chatId,
@@ -110,6 +122,12 @@ bot.onText(/\/link (.+)/, async (msg, match) => {
             `Привязка аккаунта "${login}" отменена, так как не была подтверждена в течение 2 минут.`
           );
         } else if (!updatedUser.telegram.startsWith('PENDING_')) {
+          // Сохраняем chat_id при успешной привязке
+          if (!global.telegramChatIds) {
+            global.telegramChatIds = new Map();
+          }
+          global.telegramChatIds.set(updatedUser.telegram, chatId);
+          
           await bot.sendMessage(
             chatId,
             `Привязка аккаунта "${login}" успешна!`
@@ -153,6 +171,28 @@ bot.on('polling_error', (error) => {
   console.error('Polling error:', error);
 });
 
-module.exports = { generateInviteLink };
+// Функция для отправки уведомления пользователю по Telegram username
+async function sendNotificationToUser(telegramUsername, message) {
+  try {
+    // Получаем chat_id из сохраненных соответствий
+    if (!global.telegramChatIds) {
+      global.telegramChatIds = new Map();
+    }
+    
+    const chatId = global.telegramChatIds.get(telegramUsername);
+    if (!chatId) {
+      console.warn(`Chat ID не найден для пользователя ${telegramUsername}. Пользователь должен был написать боту ранее.`);
+      return false;
+    }
+    
+    await bot.sendMessage(chatId, message);
+    return true;
+  } catch (error) {
+    console.error('Ошибка отправки уведомления:', error);
+    return false;
+  }
+}
+
+module.exports = { generateInviteLink, sendNotificationToUser, bot };
 
 console.log('Telegram-бот запущен...');

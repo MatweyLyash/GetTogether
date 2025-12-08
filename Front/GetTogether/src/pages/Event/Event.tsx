@@ -36,6 +36,7 @@ import { getEventById, getEventByIdWithReg, registerForEvent, cancelEventRegistr
 import { Event as EventType, EventResponse } from '../../types/event';
 import { useAuth } from '../../AuthContext/AuthContext';
 import styles from './Event.module.scss';
+import { SubscribeButton } from '../../components/SubscribeButton/SubscribeButton';
 
 function EventPage() {
   const { id } = useParams<{ id: string }>();
@@ -346,6 +347,24 @@ function EventPage() {
                     {event.creator.login}
                   </Text>
                 </Flex>
+                {isAuthenticated && !isOrganizer && (
+                  <Flex gap={2} mt={2} flexWrap="wrap" direction={{ base: 'column', sm: 'row' }}>
+                    <SubscribeButton
+                      subscriptionType="organizer"
+                      targetId={Number(event.creator.id)}
+                      targetName={event.creator.login}
+                      size="sm"
+                      variant="outline"
+                    />
+                    <SubscribeButton
+                      subscriptionType="category"
+                      targetId={Number(event.category.id)}
+                      targetName={event.category.category_name}
+                      size="sm"
+                      variant="solid"
+                    />
+                  </Flex>
+                )}
               </Box>
 
               <Divider />

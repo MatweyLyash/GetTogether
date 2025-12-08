@@ -2,6 +2,7 @@ const OrganizerRepository = require('./../repository/organizerRepository');
 const validators = require('../services/baseValidators');
 const eventValidator = require('../services/eventValidator');
 const { v4: uuidv4 } = require('uuid');
+const notificationService = require('../services/notificationService');
 
 
 class OrganizerController {
@@ -39,6 +40,9 @@ class OrganizerController {
                 const mime = fileType?.mime || 'image/jpeg'; // JPEG по умолчанию
                 event.dataValues.image = `data:${mime};base64,${event.image.toString('base64')}`;
             }
+
+            // Уведомить подписчиков о новом мероприятии
+            await notificationService.notifyNewEvent(event);
 
             res.status(201).json({
                 event,

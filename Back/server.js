@@ -1,4 +1,7 @@
 // index.js
+// Загружаем переменные окружения ПЕРВЫМИ, до всех остальных модулей
+require('dotenv').config();
+
 const app = require('./app');
 const sequelize = require('./config/db');
 const { exec } = require('child_process');

@@ -1,30 +1,35 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { EventResponse } from '../types/event';
 
-const BASE_API_URL = '10.215.84.222';
+// Базовый URL API задаётся через VITE_API_URL, по умолчанию — текущий хост:5000/api
+const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  `${window.location.protocol}//${window.location.hostname}:5000/api`
+).replace(/\/$/, '');
+
 // Настройка Axios
 const authApi = axios.create({
-  baseURL: `https://${BASE_API_URL}:5000/api/auth`,
+  baseURL: `${API_BASE}/auth`,
   withCredentials: true,
 });
 
 const userApi = axios.create({
-  baseURL: `https://${BASE_API_URL}:5000/api/user`,
+  baseURL: `${API_BASE}/user`,
   withCredentials: true,
 });
 
 const organizerApi = axios.create({
-  baseURL: `https://${BASE_API_URL}:5000/api/organizer`,
+  baseURL: `${API_BASE}/organizer`,
   withCredentials: true,
 });
 
 const guestApi = axios.create({
-  baseURL: `https://${BASE_API_URL}:5000/api/guest`,
+  baseURL: `${API_BASE}/guest`,
   withCredentials: true,
 });
 
 const adminApi = axios.create({
-  baseURL: `https://${BASE_API_URL}:5000/api/admin`,
+  baseURL: `${API_BASE}/admin`,
   withCredentials: true,
 });
 
@@ -665,6 +670,76 @@ export async function deleteEventByAdmin(eventId: string): Promise<void> {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || 'Ошибка при удалении мероприятия');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+// Subscription API
+export interface EventSubscription {
+  id: number;
+  user_id: number;
+  subscription_type: 'organizer' | 'category';
+  target_id: number;
+  notification_method: 'telegram' | 'browser';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function createSubscription(
+  subscription_type: 'organizer' | 'category',
+  target_id: number,
+  notification_method: 'telegram' | 'browser'
+): Promise<EventSubscription> {
+  try {
+    const response = await userApi.post<EventSubscription>('/subscriptions', {
+      subscription_type,
+      target_id,
+      notification_method,
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        throw new Error('Ошибка авторизации. Пожалуйста, перезайдите в систему.');
+      }
+      throw new Error(error.response?.data?.error || error.response?.data?.message || 'Ошибка при создании подписки');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getSubscriptions(): Promise<EventSubscription[]> {
+  try {
+    const response = await userApi.get<EventSubscription[]>('/subscriptions');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении подписок');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function deleteSubscription(subscription_id: number): Promise<void> {
+  try {
+    await userApi.delete(`/subscriptions/${subscription_id}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при удалении подписки');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+// Web Push API
+export async function getVapidPublicKey(): Promise<string> {
+  try {
+    const response = await userApi.get<{ publicKey: string }>('/push/vapid-public-key');
+    return response.data.publicKey;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении VAPID ключа');
     }
     throw new Error('Неизвестная ошибка');
   }

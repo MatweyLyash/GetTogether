@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = (db) => {
-  const { User, Role, Status, OrganizerRequest, Event, Review, Category, EventRegistration } = db;
+  const { User, Role, Status, OrganizerRequest, Event, Review, Category, EventRegistration, EventSubscription, PushSubscription } = db;
 
   // User ↔ Role
   User.belongsTo(Role, { foreignKey: 'role_id', as: 'role' });
@@ -38,4 +38,12 @@ module.exports = (db) => {
   User.hasMany(EventRegistration, { foreignKey: 'user_id', as: 'eventRegistrations' });
   Event.hasMany(EventRegistration, { foreignKey: 'event_id', as: 'registrations' });
   Status.hasMany(EventRegistration, { foreignKey: 'status_id', as: 'eventRegistrations' });
+
+  // EventSubscription ↔ User
+  EventSubscription.belongsTo(User, { foreignKey: 'user_id', as: 'subscriber' });
+  User.hasMany(EventSubscription, { foreignKey: 'user_id', as: 'eventSubscriptions' });
+
+  // PushSubscription ↔ User
+  PushSubscription.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+  User.hasMany(PushSubscription, { foreignKey: 'user_id', as: 'pushSubscriptions' });
 };
