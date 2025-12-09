@@ -17,6 +17,13 @@ export default defineConfig({
       key: readFileSync(resolve(__dirname, '../../qr_test/key.pem')),
       cert: readFileSync(resolve(__dirname, '../../qr_test/cert.pem')),
     },
+    proxy: {
+      '/api': {
+        target: 'https://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 })
 

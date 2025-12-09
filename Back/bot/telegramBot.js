@@ -8,6 +8,69 @@ const token = '7583742094:AAGU85WdKHQBr_vnVsEomjMp1dj8mtZXZdU';
 
 const bot = new TelegramBot(token, { polling: true });
 
+// Красивое приветствие и быстрые кнопки
+const mainMenuKeyboard = {
+  reply_markup: {
+    keyboard: [
+      [{ text: '🔗 Как привязать аккаунт' }],
+      [{ text: '👥 Как привязать группу' }],
+      [{ text: 'ℹ️ Помощь' }],
+    ],
+    resize_keyboard: true,
+    one_time_keyboard: false,
+  },
+};
+
+bot.onText(/\/start|\/help/, async (msg) => {
+  const chatId = msg.chat.id;
+  const isPrivate = msg.chat.type === 'private';
+
+  const helpText = isPrivate
+    ? `Привет! Я бот GetTogether.\n\n` +
+      `• Чтобы привязать аккаунт: отправь команду /link <твой_логин> мне в личку.\n` +
+      `• После отправки команда станет ожидающей, подтвердите привязку в веб-приложении.\n` +
+      `• Чтобы привязать группу к событию: добавьте меня в группу как админа и отправьте там /verify <ключ>.\n\n` +
+      `Выбирай действие на клавиатуре ниже.`
+    : `Привет! Я бот GetTogether.\nВ группе можно использовать /verify <ключ>, чтобы привязать группу к событию (бот должен быть админом).`;
+
+  await bot.sendMessage(chatId, helpText, isPrivate ? mainMenuKeyboard : undefined);
+});
+
+// Быстрые ответы по кнопкам
+bot.on('message', async (msg) => {
+  if (msg.text === '🔗 Как привязать аккаунт') {
+    return bot.sendMessage(
+      msg.chat.id,
+      `1) В личку боту: /link <твой_логин>\n` +
+        `2) Подтверди привязку в веб-приложении, указав свой @username\n` +
+        `3) После привязки сможешь получать уведомления в Telegram`,
+      mainMenuKeyboard
+    );
+  }
+
+  if (msg.text === '👥 Как привязать группу') {
+    return bot.sendMessage(
+      msg.chat.id,
+      `1) Добавь бота в группу как администратора с правом приглашать\n` +
+        `2) В группе: /verify <ключ_из_админки события>\n` +
+        `3) Группа будет привязана к событию, можно генерировать инвайты`,
+      mainMenuKeyboard
+    );
+  }
+
+  if (msg.text === 'ℹ️ Помощь') {
+    const isPrivate = msg.chat.type === 'private';
+    return bot.sendMessage(
+      msg.chat.id,
+      `Команды:\n` +
+        `/link <логин> — привязать аккаунт (в личке)\n` +
+        `/verify <ключ> — привязать группу (в группе)\n` +
+        `/start, /help — показать меню\n`,
+      isPrivate ? mainMenuKeyboard : undefined
+    );
+  }
+});
+
 // Обработчик команды /verify <key>
 bot.onText(/\/verify (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
