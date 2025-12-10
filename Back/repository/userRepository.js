@@ -143,16 +143,24 @@ class UserRepository {
                 model: models.Event,
                 as: 'Event',
                 paranoid: false,
-                include: [{
-                    model: models.Review,
-                    as: 'reviews',
-                    attributes: ['id', 'rating', 'comment', 'createdAt'],
-                    include: [{
-                        model: models.User,
-                        as: 'reviewUser',
-                        attributes: ['id', 'login']
-                    }]
-                }]
+                include: [
+                    {
+                        model: models.Category,
+                        as: 'category',
+                        attributes: ['id', 'category_name'],
+                        paranoid: false,
+                    },
+                    {
+                        model: models.Review,
+                        as: 'reviews',
+                        attributes: ['id', 'rating', 'comment', 'createdAt'],
+                        include: [{
+                            model: models.User,
+                            as: 'reviewUser',
+                            attributes: ['id', 'login']
+                        }]
+                    }
+                ]
             }
         });
     }

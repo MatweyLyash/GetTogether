@@ -33,10 +33,14 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Progress,
+  Badge,
+  Image,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
+import { useCallback } from 'react';
 
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
@@ -54,6 +58,8 @@ import {
   deleteEvent,
   getEventRequests,
   responseToEventRequest,
+  getMyAchievements,
+  AchievementProgress,
 } from '../../api/api';
 import { useAuth } from '../../AuthContext/AuthContext';
 import styles from './Cabinet.module.scss';
@@ -136,6 +142,7 @@ function Cabinet() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [ownEvents, setOwnEvents] = useState<Event[]>([]);
   const [eventRequests, setEventRequests] = useState<EventRequest[]>([]);
+  const [myAchievements, setMyAchievements] = useState<AchievementProgress[]>([]);
   const [telegram, setTelegram] = useState('');
   const [review, setReview] = useState<Review>({ rating: 1, comment: '' });
   const [newEvent, setNewEvent] = useState({
@@ -169,6 +176,35 @@ function Cabinet() {
   const fontSizeHeading = useBreakpointValue({ base: 'lg', md: 'xl' });
   const fontSizeText = useBreakpointValue({ base: 'md', md: 'lg' });
   const buttonSize = useBreakpointValue({ base: 'sm', md: 'md' });
+  const fetchAchievements = useCallback(async () => {
+    try {
+      const achievements = await getMyAchievements();
+      setMyAchievements(achievements || []);
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка загрузки ачивок',
+        description: error.message || 'Не удалось загрузить ачивки',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
+    }
+  }, [toast]);
+
+  // helpers
+  const toImageSrc = (img: any): string | null => {
+    if (!img) return null;
+    if (typeof img === 'string') {
+      if (img.startsWith('data:')) return img;
+      return `data:image/png;base64,${img}`;
+    }
+    const bytes = img?.data || img; // Sequelize Buffer -> { data: [] }
+    if (Array.isArray(bytes)) {
+      const binary = Uint8Array.from(bytes).reduce((acc, b) => acc + String.fromCharCode(b), '');
+      return `data:image/png;base64,${btoa(binary)}`;
+    }
+    return null;
+  };
 
   // Handle tabIndex and scroll to event from location.state
   useEffect(() => {
@@ -238,6 +274,7 @@ function Cabinet() {
 
         setOrganizerRequests(orgRequests || []);
         setCategories(cats || []);
+        await fetchAchievements();
 
         if (isOrganizer || isAdmin) {
           const events = await getOwnEvents();
@@ -268,7 +305,14 @@ function Cabinet() {
       }
     };
     fetchData();
-  }, [authLoading, isAuthenticated, user, isOrganizer, isAdmin, toast]);
+  }, [authLoading, isAuthenticated, user, isOrganizer, isAdmin, toast, fetchAchievements]);
+
+  // Подгружаем ачивки при переключении на вкладку ачивок
+  useEffect(() => {
+    if (tabIndex === 3 && isAuthenticated && user) {
+      fetchAchievements();
+    }
+  }, [tabIndex, isAuthenticated, user, fetchAchievements]);
 
   const handleRegisterEvent = async (event_id: string) => {
     setIsLoading(true);
@@ -276,6 +320,7 @@ function Cabinet() {
       await createEventRegistration(event_id);
       const regs = await getOwnEventsRegistration();
       setRegistrations(regs || []);
+      fetchAchievements();
       toast({
         title: 'Успех',
         description: 'Вы зарегистрированы на мероприятие',
@@ -1208,6 +1253,7 @@ function Cabinet() {
                       <option value={0}>Будущие мероприятия</option>
                       <option value={1}>Прошедшие мероприятия</option>
                       <option value={2}>Мои созданные</option>
+                      <option value={3}>Ачивки</option>
                     </Select>
                   </FormControl>
                 )}
@@ -1219,6 +1265,7 @@ function Cabinet() {
                       <Tab fontSize={fontSizeText}>Будущие</Tab>
                       <Tab fontSize={fontSizeText}>Прошедшие</Tab>
                       <Tab fontSize={fontSizeText}>Мои созданные</Tab>
+                      <Tab fontSize={fontSizeText}>Ачивки</Tab>
                     </TabList>
                   )}
                   <TabPanels>
@@ -1785,6 +1832,64 @@ function Cabinet() {
                                     : 'Отклонён'}
                             </Text>
                           )}
+                        </VStack>
+                      )}
+                    </TabPanel>
+
+                    <TabPanel>
+                      <Text fontSize={fontSizeText} mb="1rem">
+                        Ваши ачивки
+                      </Text>
+                      {myAchievements.length === 0 ? (
+                        <Text fontSize={fontSizeText} color="gray.600">Ачивок пока нет</Text>
+                      ) : (
+                        <VStack spacing="3" align="stretch">
+                          {myAchievements.map((ach) => {
+                            const percent = Math.min(100, Math.round((ach.progress / ach.score) * 100));
+                            const imgSrc = toImageSrc(ach.image);
+                            return (
+                              <Box
+                                key={ach.id}
+                                p="4"
+                                borderWidth="1px"
+                                borderRadius="md"
+                                bg="white"
+                                boxShadow="sm"
+                              >
+                                <HStack justify="space-between" align="start" spacing="4" flexWrap="wrap">
+                                  <Box flex="1">
+                                    <HStack spacing="2">
+                                      <Heading size="sm">{ach.name}</Heading>
+                                      {ach.is_unlocked && <Badge colorScheme="green">Открыто</Badge>}
+                                    </HStack>
+                                    <Text mt="1" fontSize="sm" color="gray.700">
+                                      {ach.description}
+                                    </Text>
+                                  </Box>
+                                  {imgSrc && (
+                                    <Image
+                                      src={imgSrc}
+                                      alt={ach.name}
+                                      boxSize="64px"
+                                      objectFit="cover"
+                                      borderRadius="md"
+                                    />
+                                  )}
+                                </HStack>
+                                <Box mt="3">
+                                  <Text fontSize="sm" color="gray.600">
+                                    Прогресс: {ach.progress} / {ach.score}
+                                  </Text>
+                                  <Progress value={percent} size="sm" mt="1" colorScheme={ach.is_unlocked ? 'green' : 'blue'} />
+                                  {ach.unlocked_at && (
+                                    <Text fontSize="xs" color="green.600" mt="1">
+                                      Открыто: {new Date(ach.unlocked_at).toLocaleString()}
+                                    </Text>
+                                  )}
+                                </Box>
+                              </Box>
+                            );
+                          })}
                         </VStack>
                       )}
                     </TabPanel>

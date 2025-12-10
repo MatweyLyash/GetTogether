@@ -1,7 +1,20 @@
 'use strict';
 
 module.exports = (db) => {
-  const { User, Role, Status, OrganizerRequest, Event, Review, Category, EventRegistration, EventSubscription, PushSubscription } = db;
+  const {
+    User,
+    Role,
+    Status,
+    OrganizerRequest,
+    Event,
+    Review,
+    Category,
+    EventRegistration,
+    EventSubscription,
+    PushSubscription,
+    Achievement,
+    UserAchievement,
+  } = db;
 
   // User ↔ Role
   User.belongsTo(Role, { foreignKey: 'role_id', as: 'role' });
@@ -46,4 +59,13 @@ module.exports = (db) => {
   // PushSubscription ↔ User
   PushSubscription.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
   User.hasMany(PushSubscription, { foreignKey: 'user_id', as: 'pushSubscriptions' });
+
+  // Achievement ↔ UserAchievement ↔ User
+  if (Achievement && UserAchievement) {
+    Achievement.hasMany(UserAchievement, { foreignKey: 'achievement_id', as: 'userAchievements' });
+    UserAchievement.belongsTo(Achievement, { foreignKey: 'achievement_id', as: 'achievement' });
+
+    User.hasMany(UserAchievement, { foreignKey: 'user_id', as: 'userAchievements' });
+    UserAchievement.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+  }
 };

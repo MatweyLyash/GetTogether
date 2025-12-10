@@ -17,6 +17,7 @@ import {
   Button,
   Input,
   Select,
+  Textarea,
   FormControl,
   FormLabel,
   VStack,
@@ -50,11 +51,15 @@ import {
   banUser,
   organizerResponse,
   unassignOrganizer,
-  updateEvent,
-  deleteEvent,
   getOrganizerRequests,
   deleteEventByAdmin,
   updateEventByAdmin,
+  adminListAchievements,
+  adminCreateAchievement,
+  adminUpdateAchievement,
+  adminDeleteAchievement,
+  Achievement,
+  AchievementPayload,
 } from '../../api/api';
 import styles from './Admin.module.scss';
 
@@ -96,6 +101,12 @@ interface OrganizerRequest {
   status_id: number;
 }
 
+const triggerOptions = [
+  { value: 'apply', label: 'Заявка' },
+  { value: 'attend', label: 'Посещение' },
+  { value: 'category', label: 'Категория' },
+];
+
 function Admin() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -115,6 +126,19 @@ function Admin() {
   const { isOpen: isDeleteEventModalOpen, onOpen: onDeleteEventModalOpen, onClose: onDeleteEventModalClose } = useDisclosure();
   const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
+  const [achForm, setAchForm] = useState<AchievementPayload>({
+    name: '',
+    description: '',
+    score: 1,
+    trigger: 'apply',
+    condition_event_id: null,
+    condition_category_id: null,
+    condition_payload: null,
+    image: '',
+  });
+  const [achImagePreview, setAchImagePreview] = useState<string | null>(null);
   const toast = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -135,11 +159,12 @@ function Admin() {
       if (authLoading || !user || user.role_id !== 3) return;
       setIsLoading(true);
       try {
-        const [catData, eventData, userData, requestData] = await Promise.all([
+        const [catData, eventData, userData, requestData, achData] = await Promise.all([
           getCategories(),
           getEvents(),
           getUsers(),
           getOrganizerRequests(),
+          adminListAchievements(),
         ]);
         setCategories(catData || []);
         setOrganizerRequests(requestData || []);
@@ -153,6 +178,7 @@ function Admin() {
         })));
         const requests = Array.isArray(requestData) ? requestData : [];
         setOrganizerRequests(requests);
+        setAchievements(achData || []);
       } catch (error: any) {
         toast({
           title: 'Ошибка загрузки данных',
@@ -188,6 +214,91 @@ function Admin() {
       }
     };
   }, [imagePreview]);
+
+  // ===== Achievements helpers =====
+  const resetAchForm = () => {
+    setEditingAchievement(null);
+    setAchForm({
+      name: '',
+      description: '',
+      score: 1,
+      trigger: 'apply',
+      condition_category_id: null,
+      condition_payload: null,
+      image: '',
+    });
+    setAchImagePreview(null);
+  };
+
+  const handleAchImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) {
+      setAchForm((f) => ({ ...f, image: '' }));
+      setAchImagePreview(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setAchForm((f) => ({ ...f, image: result }));
+      setAchImagePreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAchSubmit = async () => {
+    try {
+      setIsLoading(true);
+      // упрощаем условия: для category оставляем category_id, остальное чистим
+      const normalized: AchievementPayload = {
+        ...achForm,
+        condition_event_id: null,
+        condition_payload: null,
+        condition_category_id: achForm.trigger === 'category' ? achForm.condition_category_id : null,
+      };
+      if (editingAchievement) {
+        const updated = await adminUpdateAchievement(editingAchievement.id, normalized);
+        setAchievements((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+        toast({ title: 'Ачивка обновлена', status: 'success', duration: 3000, isClosable: true });
+      } else {
+        const created = await adminCreateAchievement(normalized);
+        setAchievements((prev) => [...prev, created]);
+        toast({ title: 'Ачивка создана', status: 'success', duration: 3000, isClosable: true });
+      }
+      resetAchForm();
+    } catch (error: any) {
+      toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 4000, isClosable: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAchEdit = (a: Achievement) => {
+    setEditingAchievement(a);
+    setAchForm({
+      name: a.name,
+      description: a.description || '',
+      score: a.score,
+      trigger: a.trigger,
+      condition_category_id: a.condition_category_id || null,
+      condition_payload: null,
+      image: typeof a.image === 'string' ? a.image : '',
+    });
+    setAchImagePreview(typeof a.image === 'string' ? a.image : null);
+  };
+
+  const handleAchDelete = async (id: number) => {
+    try {
+      setIsLoading(true);
+      await adminDeleteAchievement(id);
+      setAchievements((prev) => prev.filter((a) => a.id !== id));
+      toast({ title: 'Ачивка удалена', status: 'success', duration: 3000, isClosable: true });
+    } catch (error: any) {
+      toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 4000, isClosable: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Add category
   const handleAddCategory = async () => {
@@ -554,6 +665,7 @@ function Admin() {
                   <option value={1}>Пользователи</option>
                   <option value={2}>Запросы организаторов</option>
                   <option value={3}>Мероприятия</option>
+                  <option value={4}>Ачивки</option>
                 </Select>
               </FormControl>
             )}
@@ -571,6 +683,7 @@ function Admin() {
                   <Tab>Пользователи</Tab>
                   <Tab>Запросы организаторов</Tab>
                   <Tab>Мероприятия</Tab>
+                  <Tab>Ачивки</Tab>
                 </TabList>
               )}
               <TabPanels>
@@ -1028,6 +1141,146 @@ function Admin() {
                                     Удалить
                                   </Button>
                                 </VStack>
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  </VStack>
+                </TabPanel>
+
+                {/* Achievements */}
+                <TabPanel px={{ base: 0, md: 4 }}>
+                  <VStack spacing="1.5rem" align="stretch">
+                    <Heading size="md">{editingAchievement ? 'Редактирование ачивки' : 'Создать ачивку'}</Heading>
+                    <VStack spacing="1rem" align="stretch">
+                      <FormControl isRequired>
+                        <FormLabel>Название</FormLabel>
+                        <Input
+                          value={achForm.name}
+                          onChange={(e) => setAchForm((f) => ({ ...f, name: e.target.value }))}
+                          placeholder="Название"
+                          bg="#E7EBFC"
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Описание</FormLabel>
+                        <Textarea
+                          value={achForm.description || ''}
+                          onChange={(e) => setAchForm((f) => ({ ...f, description: e.target.value }))}
+                          placeholder="Краткое описание"
+                          bg="#E7EBFC"
+                        />
+                      </FormControl>
+                      <HStack spacing="1rem" align="stretch" flexWrap="wrap">
+                        <FormControl width={{ base: '100%', md: '200px' }} isRequired>
+                          <FormLabel>Очки / score</FormLabel>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={achForm.score}
+                            onChange={(e) => setAchForm((f) => ({ ...f, score: Number(e.target.value) }))}
+                            bg="#E7EBFC"
+                          />
+                          <Text fontSize="sm" color="gray.600" mt="1">
+                            Минимум действий для открытия (например, 3 посещения)
+                          </Text>
+                        </FormControl>
+                        <FormControl width={{ base: '100%', md: '220px' }} isRequired>
+                          <FormLabel>Триггер</FormLabel>
+                          <Select
+                            value={achForm.trigger}
+                            onChange={(e) => setAchForm((f) => ({ ...f, trigger: e.target.value as AchievementPayload['trigger'] }))}
+                            bg="#E7EBFC"
+                          >
+                            {triggerOptions.map((t) => (
+                              <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        {achForm.trigger === 'category' && (
+                          <FormControl width={{ base: '100%', md: '220px' }}>
+                            <FormLabel>ID категории (для category)</FormLabel>
+                            <Input
+                              type="number"
+                              value={achForm.condition_category_id ?? ''}
+                              onChange={(e) => setAchForm((f) => ({ ...f, condition_category_id: e.target.value ? Number(e.target.value) : null }))}
+                              placeholder="Напр. 2"
+                              bg="#E7EBFC"
+                            />
+                          </FormControl>
+                        )}
+                      </HStack>
+                      <FormControl>
+                        <FormLabel>Изображение (опционально)</FormLabel>
+                        <Input type="file" accept="image/*" onChange={handleAchImageChange} />
+                        {(achImagePreview || achForm.image) && (
+                          <Box mt="2">
+                            <Text fontSize="sm" color="gray.600">Превью:</Text>
+                            <Image
+                              src={achImagePreview || (typeof achForm.image === 'string' ? achForm.image : '')}
+                              alt="Превью ачивки"
+                              maxH="150px"
+                              borderRadius="8px"
+                            />
+                          </Box>
+                        )}
+                      </FormControl>
+                      <HStack spacing="1rem">
+                        <Button
+                          bg="#2E4FD7"
+                          color="white"
+                          _hover={{ bg: '#1e3fa9' }}
+                          onClick={handleAchSubmit}
+                          isDisabled={isLoading}
+                        >
+                          {editingAchievement ? 'Сохранить' : 'Создать'}
+                        </Button>
+                        {editingAchievement && (
+                          <Button variant="outline" onClick={resetAchForm} isDisabled={isLoading}>
+                            Отмена
+                          </Button>
+                        )}
+                      </HStack>
+                    </VStack>
+
+                    <Heading size="md">Список ачивок</Heading>
+                    <Box overflowX="auto">
+                      <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
+                        <Thead>
+                          <Tr>
+                            <Th>#</Th>
+                            <Th>Название</Th>
+                            <Th>Триггер</Th>
+                            <Th>Score</Th>
+                            <Th>Условия</Th>
+                            <Th>Действия</Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {achievements.map((a) => (
+                            <Tr key={a.id}>
+                              <Td>{a.id}</Td>
+                              <Td>{a.name}</Td>
+                              <Td>{a.trigger}</Td>
+                              <Td>{a.score}</Td>
+                              <Td>
+                                <Text fontSize="sm">
+                                  {a.condition_event_id ? `event_id: ${a.condition_event_id}` : ''}
+                                  {a.condition_category_id ? ` cat_id: ${a.condition_category_id}` : ''}
+                                  {a.condition_payload ? ` payload: ${JSON.stringify(a.condition_payload)}` : ''}
+                                </Text>
+                              </Td>
+                              <Td>
+                                <HStack spacing="2">
+                                  <Button size="xs" colorScheme="blue" onClick={() => handleAchEdit(a)} isDisabled={isLoading}>
+                                    Ред.
+                                  </Button>
+                                  <Button size="xs" colorScheme="red" onClick={() => handleAchDelete(a.id)} isDisabled={isLoading}>
+                                    Удалить
+                                  </Button>
+                                </HStack>
                               </Td>
                             </Tr>
                           ))}

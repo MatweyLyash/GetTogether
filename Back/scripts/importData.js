@@ -38,8 +38,10 @@ async function main() {
     'Role',
     'Status',
     'User',
+    'Achievement',
     'Category',
     'Event',
+    'UserAchievement',
     'OrganizerRequest',
     'EventSubscription',
     'EventRegistration',
@@ -65,6 +67,7 @@ async function main() {
   const eventsSet = new Set((json.Event || []).map((r) => r.id));
   const statusesSet = new Set((json.Status || []).map((r) => r.id));
   const categoriesSet = new Set((json.Category || []).map((r) => r.id));
+  const achievementsSet = new Set((json.Achievement || []).map((r) => r.id));
 
   const reviveBuffers = (row) => {
     if (!row || typeof row !== 'object') return row;
@@ -72,6 +75,13 @@ async function main() {
     for (const [k, v] of Object.entries(copy)) {
       if (v && typeof v === 'object' && v.type === 'Buffer' && Array.isArray(v.data)) {
         copy[k] = Buffer.from(v.data);
+      }
+      // Для dataURL строк (не из экспорта, но на всякий случай)
+      if (typeof v === 'string' && v.startsWith('data:')) {
+        try {
+          const base64 = v.split(',')[1];
+          copy[k] = Buffer.from(base64, 'base64');
+        } catch (_) {}
       }
     }
     return copy;
@@ -96,6 +106,8 @@ async function main() {
         return rows.filter((r) => usersSet.has(r.user_id));
       case 'Event':
         return rows.filter((r) => usersSet.has(r.creator_id) && categoriesSet.has(r.category_id));
+      case 'UserAchievement':
+        return rows.filter((r) => usersSet.has(r.user_id) && achievementsSet.has(r.achievement_id));
       default:
         return rows;
     }

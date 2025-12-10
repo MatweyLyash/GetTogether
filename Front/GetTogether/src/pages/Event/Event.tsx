@@ -280,6 +280,7 @@ function EventPage() {
   const registrationClosed = event.capacity <= 0;
   const eventDate = new Date(event.date);
   const isPastEvent = eventDate < new Date();
+  const isArchived = isPastEvent || event.deletedAt;
 
   const formattedDate = new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
@@ -441,8 +442,9 @@ function EventPage() {
                     size="lg"
                     w="100%"
                     onClick={handleEditEvent}
+                    isDisabled={isArchived}
                   >
-                    Редактировать
+                    {isArchived ? 'Редактирование недоступно для архива' : 'Редактировать'}
                   </Button>
                 ) : isAuthenticated ? (
                   <>

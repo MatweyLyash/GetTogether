@@ -2,6 +2,7 @@ const adminRepository = require('./../repository/adminRepository');
 const AdminRepository = adminRepository.repository;
 
 const UserRepository = require('./../repository/userRepository').repository;
+const AchievementRepository = require('./../repository/achievementRepository').repository;
 
 const validators = require('../services/baseValidators');
 const eventValidator = require('../services/eventValidator');
@@ -150,6 +151,86 @@ class AdminController {
               return res.status(500).json({ error: error.message });
           }
       }
+
+  // Achievements CRUD
+  async listAchievements(req, res) {
+    try {
+      const items = await AchievementRepository.list();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createAchievement(req, res) {
+    try {
+      const { name, description, score, image, trigger, condition_event_id, condition_category_id, condition_payload } = req.body;
+      if (!name || !score) {
+        return res.status(400).json({ error: 'name и score обязательны' });
+      }
+      let imageBuffer = null;
+      if (image) {
+        try {
+          const base64 = image.startsWith('data:') ? image.split(',')[1] : image;
+          imageBuffer = Buffer.from(base64, 'base64');
+        } catch (e) {
+          return res.status(400).json({ error: 'image должен быть base64' });
+        }
+      }
+      const item = await AchievementRepository.create({
+        name,
+        description,
+        score,
+        image: imageBuffer,
+        trigger,
+        condition_event_id,
+        condition_category_id,
+        condition_payload,
+      });
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async updateAchievement(req, res) {
+    try {
+      const { achievement_id } = req.params;
+      const { name, description, score, image, trigger, condition_event_id, condition_category_id, condition_payload } = req.body;
+      if (!achievement_id) {
+        return res.status(400).json({ error: 'achievement_id обязателен' });
+      }
+      let imageBuffer = undefined;
+      if (image !== undefined) {
+        if (image === null || image === '') {
+          imageBuffer = null;
+        } else {
+          try {
+            const base64 = image.startsWith('data:') ? image.split(',')[1] : image;
+            imageBuffer = Buffer.from(base64, 'base64');
+          } catch (e) {
+            return res.status(400).json({ error: 'image должен быть base64' });
+          }
+        }
+      }
+      await AchievementRepository.update(achievement_id, { name, description, score, image: imageBuffer, trigger, condition_event_id, condition_category_id, condition_payload });
+      const updated = await AchievementRepository.get(achievement_id);
+      if (!updated) return res.status(404).json({ error: 'Achievement not found' });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async deleteAchievement(req, res) {
+    try {
+      const { achievement_id } = req.params;
+      await AchievementRepository.delete(achievement_id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports.controller = new AdminController();

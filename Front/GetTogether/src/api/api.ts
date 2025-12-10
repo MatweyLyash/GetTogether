@@ -675,6 +675,96 @@ export async function deleteEventByAdmin(eventId: string): Promise<void> {
   }
 }
 
+// Achievements Admin
+export interface Achievement {
+  id: number;
+  name: string;
+  description: string | null;
+  score: number;
+  trigger: 'apply' | 'attend' | 'category';
+  condition_event_id?: number | null;
+  condition_category_id?: number | null;
+  condition_payload?: any;
+  image?: any;
+}
+
+export interface AchievementPayload {
+  name: string;
+  description?: string;
+  score: number;
+  trigger: 'apply' | 'attend' | 'category';
+  condition_event_id?: number | null;
+  condition_category_id?: number | null;
+  condition_payload?: any;
+  image?: string | null; // base64
+}
+
+export async function adminListAchievements(): Promise<Achievement[]> {
+  try {
+    const response = await adminApi.get<Achievement[]>('/achievements');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении ачивок');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function adminCreateAchievement(payload: AchievementPayload): Promise<Achievement> {
+  try {
+    const response = await adminApi.post<Achievement>('/achievements', payload);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при создании ачивки');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function adminUpdateAchievement(id: number, payload: AchievementPayload): Promise<Achievement> {
+  try {
+    const response = await adminApi.put<Achievement>(`/achievements/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при обновлении ачивки');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function adminDeleteAchievement(id: number): Promise<void> {
+  try {
+    await adminApi.delete(`/achievements/${id}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при удалении ачивки');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+// Achievements for user
+export interface AchievementProgress extends Achievement {
+  progress: number;
+  is_unlocked: boolean;
+  unlocked_at: string | null;
+}
+
+export async function getMyAchievements(): Promise<AchievementProgress[]> {
+  try {
+    const response = await userApi.get<AchievementProgress[]>('/achievements');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении ачивок');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
 // Subscription API
 export interface EventSubscription {
   id: number;

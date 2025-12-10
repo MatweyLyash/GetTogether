@@ -16,6 +16,7 @@ router.post('/reviews', UserController.createReview);
 router.get('/events/registration', UserController.getOwnEventsRegistration);
 router.post('/organizer/request', UserController.createOrganizerRequest);
 router.get('/organizer/request', UserController.getOwnOrganizerRequests);
+router.get('/achievements', UserController.getAchievementsProgress);
 
 router.post('/link-telegram', UserController.linkTelegram);
 router.get('/me', UserController.getMe);

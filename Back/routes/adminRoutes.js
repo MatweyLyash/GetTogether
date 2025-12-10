@@ -37,6 +37,12 @@ router.put('/organizer/unassign/:user_id', AdminController.unassignOrganizer);
 router.put('/event/:event_id', upload.single('image'), AdminController.updateEvent);
 router.delete('/event/:event_id', AdminController.deleteEvent);
 
+// Achievements CRUD
+router.get('/achievements', AdminController.listAchievements);
+router.post('/achievements', AdminController.createAchievement);
+router.put('/achievements/:achievement_id', AdminController.updateAchievement);
+router.delete('/achievements/:achievement_id', AdminController.deleteAchievement);
+
 
 
 module.exports = router;

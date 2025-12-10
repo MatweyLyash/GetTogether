@@ -2,6 +2,20 @@ const UserRepository = require('../repository/userRepository');
 const validators = require('../services/baseValidators');
 const qrCodeService = require('../services/qrCodeService');
 const models = require('../models');
+const achievementService = require('../services/achievementService');
+
+// Конфигурация ID ачивок (при необходимости поменять через .env)
+const ACHIEVEMENT_IDS = {
+    APPLY: Number(process.env.ACHIEVEMENT_APPLY_ID || 1),
+    ATTEND: Number(process.env.ACHIEVEMENT_ATTEND_ID || 2),
+};
+// Карта категорий: category_id -> achievement_id (JSON в ACHIEVEMENT_CATEGORY_MAP)
+let CATEGORY_MAP = {};
+try {
+    CATEGORY_MAP = process.env.ACHIEVEMENT_CATEGORY_MAP ? JSON.parse(process.env.ACHIEVEMENT_CATEGORY_MAP) : {};
+} catch (e) {
+    CATEGORY_MAP = {};
+}
 
 class UserController {
     constructor() {
@@ -107,6 +121,14 @@ class UserController {
             }
 
             const registration = await this.userRepository.createEventRegistration(user_id, event_id);
+
+            // Achievement: подал заявку (однократно на событие)
+            try {
+                await achievementService.processApply(user_id, event_id);
+            } catch (e) {
+                console.warn('Achievement APPLY error:', e.message);
+            }
+
             return res.status(201).json(registration);
         } catch (error) {
             return res.status(500).json({ error: error.message });
@@ -178,7 +200,64 @@ class UserController {
         try {
             const user_id = req.user.id;
             const registrations = await this.userRepository.getOwnEventsRegistration(user_id);
+
+            // Achievement: посещение прошедших мероприятий и по категориям
+            const now = new Date();
+            for (const reg of registrations) {
+                const event = reg.Event;
+                if (!event) continue;
+                const isApproved = reg.status_id === 2;
+                const isPast = new Date(event.date) < now;
+                if (isApproved && isPast) {
+                    try {
+                        await achievementService.processAttend(user_id, event);
+                    } catch (e) {
+                        console.warn('Achievement ATTEND error:', e.message);
+                    }
+                }
+            }
+
             return res.json(registrations);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    // Ачивки пользователя с прогрессом
+    async getAchievementsProgress(req, res) {
+        try {
+            const user_id = req.user.id;
+            const achievements = await models.Achievement.findAll({
+                include: [
+                    {
+                        model: models.UserAchievement,
+                        as: 'userAchievements',
+                        where: { user_id },
+                        required: false,
+                    },
+                ],
+                order: [['id', 'ASC']],
+            });
+
+            const result = achievements.map((a) => {
+                const ua = Array.isArray(a.userAchievements) && a.userAchievements.length > 0 ? a.userAchievements[0] : null;
+                return {
+                    id: a.id,
+                    name: a.name,
+                    description: a.description,
+                    score: a.score,
+                    trigger: a.trigger,
+                    condition_event_id: a.condition_event_id,
+                    condition_category_id: a.condition_category_id,
+                    condition_payload: a.condition_payload,
+                    image: a.image,
+                    progress: ua?.progress || 0,
+                    is_unlocked: ua?.is_unlocked || false,
+                    unlocked_at: ua?.unlocked_at || null,
+                };
+            });
+
+            return res.json(result);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
