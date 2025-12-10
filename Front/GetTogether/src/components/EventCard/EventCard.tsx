@@ -1,4 +1,4 @@
-import { Box, Text, Button, Image } from '@chakra-ui/react';
+import { Box, Text, Button, Image, VStack } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Event } from '../../types/event';
@@ -10,17 +10,17 @@ interface EventCardProps {
 
 function EventCard({ event }: EventCardProps) {
   return (
-    <Box className={styles.card}>
+    <Box className={styles.card} h="100%">
     <motion.div
      
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Text className={styles.cardTitle}>{event.title}</Text>
+      <Text className={styles.cardTitle} noOfLines={2}>{event.title}</Text>
       <Box className={styles.cardContent}>
-        <Box className={styles.cardTextContainer}>
-          <Text className={styles.cardText}>
+        <VStack className={styles.cardTextContainer} align="stretch" spacing={2}>
+          <Text className={styles.cardText} noOfLines={1}>
             Дата: {new Intl.DateTimeFormat('ru-RU', {
               day: 'numeric',
               month: 'long',
@@ -29,11 +29,11 @@ function EventCard({ event }: EventCardProps) {
               minute: '2-digit',
             }).format(new Date(event.date))}
           </Text>
-          <Text className={styles.cardText}>Категория: {event.category.category_name}</Text>
-          <Text className={styles.cardText}>Цена: {event.price === 0 ? 'Бесплатно' : `${event.price} BYN`}</Text>
-          <Text className={styles.cardText}>Свободные места: {event.capacity}</Text>
-          <Text className={styles.cardText}>Локация: {event.location}</Text>
-        </Box>
+          <Text className={styles.cardText} noOfLines={1}>Категория: {event.category.category_name}</Text>
+          <Text className={styles.cardText} noOfLines={1}>Цена: {event.price === 0 ? 'Бесплатно' : `${event.price} BYN`}</Text>
+          <Text className={styles.cardText} noOfLines={1}>Свободные места: {event.capacity}</Text>
+          <Text className={styles.cardText} noOfLines={1}>Локация: {event.location}</Text>
+        </VStack>
         <Box className={styles.cardImageContainer}>
           <Image
             src={event.image || 'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'}
@@ -54,6 +54,8 @@ function EventCard({ event }: EventCardProps) {
         color="white"
         _hover={{ bg: '#1e3fa9' }}
         _active={{ bg: '#15307a' }}
+        mt="auto"
+        width="100%"
       >
         Подробнее
       </Button>

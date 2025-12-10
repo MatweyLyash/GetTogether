@@ -64,16 +64,15 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
         // Проверяем, зарегистрирован ли Service Worker, если нет - регистрируем
         let registration = await navigator.serviceWorker.getRegistration().catch(() => null);
         if (!registration) {
-            // Пытаемся зарегистрировать Service Worker при первой подписке
             registration = await registerServiceWorker();
             if (!registration) {
                 // Если это ошибка SSL, выбрасываем специальную ошибку
                 throw new Error('SSL_CERTIFICATE_ERROR: Service Worker не может быть зарегистрирован из-за SSL сертификата');
             }
         }
-        
-        // Ждём, пока Service Worker будет готов
-        await registration.ready;
+
+        // Берём готовую регистрацию
+        registration = await navigator.serviceWorker.ready;
 
         // Получаем публичный VAPID ключ с сервера (используем withCredentials для отправки cookies)
         const response = await axios.get(`${API_URL}/push/vapid-public-key`, {
@@ -132,13 +131,13 @@ export async function unsubscribeFromPush(): Promise<boolean> {
     }
 
     try {
-        const registration = await navigator.serviceWorker.getRegistration().catch(() => null);
+        let registration = await navigator.serviceWorker.getRegistration().catch(() => null);
         if (!registration) {
             return false;
         }
-        
-        // Ждём, пока Service Worker будет готов
-        await registration.ready;
+
+        // Берём готовую регистрацию
+        registration = await navigator.serviceWorker.ready;
 
         const subscription = await registration.pushManager.getSubscription();
 
@@ -171,14 +170,14 @@ export async function isPushSubscribed(): Promise<boolean> {
     }
 
     try {
-        const registration = await navigator.serviceWorker.getRegistration().catch(() => null);
+        let registration = await navigator.serviceWorker.getRegistration().catch(() => null);
         if (!registration) {
             return false;
         }
-        
-        // Ждём, пока Service Worker будет готов
-        await registration.ready;
-        
+
+        // Берём готовую регистрацию
+        registration = await navigator.serviceWorker.ready;
+
         const subscription = await registration.pushManager.getSubscription();
         return subscription !== null;
     } catch (error) {

@@ -159,21 +159,21 @@ export function NotificationMethodModal({
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} isCentered size="lg">
+        <Modal isOpen={isOpen} onClose={handleClose} isCentered size={{ base: 'full', sm: 'md', lg: 'lg' }}>
             <ModalOverlay />
-            <ModalContent>
-                <ModalHeader>
+            <ModalContent maxW={{ base: '95vw', sm: '90vw', md: '600px' }} px={{ base: 2, sm: 4 }}>
+                <ModalHeader fontSize={{ base: 'lg', sm: 'xl' }}>
                     {showTelegramGuide ? 'Привязка Telegram аккаунта' : 'Выберите способ получения уведомлений'}
                 </ModalHeader>
                 <ModalCloseButton />
-                <ModalBody>
+                <ModalBody pb={2}>
                     {showTelegramGuide ? (
-                        <VStack spacing={4} align="stretch">
-                            <Alert status="info">
+                        <VStack spacing={{ base: 3, sm: 4 }} align="stretch">
+                            <Alert status="info" borderRadius="md">
                                 <AlertIcon />
                                 <Box>
-                                    <Text fontWeight="bold" mb={2}>Как привязать Telegram аккаунт:</Text>
-                                    <OrderedList spacing={2}>
+                                    <Text fontWeight="bold" mb={2} fontSize={{ base: 'sm', sm: 'md' }}>Как привязать Telegram аккаунт:</Text>
+                                    <OrderedList spacing={2} fontSize={{ base: 'sm', sm: 'md' }}>
                                         <ListItem>
                                             Откройте Telegram и найдите бота{' '}
                                             <Link href="https://t.me/GetTogetherPSKPbot" isExternal color="blue.500">
@@ -189,13 +189,14 @@ export function NotificationMethodModal({
                                                     leftIcon={<Icon as={copied ? FaCheck : FaCopy} />}
                                                     onClick={handleCopyCommand}
                                                     colorScheme={copied ? 'green' : 'gray'}
+                                                    minW="110px"
                                                 >
                                                     {copied ? 'Скопировано' : 'Копировать'}
                                                 </Button>
                                             </Box>
                                         </ListItem>
                                         <ListItem>
-                                            Бот отправит вам подтверждение. Вернитесь сюда и введите ваш Telegram username ниже
+                                            Бот отправит подтверждение. Вернитесь сюда и введите ваш Telegram username ниже
                                         </ListItem>
                                     </OrderedList>
                                 </Box>
@@ -204,12 +205,13 @@ export function NotificationMethodModal({
                             <Divider />
 
                             <FormControl>
-                                <FormLabel>Ваш Telegram username (например: @username или username)</FormLabel>
+                                <FormLabel fontSize={{ base: 'sm', sm: 'md' }}>Ваш Telegram username (например: @username или username)</FormLabel>
                                 <Input
                                     placeholder="@username"
                                     value={telegramUsername}
                                     onChange={(e) => setTelegramUsername(e.target.value)}
                                     isDisabled={isLinking || isLoading !== null}
+                                    size={{ base: 'sm', sm: 'md' }}
                                 />
                             </FormControl>
 
@@ -220,6 +222,7 @@ export function NotificationMethodModal({
                                 isDisabled={isLoading !== null && isLoading !== 'telegram'}
                                 leftIcon={<Icon as={FaTelegram} />}
                                 size="lg"
+                                width="100%"
                             >
                                 {isLinking ? 'Привязываем...' : 'Привязать и подписаться'}
                             </Button>
@@ -237,11 +240,11 @@ export function NotificationMethodModal({
                         </VStack>
                     ) : (
                         <>
-                            <Text mb={4}>
+                            <Text mb={4} fontSize={{ base: 'sm', sm: 'md' }}>
                                 Как вы хотите получать уведомления о новых мероприятиях{' '}
                                 {subscriptionType === 'organizer' ? 'от организатора' : 'в категории'} "{targetName}"?
                             </Text>
-                            <VStack spacing={4} align="stretch">
+                            <VStack spacing={3} align="stretch">
                                 <Button
                                     leftIcon={<Icon as={FaTelegram} />}
                                     colorScheme="blue"
@@ -250,6 +253,7 @@ export function NotificationMethodModal({
                                     isLoading={isLoading === 'telegram'}
                                     isDisabled={isLoading !== null}
                                     size="lg"
+                                    width="100%"
                                 >
                                     Через Telegram бота
                                     {!hasTelegram && (
@@ -266,6 +270,7 @@ export function NotificationMethodModal({
                                     isLoading={isLoading === 'browser'}
                                     isDisabled={isLoading !== null}
                                     size="lg"
+                                    width="100%"
                                 >
                                     Через браузер (Push уведомления)
                                 </Button>
@@ -284,4 +289,3 @@ export function NotificationMethodModal({
         </Modal>
     );
 }
-

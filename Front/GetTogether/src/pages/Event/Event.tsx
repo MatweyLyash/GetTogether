@@ -27,6 +27,8 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  AspectRatio,
+  Skeleton,
 } from '@chakra-ui/react';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUserFriends, FaTelegram, FaStar, FaMoneyBill, FaQrcode } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -306,28 +308,30 @@ function EventPage() {
             borderRadius="lg"
             overflow="hidden"
           >
-            <Box
-              w={{ base: '100%', lg: '40%' }}
-              h={{ base: '250px', md: '400px' }}
-              position="relative"
-              overflow="hidden"
-            >
-              <Image
-                src={event.image || 'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'}
-                alt={event.title}
-                w="100%"
-                h="100%"
-                objectFit="cover"
-                fallbackSrc="https://via.placeholder.com/800x600?text=Event+Image"
-              />
+            <Box w={{ base: '100%', lg: '40%' }}>
+              <AspectRatio ratio={4 / 3} w="100%">
+                <Skeleton isLoaded={!!event.image}>
+                  <Image
+                    src={
+                      event.image ||
+                      'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'
+                    }
+                    alt={event.title}
+                    objectFit="cover"
+                    fallbackSrc="https://via.placeholder.com/800x600?text=Event+Image"
+                    borderRadius="lg"
+                  />
+                </Skeleton>
+              </AspectRatio>
               <Badge
                 position="absolute"
-                top="4"
-                right="4"
-                colorScheme={event.price > 0 ? "yellow" : "green"}
+                mt={-10}
+                ml={3}
+                colorScheme={event.price > 0 ? 'yellow' : 'green'}
                 fontSize="md"
                 p="2"
                 borderRadius="md"
+                boxShadow="md"
               >
                 {event.price > 0 ? `${event.price} BYN` : 'Бесплатно'}
               </Badge>

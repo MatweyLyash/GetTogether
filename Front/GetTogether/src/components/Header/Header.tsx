@@ -48,6 +48,7 @@ function Header() {
   };
 
   const isAdmin = user?.role_id === 3;
+  const isOrganizer = user?.role_id === 2;
   return (
     <Box as="header" className={styles.headerContainer}>
       <Text className={styles.logo}>GetTogether</Text>
@@ -61,6 +62,11 @@ function Header() {
         {isAuthenticated && (
           <Link to="/cabinet" className={styles.navItem}>
             Личный кабинет
+          </Link>
+        )}
+        {(isOrganizer && isAuthenticated) && (
+          <Link to="/scanner" className={styles.navItem}>
+            Сканер QR
           </Link>
         )}
         {(isAdmin && isAuthenticated) && (
@@ -102,6 +108,11 @@ function Header() {
               {isAuthenticated && (
                 <Link to="/cabinet" onClick={onClose}>
                   Личный кабинет
+                </Link>
+              )}
+              {isOrganizer && isAuthenticated && (
+                <Link to="/scanner" onClick={onClose}>
+                  Сканер QR
                 </Link>
               )}
               {isAdmin && isAuthenticated && (
