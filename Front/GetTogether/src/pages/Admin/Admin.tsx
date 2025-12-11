@@ -247,6 +247,28 @@ function Admin() {
   };
 
   const handleAchSubmit = async () => {
+    // Валидация: при триггере category нужно выбрать категорию; изображение обязательно
+    if (achForm.trigger === 'category' && !achForm.condition_category_id) {
+      toast({
+        title: 'Ошибка',
+        description: 'Выберите категорию для триггера "category".',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (!achForm.image) {
+      toast({
+        title: 'Ошибка',
+        description: 'Добавьте изображение для ачивки.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       // упрощаем условия: для category оставляем category_id, остальное чистим
@@ -1201,14 +1223,24 @@ function Admin() {
                         </FormControl>
                         {achForm.trigger === 'category' && (
                           <FormControl width={{ base: '100%', md: '220px' }}>
-                            <FormLabel>ID категории (для category)</FormLabel>
-                            <Input
-                              type="number"
-                              value={achForm.condition_category_id ?? ''}
-                              onChange={(e) => setAchForm((f) => ({ ...f, condition_category_id: e.target.value ? Number(e.target.value) : null }))}
-                              placeholder="Напр. 2"
+                            <FormLabel>Категория (для category)</FormLabel>
+                            <Select
+                              placeholder="Выберите категорию"
+                              value={achForm.condition_category_id ? String(achForm.condition_category_id) : ''}
+                              onChange={(e) =>
+                                setAchForm((f) => ({
+                                  ...f,
+                                  condition_category_id: e.target.value ? Number(e.target.value) : null,
+                                }))
+                              }
                               bg="#E7EBFC"
-                            />
+                            >
+                              {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.category_name}
+                                </option>
+                              ))}
+                            </Select>
                           </FormControl>
                         )}
                       </HStack>

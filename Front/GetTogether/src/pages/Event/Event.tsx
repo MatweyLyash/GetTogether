@@ -192,7 +192,7 @@ function EventPage() {
           ...prev,
           registration: currentReg ? {
             ...currentReg,
-            status: 3,
+            status: 4,
             telegram_invite_link: null
           } : null
         };
@@ -281,6 +281,20 @@ function EventPage() {
   const eventDate = new Date(event.date);
   const isPastEvent = eventDate < new Date();
   const isArchived = isPastEvent || event.deletedAt;
+
+  const registrationStatus =
+    (registration as any)?.status ??
+    (registration as any)?.status_id ??
+    null;
+
+  const registrationStatusLabel =
+    registrationStatus === 2
+      ? 'Ваша заявка подтверждена'
+      : registrationStatus === 3
+        ? 'Заявка отклонена'
+        : registrationStatus === 4
+          ? 'Заявка отозвана'
+          : 'Ожидайте ответа от организатора';
 
   const formattedDate = new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
@@ -468,12 +482,10 @@ function EventPage() {
                           w="100%"
                           isDisabled
                         >
-                          {registration?.status === 1 ? 'Ожидайте ответа от организатора' :
-                            registration?.status === 2 ? 'Ваша заявка подтверждена' :
-                              'Заявка отклонена'}
+                          {registrationStatusLabel}
                         </Button>
 
-                        {registration?.status === 2 && (
+                        {registrationStatus === 2 && (
                           <Button
                             leftIcon={<FaQrcode />}
                             colorScheme="purple"
@@ -485,7 +497,7 @@ function EventPage() {
                           </Button>
                         )}
 
-                        {registration?.status === 1 && (
+                        {(registrationStatus === 1 || registrationStatus === null) && (
                           <Button
                             colorScheme="red"
                             size="lg"
