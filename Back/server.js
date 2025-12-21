@@ -51,15 +51,21 @@ async function initializeDatabase() {
     const https = require('https');
     const fs = require('fs');
     const path = require('path');
-
-    const options = {
-      key: fs.readFileSync(path.join(__dirname, '../qr_test/key.pem')),
-      cert: fs.readFileSync(path.join(__dirname, '../qr_test/cert.pem'))
-    };
-
-    https.createServer(options, app).listen(PORT, () => {
-      console.log(`Сервер запущен на порту ${PORT} (HTTPS)`);
-    });
+    if (process.env.NODE_ENV === 'production') {
+       app.listen(PORT, () => {
+         console.log(`HTTP proxy Mode ${PORT}`);
+       })
+    }
+    else {
+        const options = {
+           key: fs.readFileSync(path.join(__dirname, '../qr_test/key.pem')),
+           cert: fs.readFileSync(path.join(__dirname, '../qr_test/cert.pem'))
+        };
+    
+     https.createServer(options, app).listen(PORT, () => {
+        console.log(`Сервер запущен на порту ${PORT} (HTTPS)`);
+     });
+}
   } catch (err) {
     console.error('Ошибка при инициализации базы данных:', err);
     process.exit(1);

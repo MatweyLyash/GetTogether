@@ -46,7 +46,6 @@ import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import {
   getOwnEventsRegistration,
-  createEventRegistration,
   createReview,
   createOrganizerRequest,
   getOwnOrganizerRequests,
@@ -314,36 +313,7 @@ function Cabinet() {
     }
   }, [tabIndex, isAuthenticated, user, fetchAchievements]);
 
-  const handleRegisterEvent = async (event_id: string) => {
-    setIsLoading(true);
-    try {
-      await createEventRegistration(event_id);
-      const regs = await getOwnEventsRegistration();
-      setRegistrations(regs || []);
-      fetchAchievements();
-      toast({
-        title: 'Успех',
-        description: 'Вы зарегистрированы на мероприятие',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Ошибка',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handleCancelRegistration = async (registration_id: string) => {
-    console.log('Cancel registration:', registration_id);
-  };
 
   const handleCreateReview = async (event_id: string) => {
     if (!review.comment || review.rating < 1 || review.rating > 5) {
@@ -642,22 +612,7 @@ function Cabinet() {
     }
   };
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditingEventId(null);
-    setNewEvent({
-      title: '',
-      description: '',
-      date: '',
-      location: '',
-      category_id: '',
-      price: '',
-      capacity: '',
-      telegram_chat_link: '',
-      image: null,
-    });
-    setImagePreview(null);
-  };
+
 
   const handleDeleteClick = (eventId: string) => {
     setEventToDelete(eventId);

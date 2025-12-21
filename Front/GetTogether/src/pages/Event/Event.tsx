@@ -456,7 +456,7 @@ function EventPage() {
                     size="lg"
                     w="100%"
                     onClick={handleEditEvent}
-                    isDisabled={isArchived}
+                    isDisabled={!!isArchived}
                   >
                     {isArchived ? 'Редактирование недоступно для архива' : 'Редактировать'}
                   </Button>

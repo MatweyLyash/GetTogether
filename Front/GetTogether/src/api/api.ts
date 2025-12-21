@@ -2,10 +2,8 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { EventResponse } from '../types/event';
 
 // Базовый URL API задаётся через VITE_API_URL, по умолчанию — текущий хост:5000/api
-const API_BASE = (
-  import.meta.env.VITE_API_URL ||
-  `${window.location.protocol}//${window.location.hostname}:5000/api`
-).replace(/\/$/, '');
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 
 // Настройка Axios
 const authApi = axios.create({

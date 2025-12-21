@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button, useToast, Icon, useDisclosure } from '@chakra-ui/react';
 import { FaBell, FaBellSlash } from 'react-icons/fa';
 import { createSubscription, deleteSubscription, getSubscriptions, EventSubscription } from '../../api/api';
-import { requestNotificationPermission, subscribeToPush, unsubscribeFromPush } from '../../utils/pushNotifications';
+import { requestNotificationPermission, subscribeToPush } from '../../utils/pushNotifications';
 import { NotificationMethodModal } from '../NotificationMethodModal/NotificationMethodModal';
-import { useAuth } from '../../AuthContext/AuthContext';
+
 
 interface SubscribeButtonProps {
     subscriptionType: 'organizer' | 'category';
@@ -29,8 +29,8 @@ export function SubscribeButton({
     const [isChecking, setIsChecking] = useState(true);
     const toast = useToast();
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const { user } = useAuth();
-    const hasTelegram = !!user?.telegram;
+
+
 
     // Проверяем существующую подписку
     useEffect(() => {
@@ -89,12 +89,12 @@ export function SubscribeButton({
         setIsLoading(true);
         try {
             let pushSubscriptionSuccess = false;
-            
+
             if (method === 'browser') {
                 // Для browser уведомлений нужно запросить разрешение и зарегистрировать push
                 try {
                     const permission = await requestNotificationPermission();
-                    
+
                     if (permission !== 'granted') {
                         throw new Error('Для получения уведомлений в браузере необходимо разрешить их в настройках браузера');
                     }
@@ -103,7 +103,7 @@ export function SubscribeButton({
                     // Не бросаем ошибку, если не удалось из-за SSL - все равно создадим подписку
                     const pushSubscription = await subscribeToPush();
                     pushSubscriptionSuccess = !!pushSubscription;
-                    
+
                     if (!pushSubscription) {
                         console.warn('Не удалось зарегистрировать push уведомления (возможно, из-за SSL сертификата в разработке). Подписка будет создана, но push уведомления могут быть недоступны.');
                     }
@@ -127,7 +127,7 @@ export function SubscribeButton({
                 const subscription = await createSubscription(subscriptionType, targetId, method);
                 setIsSubscribed(true);
                 setSubscriptionId(subscription.id);
-                
+
                 let description = `Вы подписались на ${subscriptionType === 'organizer' ? 'организатора' : 'категорию'} "${targetName}"`;
                 if (method === 'telegram') {
                     description += ' через Telegram';
@@ -138,7 +138,7 @@ export function SubscribeButton({
                         description += ' (браузерные push уведомления недоступны из-за проблем с SSL сертификатом в разработке)';
                     }
                 }
-                
+
                 toast({
                     title: 'Подписка оформлена',
                     description,

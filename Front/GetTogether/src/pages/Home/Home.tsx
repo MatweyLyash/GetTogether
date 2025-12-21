@@ -76,9 +76,9 @@ function Home() {
   const sliderRef = useRef<Slider>(null);
   const toast = useToast();
   const navigate = useNavigate();
-  
+
   // Responsive values
-  const isMobile = useBreakpointValue({ base: true, md: false });
+
   const headingSize = useBreakpointValue({ base: 'lg', md: 'xl', lg: '2xl' });
   const subHeadingSize = useBreakpointValue({ base: 'md', md: 'lg' });
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
@@ -118,7 +118,7 @@ function Home() {
             category: {
               id: String(event.category_id),
               category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
-                            `Категория ${event.category_id}`,
+                `Категория ${event.category_id}`,
             },
             creator: {
               id: String(event.creator_id || '0'),
@@ -233,8 +233,8 @@ function Home() {
       >
         <Box className={styles.content}>
           {/* Hero Banner with search */}
-          <Box 
-            className={styles.banner} 
+          <Box
+            className={styles.banner}
             bgGradient="linear(135deg, #E7EBFC 0%, #FEFEFE 50%, #E7EBFC 100%)"
             position="relative"
             overflow="hidden"
@@ -245,25 +245,25 @@ function Home() {
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
               <VStack spacing={{ base: 4, md: 6 }} align="center">
-                <Heading 
-                  as="h1" 
-                  size={headingSize} 
+                <Heading
+                  as="h1"
+                  size={headingSize}
                   textAlign="center"
                   bgGradient="linear(to-r, #2E4FD7, #5A7AE8)"
                   bgClip="text"
                 >
                   Найдите своё следующее приключение
                 </Heading>
-                <Text 
-                  fontSize={{ base: 'md', md: 'lg' }} 
+                <Text
+                  fontSize={{ base: 'md', md: 'lg' }}
                   color="gray.600"
                   textAlign="center"
                   maxW="600px"
                 >
                   Концерты, мастер-классы, вечеринки — всё в одном месте с GetTogether
                 </Text>
-                <Flex 
-                  gap={{ base: 3, md: 4 }} 
+                <Flex
+                  gap={{ base: 3, md: 4 }}
                   flexDir={{ base: 'column', md: 'row' }}
                   w="100%"
                   maxW="700px"
@@ -287,7 +287,7 @@ function Home() {
                   <InputGroup size={buttonSize} flex={1}>
                     <InputLeftElement pointerEvents="none">
                       <Icon viewBox="0 0 24 24" color="gray.400">
-                        <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                       </Icon>
                     </InputLeftElement>
                     <Input
@@ -344,7 +344,7 @@ function Home() {
                   animate="visible"
                 >
                   <SimpleGrid columns={categoryColumns} spacing={4}>
-                    {categories.map((cat, index) => (
+                    {categories.map((cat) => (
                       <motion.div
                         key={cat.id}
                         variants={itemVariants}
@@ -355,16 +355,16 @@ function Home() {
                           to="/events"
                           state={{ category: String(cat.id) }}
                         >
-                          <Box 
-                            bg="white" 
-                            p={4} 
-                            borderRadius="lg" 
-                            boxShadow="sm" 
+                          <Box
+                            bg="white"
+                            p={4}
+                            borderRadius="lg"
+                            boxShadow="sm"
                             textAlign="center"
                             border="1px solid"
                             borderColor="gray.100"
-                            _hover={{ 
-                              boxShadow: 'lg', 
+                            _hover={{
+                              boxShadow: 'lg',
                               borderColor: '#2E4FD7',
                               bg: '#F8F9FE'
                             }}
@@ -446,16 +446,16 @@ function Home() {
                   animate="visible"
                 >
                   <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-                    {reviews.map((review, index) => (
+                    {reviews.map((review) => (
                       <motion.div
                         key={review.id}
                         variants={itemVariants}
                         whileHover={{ y: -5 }}
                       >
-                        <Box 
-                          bg="white" 
-                          p={5} 
-                          borderRadius="lg" 
+                        <Box
+                          bg="white"
+                          p={5}
+                          borderRadius="lg"
                           boxShadow="sm"
                           border="1px solid"
                           borderColor="gray.100"
@@ -484,10 +484,10 @@ function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
             >
-              <Box 
-                className={styles.cta} 
-                p={{ base: 6, md: 10 }} 
-                textAlign="center" 
+              <Box
+                className={styles.cta}
+                p={{ base: 6, md: 10 }}
+                textAlign="center"
                 bgGradient="linear(135deg, #E7EBFC 0%, #D5DFFB 100%)"
                 borderRadius="xl"
               >
