@@ -102,6 +102,7 @@ interface EventRegistration {
   user_id: string;
   status_id: number;
   telegram_invite_link?: string;
+  qr_code?: string | null;
   createdAt?: string;
   updatedAt?: string;
   Event: Event;
@@ -726,7 +727,17 @@ function Cabinet() {
   };
 
   const FutureEventsCards = ({ registrations }: { registrations: EventRegistration[] }) => {
-    const futureEvents = registrations.filter((reg) => reg.Event && new Date(reg.Event.date) > new Date());
+    const futureEvents = registrations.filter((reg) => {
+      if (!reg.Event) return false;
+      // Считаем отсканированным, если статус "Подтверждено" (2) и qr_code отсутствует (был использован)
+      // ВНИМАНИЕ: Если статус 2, но qr_code есть - значит ещё не сканировали.
+      // Если статус 1 (Ожидает) - qr_code нет, но это не значит что отсканировали.
+      const isScanned = reg.status_id === 2 && !reg.qr_code;
+      const isFutureDate = new Date(reg.Event.date) > new Date();
+
+      // Показываем в будущих, если дата будущая И НЕ отсканирован
+      return isFutureDate && !isScanned;
+    });
     console.log('Cabinet: Будущие мероприятия после фильтрации:', futureEvents);
 
     return (
@@ -764,7 +775,15 @@ function Cabinet() {
   const PastEventsCards = ({ registrations }: { registrations: EventRegistration[] }) => (
     <VStack spacing="4" align="stretch">
       {registrations
-        .filter((reg) => reg.Event && new Date(reg.Event.date) <= new Date() && reg.status_id === 2)
+        .filter((reg) => {
+          if (!reg.Event || reg.status_id !== 2) return false;
+          // В прошедших только подтвержденные (status_id === 2)
+          // Условие: (Дата прошла) ИЛИ (Отсканирован)
+          const isScanned = !reg.qr_code; // Для status_id=2 отсутствие кода означает скан
+          const isPastDate = new Date(reg.Event.date) <= new Date();
+
+          return isPastDate || isScanned;
+        })
         .map((reg) => (
           <Box key={reg.id} borderWidth="1px" borderRadius="md" p="4">
             <Text fontWeight="bold">{reg.Event.title}</Text>
@@ -780,9 +799,10 @@ function Cabinet() {
             >
               Перейти
             </Button>
+            {/* Возможность оставить отзыв только если отсканирован (нет qr_code) */}
             {reg.Event?.reviews?.some(review => review.reviewUser.id === user?.id) ? (
               <Text mt="2" color="green.500">Отзыв уже отправлен</Text>
-            ) : (
+            ) : (!reg.qr_code) ? (
               <VStack spacing="2" mt="2">
                 <Select
                   value={review.rating}
@@ -810,7 +830,7 @@ function Cabinet() {
                   Отправить отзыв
                 </Button>
               </VStack>
-            )}
+            ) : null}
           </Box>
         ))}
     </VStack>

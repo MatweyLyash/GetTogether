@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Navigate } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -17,9 +18,11 @@ import {
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import { verifyRegistration, VerificationResponse } from '../../api/api';
+import { useAuth } from '../../AuthContext/AuthContext';
 import styles from './Scanner.module.scss';
 
 function Scanner() {
+    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
     const [scanResult, setScanResult] = useState<VerificationResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isScanning, setIsScanning] = useState(true);
@@ -133,6 +136,20 @@ function Scanner() {
         setError(null);
         setIsScanning(true);
     };
+
+
+
+    if (authLoading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                <Spinner size="xl" />
+            </Box>
+        );
+    }
+
+    if (!isAuthenticated || user?.role_id !== 2) {
+        return <Navigate to="/not-found" replace />;
+    }
 
     return (
         <Box className={styles.container}>

@@ -49,8 +49,11 @@ function EventPage() {
   const toast = useToast();
   const navigate = useNavigate();
 
-  // QR Code Modal state
+  // Modal states
   const { isOpen: isQRModalOpen, onOpen: onQRModalOpen, onClose: onQRModalClose } = useDisclosure();
+  const { isOpen: isRegModalOpen, onOpen: onRegModalOpen, onClose: onRegModalClose } = useDisclosure();
+  const { isOpen: isCancelModalOpen, onOpen: onCancelModalOpen, onClose: onCancelModalClose } = useDisclosure();
+
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [isQRLoading, setIsQRLoading] = useState(false);
 
@@ -126,6 +129,7 @@ function EventPage() {
 
     if (!id) return;
     setIsRegistering(true);
+    onRegModalClose(); // Закрываем модальное окно перед запросом
     try {
       const result = await registerForEvent(id);
       setEventData(prev => prev ? {
@@ -183,6 +187,7 @@ function EventPage() {
   const handleCancelRegistration = async () => {
     if (!id) return;
     setIsRegistering(true);
+    onCancelModalClose(); // Закрываем модальное окно перед запросом
     try {
       await cancelEventRegistration(id);
       setEventData(prev => {
@@ -469,7 +474,7 @@ function EventPage() {
                         w="100%"
                         isLoading={isRegistering}
                         isDisabled={registrationClosed}
-                        onClick={handleRegister}
+                        onClick={onRegModalOpen}
                       >
                         {registrationClosed ? 'Места закончились' : 'Отправить заявку'}
                       </Button>
@@ -503,7 +508,7 @@ function EventPage() {
                             size="lg"
                             w="100%"
                             isLoading={isRegistering}
-                            onClick={handleCancelRegistration}
+                            onClick={onCancelModalOpen}
                           >
                             Отозвать заявку
                           </Button>
@@ -596,6 +601,49 @@ function EventPage() {
           <ModalFooter>
             <Button colorScheme="blue" mr={3} onClick={onQRModalClose}>
               Закрыть
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Registration Confirmation Modal */}
+      <Modal isOpen={isRegModalOpen} onClose={onRegModalClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Подтверждение регистрации</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            Вы уверены, что хотите отправить заявку на участие в мероприятии?
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onRegModalClose}>
+              Отмена
+            </Button>
+            <Button colorScheme="blue" onClick={handleRegister}>
+              Подтвердить
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Cancellation Confirmation Modal */}
+      <Modal isOpen={isCancelModalOpen} onClose={onCancelModalClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Отзыв заявки</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Вы уверены, что хотите отозвать свою заявку?</Text>
+            <Text fontWeight="bold" mt={2} color="red.500">
+              ВНИМАНИЕ: после отзыва заявки вы не сможете подать её снова!
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onCancelModalClose}>
+              Отмена
+            </Button>
+            <Button colorScheme="red" onClick={handleCancelRegistration}>
+              Отозвать
             </Button>
           </ModalFooter>
         </ModalContent>

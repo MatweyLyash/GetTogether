@@ -23,6 +23,11 @@ import {
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { ru } from 'date-fns/locale/ru';
+import 'react-datepicker/dist/react-datepicker.css';
+
+registerLocale('ru', ru);
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import EventCard from '../../components/EventCard/EventCard';
@@ -63,12 +68,12 @@ function Events() {
   const [searchTitle, setSearchTitle] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const location = useLocation();
-  
+
   // Адаптивные значения
   const isMobile = useBreakpointValue({ base: true, md: false });
   const headingSize = useBreakpointValue({ base: 'lg', md: 'xl' });
@@ -94,25 +99,25 @@ function Events() {
             return eventDate > currentDate && !event.deletedAt;
           })
           .map((event: ApiEvent) => ({
-          id: String(event.id),
-          title: event.title,
-          description: event.description,
-          date: event.date,
-          price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
-          capacity: event.capacity,
-          location: event.location,
+            id: String(event.id),
+            title: event.title,
+            description: event.description,
+            date: event.date,
+            price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
+            capacity: event.capacity,
+            location: event.location,
             image: event.image ?? null,
-          category: {
-            id: String(event.category_id),
-            category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
-                          `Категория ${event.category_id}`,
-          },
-          creator: {
-            id: String(event.creator_id || '0'),
-            login: `Organizer_${event.creator_id || '0'}`,
-            telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
-          },
-          reviews: [],
+            category: {
+              id: String(event.category_id),
+              category_name: mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
+                `Категория ${event.category_id}`,
+            },
+            creator: {
+              id: String(event.creator_id || '0'),
+              login: `Organizer_${event.creator_id || '0'}`,
+              telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
+            },
+            reviews: [],
             deletedAt: event.deletedAt ?? null,
             category_id: event.category_id,
             telegram_chat_link: event.telegram_chat_link ?? null,
@@ -120,7 +125,7 @@ function Events() {
             organizer_verification_key: event.organizer_verification_key ?? null,
             created_at: event.created_at ?? null,
             updated_at: event.updated_at ?? null
-        }));
+          }));
 
         setCategories(mappedCategories);
         setEvents(mappedEvents);
@@ -158,7 +163,7 @@ function Events() {
           }
 
           setFilteredEvents(filtered);
-          
+
         }
       } catch (error: any) {
         toast({
@@ -196,12 +201,12 @@ function Events() {
     }
 
     if (startDate) {
-      const startDateTime = new Date(startDate).getTime();
+      const startDateTime = startDate.getTime();
       filtered = filtered.filter((event) => new Date(event.date).getTime() >= startDateTime);
     }
 
     if (endDate) {
-      const endDateTime = new Date(endDate).getTime();
+      const endDateTime = endDate.getTime();
       filtered = filtered.filter((event) => new Date(event.date).getTime() <= endDateTime);
     }
 
@@ -214,8 +219,8 @@ function Events() {
     setSearchTitle('');
     setSearchLocation('');
     setSelectedCategory('');
-    setStartDate('');
-    setEndDate('');
+    setStartDate(null);
+    setEndDate(null);
     setFilteredEvents(events);
     toast({
       title: 'Фильтры сброшены',
@@ -235,7 +240,7 @@ function Events() {
         `}
       </style>
       <Header />
-      
+
       <Box className={styles.content} py="6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -243,16 +248,16 @@ function Events() {
           transition={{ duration: 0.5 }}
           style={{ width: '100%' }}
         >
-          <Heading 
-            as="h1" 
-            size={headingSize} 
-            mb="1.5rem" 
+          <Heading
+            as="h1"
+            size={headingSize}
+            mb="1.5rem"
             color="#2E4FD7"
             textAlign={{ base: 'center', md: 'left' }}
           >
             Список мероприятий
           </Heading>
-          
+
           <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="gray.600">
             Найдено мероприятий: {filteredEvents.length}
           </Text>
@@ -262,8 +267,8 @@ function Events() {
             <Box className={styles.filterSidebar}>
               {/* Кнопка сворачивания фильтров на мобильных */}
               {isMobile && (
-                <HStack 
-                  justify="space-between" 
+                <HStack
+                  justify="space-between"
                   mb={isFilterOpen ? "1rem" : 0}
                   cursor="pointer"
                   onClick={onFilterToggle}
@@ -277,9 +282,9 @@ function Events() {
                   />
                 </HStack>
               )}
-              
+
               {!isMobile && <Heading size="md" mb="1rem">Фильтры</Heading>}
-              
+
               <Collapse in={isMobile ? isFilterOpen : true} animateOpacity>
                 <VStack spacing="1rem" align="stretch">
                   <FormControl>
@@ -292,7 +297,7 @@ function Events() {
                       size={buttonSize}
                     />
                   </FormControl>
-                  
+
                   <FormControl>
                     <FormLabel fontSize="sm">Локация</FormLabel>
                     <Input
@@ -303,7 +308,7 @@ function Events() {
                       size={buttonSize}
                     />
                   </FormControl>
-                  
+
                   <FormControl>
                     <FormLabel fontSize="sm">Категория</FormLabel>
                     <Select
@@ -320,29 +325,57 @@ function Events() {
                       ))}
                     </Select>
                   </FormControl>
-                  
+
                   <FormControl>
                     <FormLabel fontSize="sm">Дата (от)</FormLabel>
-                    <Input
-                      type="datetime-local"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      bg="white"
-                      size={buttonSize}
-                    />
+                    <Box width="100%">
+                      <DatePicker
+                        selected={startDate}
+                        onChange={(date: Date | null) => setStartDate(date)}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="Время"
+                        dateFormat="dd.MM.yyyy HH:mm"
+                        locale="ru"
+                        placeholderText="Выберите дату и время"
+                        portalId="root-portal"
+                        customInput={
+                          <Input
+                            bg="white"
+                            size={buttonSize}
+                            width="100%"
+                          />
+                        }
+                      />
+                    </Box>
                   </FormControl>
-                  
+
                   <FormControl>
                     <FormLabel fontSize="sm">Дата (до)</FormLabel>
-                    <Input
-                      type="datetime-local"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      bg="white"
-                      size={buttonSize}
-                    />
+                    <Box width="100%">
+                      <DatePicker
+                        selected={endDate}
+                        onChange={(date: Date | null) => setEndDate(date)}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="Время"
+                        dateFormat="dd.MM.yyyy HH:mm"
+                        locale="ru"
+                        placeholderText="Выберите дату и время"
+                        portalId="root-portal"
+                        customInput={
+                          <Input
+                            bg="white"
+                            size={buttonSize}
+                            width="100%"
+                          />
+                        }
+                      />
+                    </Box>
                   </FormControl>
-                  
+
                   <VStack spacing="2" pt="1rem">
                     <Button
                       bg="#2E4FD7"
@@ -366,7 +399,7 @@ function Events() {
                       Сбросить
                     </Button>
                   </VStack>
-                  
+
                   {/* Показать активные фильтры */}
                   {(searchTitle || searchLocation || selectedCategory || startDate || endDate) && (
                     <Box pt="1rem">
@@ -389,12 +422,12 @@ function Events() {
                         )}
                         {startDate && (
                           <Badge colorScheme="orange" variant="subtle">
-                            От: {new Date(startDate).toLocaleDateString()}
+                            От: {startDate.toLocaleString('ru-RU')}
                           </Badge>
                         )}
                         {endDate && (
                           <Badge colorScheme="orange" variant="subtle">
-                            До: {new Date(endDate).toLocaleDateString()}
+                            До: {endDate.toLocaleString('ru-RU')}
                           </Badge>
                         )}
                       </Flex>
@@ -419,10 +452,10 @@ function Events() {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Flex 
-                    justify="center" 
-                    align="center" 
-                    py="4rem" 
+                  <Flex
+                    justify="center"
+                    align="center"
+                    py="4rem"
                     minH="300px"
                     direction="column"
                     bg="#F7F9FC"
@@ -466,7 +499,7 @@ function Events() {
           </div>
         </motion.div>
       </Box>
-      
+
       <Footer />
     </Box>
   );
