@@ -35,6 +35,7 @@ import {
   ModalCloseButton,
   useDisclosure,
   useBreakpointValue,
+  Badge,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -60,6 +61,11 @@ import {
   adminDeleteAchievement,
   Achievement,
   AchievementPayload,
+  Tag,
+  getTags,
+  createTag,
+  updateTag,
+  deleteTag,
 } from '../../api/api';
 import styles from './Admin.module.scss';
 
@@ -85,13 +91,14 @@ interface Event {
   updated_at?: string;
   organizer_verification_key?: string;
   telegram_chat_id?: string | null;
+  tags?: Tag[];
 }
 
 interface User {
   id: string;
   login: string;
   role_id: number;
-  telegram:string|null;
+  telegram: string | null;
   is_blocked?: boolean;
 }
 
@@ -139,10 +146,15 @@ function Admin() {
     image: '',
   });
   const [achImagePreview, setAchImagePreview] = useState<string | null>(null);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [newTag, setNewTag] = useState('');
+  const [editTag, setEditTag] = useState<{ id: number; name: string } | null>(null);
+  const { isOpen: isDeleteTagModalOpen, onOpen: onDeleteTagModalOpen, onClose: onDeleteTagModalClose } = useDisclosure();
+  const [tagToDelete, setTagToDelete] = useState<number | null>(null);
   const toast = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Определяем, мобильная ли версия
   const isMobile = useBreakpointValue({ base: true, md: false });
 
@@ -159,12 +171,13 @@ function Admin() {
       if (authLoading || !user || user.role_id !== 3) return;
       setIsLoading(true);
       try {
-        const [catData, eventData, userData, requestData, achData] = await Promise.all([
+        const [catData, eventData, userData, requestData, achData, tagData] = await Promise.all([
           getCategories(),
           getEvents(),
           getUsers(),
           getOrganizerRequests(),
           adminListAchievements(),
+          getTags(),
         ]);
         setCategories(catData || []);
         setOrganizerRequests(requestData || []);
@@ -179,6 +192,7 @@ function Admin() {
         const requests = Array.isArray(requestData) ? requestData : [];
         setOrganizerRequests(requests);
         setAchievements(achData || []);
+        setTags(tagData || []);
       } catch (error: any) {
         toast({
           title: 'Ошибка загрузки данных',
@@ -406,7 +420,7 @@ function Admin() {
 
   const confirmDeleteCategory = async () => {
     if (!categoryToDelete) return;
-    
+
     setIsLoading(true);
     try {
       await deleteCategory(categoryToDelete);
@@ -606,7 +620,7 @@ function Admin() {
 
   const confirmDeleteEvent = async () => {
     if (!eventToDelete) return;
-    
+
     setIsLoading(true);
     try {
       await deleteEventByAdmin(eventToDelete);
@@ -634,6 +648,64 @@ function Admin() {
       setIsLoading(false);
       onDeleteEventModalClose();
       setEventToDelete(null);
+    }
+  };
+
+  // Tag handlers
+  const handleAddTag = async () => {
+    if (!newTag) {
+      toast({ title: 'Ошибка', description: 'Введите название тега', status: 'error', duration: 3000, isClosable: true });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const created = await createTag(newTag);
+      setTags([...tags, created]);
+      setNewTag('');
+      toast({ title: 'Успех', description: 'Тег добавлен', status: 'success', duration: 3000, isClosable: true });
+    } catch (error: any) {
+      toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 3000, isClosable: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRenameTag = async (id: number) => {
+    if (!editTag || !editTag.name) {
+      toast({ title: 'Ошибка', description: 'Введите название тега', status: 'error', duration: 3000, isClosable: true });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const updated = await updateTag(id, editTag.name);
+      setTags(tags.map(t => t.id === id ? updated : t));
+      setEditTag(null);
+      toast({ title: 'Успех', description: 'Тег обновлен', status: 'success', duration: 3000, isClosable: true });
+    } catch (error: any) {
+      toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 3000, isClosable: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTag = async (id: number) => {
+    setTagToDelete(id);
+    onDeleteTagModalOpen();
+  };
+
+  const confirmDeleteTag = async () => {
+    if (!tagToDelete) return;
+    setIsLoading(true);
+    try {
+      await deleteTag(tagToDelete);
+      setTags(tags.filter(t => t.id !== tagToDelete));
+      toast({ title: 'Успех', description: 'Тег удален', status: 'success', duration: 3000, isClosable: true });
+    } catch (error: any) {
+      toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 3000, isClosable: true });
+    } finally {
+      setIsLoading(false);
+      onDeleteTagModalClose();
+      setTagToDelete(null);
     }
   };
 
@@ -672,7 +744,7 @@ function Admin() {
             <Heading size={{ base: 'lg', md: 'xl' }} mb="2rem">
               Панель администратора
             </Heading>
-            
+
             {/* Мобильный Select для выбора раздела */}
             {isMobile && (
               <FormControl mb="1.5rem">
@@ -688,14 +760,15 @@ function Admin() {
                   <option value={2}>Запросы организаторов</option>
                   <option value={3}>Мероприятия</option>
                   <option value={4}>Ачивки</option>
+                  <option value={5}>Теги</option>
                 </Select>
               </FormControl>
             )}
-            
-            <Tabs 
-              variant="soft-rounded" 
-              colorScheme="blue" 
-              index={activeTab} 
+
+            <Tabs
+              variant="soft-rounded"
+              colorScheme="blue"
+              index={activeTab}
               onChange={(index) => setActiveTab(index)}
             >
               {/* Табы только для десктопа */}
@@ -706,6 +779,7 @@ function Admin() {
                   <Tab>Запросы организаторов</Tab>
                   <Tab>Мероприятия</Tab>
                   <Tab>Ачивки</Tab>
+                  <Tab>Теги</Tab>
                 </TabList>
               )}
               <TabPanels>
@@ -863,8 +937,8 @@ function Admin() {
                                 {u.role_id === 1
                                   ? 'Польз.'
                                   : u.role_id === 2
-                                  ? 'Орг.'
-                                  : 'Админ'}
+                                    ? 'Орг.'
+                                    : 'Админ'}
                               </Td>
                               <Td display={{ base: 'none', md: 'table-cell' }}>{u.is_blocked ? 'Заблок.' : 'Активен'}</Td>
                               <Td>
@@ -920,8 +994,8 @@ function Admin() {
                                 {req.status_id === 1
                                   ? 'Ожидает'
                                   : req.status_id === 2
-                                  ? 'Одобрен'
-                                  : 'Отклонен'}
+                                    ? 'Одобрен'
+                                    : 'Отклонен'}
                               </Td>
                               <Td>
                                 <VStack spacing="1" align="stretch">
@@ -1027,6 +1101,34 @@ function Admin() {
                           </Select>
                         </FormControl>
                         <FormControl>
+                          <FormLabel>Теги</FormLabel>
+                          <Flex flexWrap="wrap" gap="0.5rem">
+                            {tags.map((tag) => (
+                              <Badge
+                                key={tag.id}
+                                px={2}
+                                py={1}
+                                borderRadius="md"
+                                cursor="pointer"
+                                colorScheme={editEvent.tags?.some(t => t.id === tag.id) ? 'blue' : 'gray'}
+                                onClick={() => {
+                                  const currentTags = editEvent.tags || [];
+                                  const isSelected = currentTags.some(t => t.id === tag.id);
+                                  let newTags;
+                                  if (isSelected) {
+                                    newTags = currentTags.filter((t) => t.id !== tag.id);
+                                  } else {
+                                    newTags = [...currentTags, tag];
+                                  }
+                                  setEditEvent({ ...editEvent, tags: newTags });
+                                }}
+                              >
+                                {tag.name}
+                              </Badge>
+                            ))}
+                          </Flex>
+                        </FormControl>
+                        <FormControl>
                           <FormLabel>Цена</FormLabel>
                           <Input
                             type="number"
@@ -1063,7 +1165,7 @@ function Admin() {
                         </FormControl>
                         <FormControl>
                           <FormLabel>Изображение</FormLabel>
-                          
+
                           <Button
                             bg="#2E4FD7"
                             color="white"
@@ -1321,87 +1423,223 @@ function Admin() {
                     </Box>
                   </VStack>
                 </TabPanel>
+
+                {/* Tags */}
+                <TabPanel px={{ base: 0, md: 4 }}>
+                  <VStack spacing="2rem" align="stretch" width="100%">
+                    <Heading size="md">Управление тегами</Heading>
+                    <FormControl>
+                      <FormLabel>Добавить тег</FormLabel>
+                      <VStack spacing="2" align="stretch">
+                        <Input
+                          value={newTag}
+                          onChange={(e) => setNewTag(e.target.value)}
+                          placeholder="Название тега"
+                          bg="#E7EBFC"
+                        />
+                        <Button
+                          bg="#2E4FD7"
+                          color="white"
+                          _hover={{ bg: '#1e3fa9' }}
+                          onClick={handleAddTag}
+                          isDisabled={isLoading}
+                          width={{ base: '100%', md: 'auto' }}
+                          alignSelf={{ base: 'stretch', md: 'flex-start' }}
+                        >
+                          Добавить
+                        </Button>
+                      </VStack>
+                    </FormControl>
+                    <Box overflowX="auto">
+                      <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
+                        <Thead>
+                          <Tr>
+                            <Th>Название</Th>
+                            <Th>Действия</Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {tags.map((tag) => (
+                            <Tr key={tag.id}>
+                              <Td>
+                                {editTag?.id === tag.id ? (
+                                  <Input
+                                    value={editTag.name}
+                                    onChange={(e) =>
+                                      setEditTag({ id: tag.id, name: e.target.value })
+                                    }
+                                    bg="#E7EBFC"
+                                    size="sm"
+                                  />
+                                ) : (
+                                  tag.name
+                                )}
+                              </Td>
+                              <Td>
+                                <VStack spacing="1" align="stretch">
+                                  {editTag?.id === tag.id ? (
+                                    <>
+                                      <Button
+                                        colorScheme="blue"
+                                        size="xs"
+                                        onClick={() => handleRenameTag(tag.id)}
+                                        isDisabled={isLoading}
+                                      >
+                                        Сохранить
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="xs"
+                                        onClick={() => setEditTag(null)}
+                                        isDisabled={isLoading}
+                                      >
+                                        Отмена
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <Button
+                                      colorScheme="blue"
+                                      size="xs"
+                                      onClick={() =>
+                                        setEditTag({ id: tag.id, name: tag.name })
+                                      }
+                                      isDisabled={isLoading}
+                                    >
+                                      Переим.
+                                    </Button>
+                                  )}
+                                  <Button
+                                    colorScheme="red"
+                                    size="xs"
+                                    onClick={() => handleDeleteTag(tag.id)}
+                                    isDisabled={isLoading}
+                                  >
+                                    Удалить
+                                  </Button>
+                                </VStack>
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  </VStack>
+                </TabPanel>
               </TabPanels>
             </Tabs>
           </motion.div>
-        </Box>
+
+          {/* Delete Tag Modal */}
+          <Modal isOpen={isDeleteTagModalOpen} onClose={onDeleteTagModalClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Подтверждение удаления</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text>Вы уверены, что хотите удалить этот тег? Он будет скрыт для новых мероприятий, но останется на существующих.</Text>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  bg="gray.500"
+                  color="white"
+                  _hover={{ bg: 'gray.600' }}
+                  mr={3}
+                  onClick={onDeleteTagModalClose}
+                  isDisabled={isLoading}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  bg="red.500"
+                  color="white"
+                  _hover={{ bg: 'red.600' }}
+                  onClick={confirmDeleteTag}
+                  isDisabled={isLoading}
+                >
+                  Удалить
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          {/* Delete Category Modal */}
+          <Modal isOpen={isDeleteCategoryModalOpen} onClose={onDeleteCategoryModalClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Подтверждение удаления</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text>Вы уверены, что хотите удалить эту категорию? При удалении категории все активные мероприятия станут не активными. Не расстраивайте пользователей</Text>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  bg="gray.500"
+                  color="white"
+                  _hover={{ bg: 'gray.600' }}
+                  mr={3}
+                  onClick={onDeleteCategoryModalClose}
+                  isDisabled={isLoading}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  bg="red.500"
+                  color="white"
+                  _hover={{ bg: 'red.600' }}
+                  onClick={confirmDeleteCategory}
+                  isDisabled={isLoading}
+                >
+                  Удалить
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          {/* Delete Event Modal */}
+          <Modal isOpen={isDeleteEventModalOpen} onClose={onDeleteEventModalClose}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Подтверждение удаления</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text>Вы уверены, что хотите удалить это мероприятие? Мероприятие станет не активным, а неподтверждённые заявки будут откланены</Text>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  bg="gray.500"
+                  color="white"
+                  _hover={{ bg: 'gray.600' }}
+                  mr={3}
+                  onClick={onDeleteEventModalClose}
+                  isDisabled={isLoading}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  bg="red.500"
+                  color="white"
+                  _hover={{ bg: 'red.600' }}
+                  onClick={confirmDeleteEvent}
+                  isDisabled={isLoading}
+                >
+                  Удалить
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+
+
+        </Box >
       )}
-
-      {/* Delete Category Modal */}
-      <Modal isOpen={isDeleteCategoryModalOpen} onClose={onDeleteCategoryModalClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Подтверждение удаления</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text>Вы уверены, что хотите удалить эту категорию? При удалении категории все активные мероприятия станут не активными. Не расстраивайте пользователей</Text>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              bg="gray.500"
-              color="white"
-              _hover={{ bg: 'gray.600' }}
-              mr={3}
-              onClick={onDeleteCategoryModalClose}
-              isDisabled={isLoading}
-            >
-              Отмена
-            </Button>
-            <Button
-              bg="red.500"
-              color="white"
-              _hover={{ bg: 'red.600' }}
-              onClick={confirmDeleteCategory}
-              isDisabled={isLoading}
-            >
-              Удалить
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Delete Event Modal */}
-      <Modal isOpen={isDeleteEventModalOpen} onClose={onDeleteEventModalClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Подтверждение удаления</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text>Вы уверены, что хотите удалить это мероприятие? Мероприятие станет не активным, а неподтверждённые заявки будут откланены</Text>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              bg="gray.500"
-              color="white"
-              _hover={{ bg: 'gray.600' }}
-              mr={3}
-              onClick={onDeleteEventModalClose}
-              isDisabled={isLoading}
-            >
-              Отмена
-            </Button>
-            <Button
-              bg="red.500"
-              color="white"
-              _hover={{ bg: 'red.600' }}
-              onClick={confirmDeleteEvent}
-              isDisabled={isLoading}
-            >
-              Удалить
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        accept="image/*"
-        onChange={handleImageChange}
-      />
-
       <Footer />
     </Box>
   );

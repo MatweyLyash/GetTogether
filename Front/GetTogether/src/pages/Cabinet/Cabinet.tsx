@@ -36,11 +36,16 @@ import {
   Progress,
   Badge,
   Image,
+  Flex,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { useCallback } from 'react';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ru } from 'date-fns/locale/ru';
+registerLocale('ru', ru);
 
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
@@ -59,6 +64,8 @@ import {
   responseToEventRequest,
   getMyAchievements,
   AchievementProgress,
+  Tag,
+  getTags,
 } from '../../api/api';
 import { useAuth } from '../../AuthContext/AuthContext';
 import styles from './Cabinet.module.scss';
@@ -81,6 +88,7 @@ interface Event {
   telegram_chat_id?: string | null;
   image?: any; // API возвращает объект Buffer, оставим any для гибкости
   reviews?: ReviewGet[];
+  tags?: Tag[];
 }
 
 interface ReviewGet {
@@ -143,6 +151,7 @@ function Cabinet() {
   const [ownEvents, setOwnEvents] = useState<Event[]>([]);
   const [eventRequests, setEventRequests] = useState<EventRequest[]>([]);
   const [myAchievements, setMyAchievements] = useState<AchievementProgress[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [telegram, setTelegram] = useState('');
   const [review, setReview] = useState<Review>({ rating: 1, comment: '' });
   const [newEvent, setNewEvent] = useState({
@@ -155,6 +164,7 @@ function Cabinet() {
     capacity: '',
     telegram_chat_link: '',
     image: null as File | null,
+    tags: [] as number[],
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -232,6 +242,7 @@ function Cabinet() {
         capacity: eventData.capacity,
         telegram_chat_link: eventData.telegram_chat_link,
         image: null,
+        tags: eventData.tags ? eventData.tags.map((t: Tag) => t.id) : [],
       });
       if (eventData.image) {
         setImagePreview(eventData.image);
@@ -271,9 +282,11 @@ function Cabinet() {
 
         const orgRequests = await getOwnOrganizerRequests();
         const cats = await getCategories();
+        const tagList = await getTags();
 
         setOrganizerRequests(orgRequests || []);
         setCategories(cats || []);
+        setTags(tagList || []);
         await fetchAchievements();
 
         if (isOrganizer || isAdmin) {
@@ -313,6 +326,8 @@ function Cabinet() {
       fetchAchievements();
     }
   }, [tabIndex, isAuthenticated, user, fetchAchievements]);
+
+
 
 
 
@@ -461,6 +476,9 @@ function Cabinet() {
     formData.append('price', newEvent.price);
     formData.append('capacity', newEvent.capacity);
     formData.append('telegram_chat_link', newEvent.telegram_chat_link || '');
+    if (newEvent.tags && newEvent.tags.length > 0) {
+      formData.append('tags', JSON.stringify(newEvent.tags));
+    }
     if (newEvent.image) {
       formData.append('image', newEvent.image);
     }
@@ -491,6 +509,7 @@ function Cabinet() {
         capacity: '',
         telegram_chat_link: '',
         image: null,
+        tags: [],
       });
       setImagePreview(null);
       setIsEditing(false);
@@ -570,6 +589,9 @@ function Cabinet() {
     formData.append('price', newEvent.price);
     formData.append('capacity', newEvent.capacity);
     formData.append('telegram_chat_link', newEvent.telegram_chat_link || '');
+    if (newEvent.tags && newEvent.tags.length > 0) {
+      formData.append('tags', JSON.stringify(newEvent.tags));
+    }
     if (newEvent.image) {
       formData.append('image', newEvent.image);
     }
@@ -589,6 +611,7 @@ function Cabinet() {
         capacity: '',
         telegram_chat_link: '',
         image: null,
+        tags: [],
       });
       setImagePreview(null);
       setIsEditing(false);
@@ -880,6 +903,7 @@ function Cabinet() {
                           capacity: event.capacity.toString(),
                           telegram_chat_link: event.telegram_chat_link || '',
                           image: null as File | null,
+                          tags: event.tags ? event.tags.map((t: Tag) => Number(t.id)) : [],
                         });
                         if (event.image) {
                           setImagePreview(event.image);
@@ -1058,18 +1082,36 @@ function Cabinet() {
                 </FormControl>
                 <FormControl>
                   <FormLabel>Дата</FormLabel>
-                  <Input
-                    type="datetime-local"
-                    value={newEvent.date}
-                    onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                    bg="#E7EBFC"
-                    size={buttonSize}
-                    min={(() => {
-                      const tomorrow = new Date();
-                      tomorrow.setDate(tomorrow.getDate() + 1);
-                      return tomorrow.toISOString().slice(0, 16);
-                    })()}
-                  />
+                  <Box width="100%">
+                    <DatePicker
+                      selected={newEvent.date ? new Date(newEvent.date) : null}
+                      onChange={(date: Date | null) => {
+                        if (date) {
+                          // Adjust for timezone offset to keep local time
+                          const offsetDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+                          setNewEvent({ ...newEvent, date: offsetDate.toISOString().slice(0, 16) });
+                        } else {
+                          setNewEvent({ ...newEvent, date: '' });
+                        }
+                      }}
+                      showTimeSelect
+                      timeFormat="HH:mm"
+                      timeIntervals={15}
+                      timeCaption="Время"
+                      dateFormat="dd.MM.yyyy HH:mm"
+                      locale="ru"
+                      placeholderText="Выберите дату и время"
+                      portalId="root-portal"
+                      minDate={new Date()}
+                      customInput={
+                        <Input
+                          bg="#E7EBFC"
+                          size={buttonSize}
+                          width="100%"
+                        />
+                      }
+                    />
+                  </Box>
                 </FormControl>
                 <FormControl>
                   <FormLabel>Место</FormLabel>
@@ -1084,9 +1126,9 @@ function Cabinet() {
                 <FormControl>
                   <FormLabel>Категория</FormLabel>
                   <Select
+                    placeholder="Выберите категорию"
                     value={newEvent.category_id}
                     onChange={(e) => setNewEvent({ ...newEvent, category_id: e.target.value })}
-                    placeholder="Выберите категорию"
                     bg="#E7EBFC"
                     size={buttonSize}
                   >
@@ -1097,6 +1139,34 @@ function Cabinet() {
                     ))}
                   </Select>
                 </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Теги</FormLabel>
+                  <Flex flexWrap="wrap" gap="0.5rem">
+                    {tags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        px={2}
+                        py={1}
+                        borderRadius="md"
+                        cursor="pointer"
+                        colorScheme={newEvent.tags?.map(Number).includes(Number(tag.id)) ? 'blue' : 'gray'}
+                        onClick={() => {
+                          const currentTags = newEvent.tags?.map(Number) || [];
+                          const tagId = Number(tag.id);
+                          if (currentTags.includes(tagId)) {
+                            setNewEvent({ ...newEvent, tags: currentTags.filter((id) => id !== tagId) });
+                          } else {
+                            setNewEvent({ ...newEvent, tags: [...currentTags, tagId] });
+                          }
+                        }}
+                      >
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </Flex>
+                </FormControl>
+
                 <FormControl>
                   <FormLabel>Цена</FormLabel>
                   <Input
@@ -1202,6 +1272,7 @@ function Cabinet() {
                         capacity: '',
                         telegram_chat_link: '',
                         image: null,
+                        tags: [],
                       });
                       setImagePreview(null);
                       setTabIndex(2);
@@ -1396,18 +1467,36 @@ function Cabinet() {
                             </FormControl>
                             <FormControl>
                               <FormLabel>Дата</FormLabel>
-                              <Input
-                                type="datetime-local"
-                                value={newEvent.date}
-                                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                                bg="#E7EBFC"
-                                size={buttonSize}
-                                min={(() => {
-                                  const tomorrow = new Date();
-                                  tomorrow.setDate(tomorrow.getDate() + 1);
-                                  return tomorrow.toISOString().slice(0, 16);
-                                })()}
-                              />
+                              <Box width="100%">
+                                <DatePicker
+                                  selected={newEvent.date ? new Date(newEvent.date) : null}
+                                  onChange={(date: Date | null) => {
+                                    if (date) {
+                                      // Adjust for timezone offset to keep local time
+                                      const offsetDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+                                      setNewEvent({ ...newEvent, date: offsetDate.toISOString().slice(0, 16) });
+                                    } else {
+                                      setNewEvent({ ...newEvent, date: '' });
+                                    }
+                                  }}
+                                  showTimeSelect
+                                  timeFormat="HH:mm"
+                                  timeIntervals={15}
+                                  timeCaption="Время"
+                                  dateFormat="dd.MM.yyyy HH:mm"
+                                  locale="ru"
+                                  placeholderText="Выберите дату и время"
+                                  portalId="root-portal"
+                                  minDate={new Date()}
+                                  customInput={
+                                    <Input
+                                      bg="#E7EBFC"
+                                      size={buttonSize}
+                                      width="100%"
+                                    />
+                                  }
+                                />
+                              </Box>
                             </FormControl>
                             <FormControl>
                               <FormLabel>Место</FormLabel>
@@ -1512,6 +1601,32 @@ function Cabinet() {
                                 size={buttonSize}
                               />
                             </FormControl>
+                            <FormControl>
+                              <FormLabel>Теги</FormLabel>
+                              <Flex flexWrap="wrap" gap="0.5rem">
+                                {tags.map((tag) => (
+                                  <Badge
+                                    key={tag.id}
+                                    px={2}
+                                    py={1}
+                                    borderRadius="md"
+                                    cursor="pointer"
+                                    colorScheme={newEvent.tags?.map(Number).includes(Number(tag.id)) ? 'blue' : 'gray'}
+                                    onClick={() => {
+                                      const currentTags = newEvent.tags?.map(Number) || [];
+                                      const tagId = Number(tag.id);
+                                      if (currentTags.includes(tagId)) {
+                                        setNewEvent({ ...newEvent, tags: currentTags.filter((id) => id !== tagId) });
+                                      } else {
+                                        setNewEvent({ ...newEvent, tags: [...currentTags, tagId] });
+                                      }
+                                    }}
+                                  >
+                                    {tag.name}
+                                  </Badge>
+                                ))}
+                              </Flex>
+                            </FormControl>
                             <HStack spacing="2">
                               {isEditing ? (
                                 <>
@@ -1542,6 +1657,7 @@ function Cabinet() {
                                         capacity: '',
                                         telegram_chat_link: '',
                                         image: null,
+                                        tags: [],
                                       });
                                       setImagePreview(null);
                                       setTabIndex(2);
@@ -1613,6 +1729,7 @@ function Cabinet() {
                                                       capacity: event.capacity.toString(),
                                                       telegram_chat_link: event.telegram_chat_link || '',
                                                       image: null as File | null,
+                                                      tags: event.tags ? event.tags.map((t: Tag) => Number(t.id)) : [],
                                                     });
                                                     if (event.image) {
                                                       setImagePreview(event.image);

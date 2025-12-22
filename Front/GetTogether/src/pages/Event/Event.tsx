@@ -359,9 +359,18 @@ function EventPage() {
 
             <VStack align="stretch" flex="1" p={{ base: 4, md: 6 }} spacing={4}>
               <Box>
-                <Badge colorScheme="blue" mb={2}>
-                  {event.category.category_name}
-                </Badge>
+                <Box mb={2}>
+                  <Badge colorScheme="blue" mb={2}>
+                    {event.category.category_name}
+                  </Badge>
+                </Box>
+                <Flex flexWrap="wrap" gap={2} mb={2}>
+                  {event.tags && event.tags.map(tag => (
+                    <Badge key={tag.id} colorScheme="purple">
+                      {tag.name}
+                    </Badge>
+                  ))}
+                </Flex>
                 <Heading size="xl" mb={2}>
                   {event.title}
                 </Heading>

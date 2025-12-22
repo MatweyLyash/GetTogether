@@ -31,7 +31,7 @@ registerLocale('ru', ru);
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import EventCard from '../../components/EventCard/EventCard';
-import { getEvents, getCategories } from '../../api/api';
+import { getEvents, getCategories, getTags, Tag } from '../../api/api';
 import { Event } from '../../types/event';
 import styles from './Events.module.scss';
 
@@ -59,6 +59,7 @@ interface ApiEvent {
   organizer_verification_key?: string | null;
   telegram_chat_id?: string | null;
   deletedAt?: string | null;
+  tags?: Tag[];
 }
 
 function Events() {
@@ -70,6 +71,8 @@ function Events() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const location = useLocation();
@@ -85,7 +88,8 @@ function Events() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [eventData, catData] = await Promise.all([getEvents(), getCategories()]);
+        const [eventData, catData, tagData] = await Promise.all([getEvents(), getCategories(), getTags()]);
+        setTags(tagData || []);
 
         const mappedCategories: Category[] = catData.map((cat) => ({
           id: cat.id,
@@ -124,7 +128,8 @@ function Events() {
             telegram_chat_id: event.telegram_chat_id ?? null,
             organizer_verification_key: event.organizer_verification_key ?? null,
             created_at: event.created_at ?? null,
-            updated_at: event.updated_at ?? null
+            updated_at: event.updated_at ?? null,
+            tags: event.tags || []
           }));
 
         setCategories(mappedCategories);
@@ -210,6 +215,12 @@ function Events() {
       filtered = filtered.filter((event) => new Date(event.date).getTime() <= endDateTime);
     }
 
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(event =>
+        selectedTags.every(tagId => event.tags?.some(eventTag => eventTag.id === tagId))
+      );
+    }
+
     setFilteredEvents(filtered);
 
   };
@@ -221,6 +232,7 @@ function Events() {
     setSelectedCategory('');
     setStartDate(null);
     setEndDate(null);
+    setSelectedTags([]);
     setFilteredEvents(events);
     toast({
       title: 'Фильтры сброшены',
@@ -376,6 +388,31 @@ function Events() {
                     </Box>
                   </FormControl>
 
+                  <FormControl>
+                    <FormLabel fontSize="sm">Теги</FormLabel>
+                    <Flex flexWrap="wrap" gap="0.5rem">
+                      {tags.map(tag => (
+                        <Badge
+                          key={tag.id}
+                          px={2}
+                          py={1}
+                          borderRadius="md"
+                          cursor="pointer"
+                          colorScheme={selectedTags.includes(tag.id) ? 'blue' : 'gray'}
+                          onClick={() => {
+                            if (selectedTags.includes(tag.id)) {
+                              setSelectedTags(selectedTags.filter(id => id !== tag.id));
+                            } else {
+                              setSelectedTags([...selectedTags, tag.id]);
+                            }
+                          }}
+                        >
+                          {tag.name}
+                        </Badge>
+                      ))}
+                    </Flex>
+                  </FormControl>
+
                   <VStack spacing="2" pt="1rem">
                     <Button
                       bg="#2E4FD7"
@@ -430,6 +467,14 @@ function Events() {
                             До: {endDate.toLocaleString('ru-RU')}
                           </Badge>
                         )}
+                        {selectedTags.map(tagId => {
+                          const tag = tags.find(t => t.id === tagId);
+                          return tag ? (
+                            <Badge key={tag.id} colorScheme="blue" variant="subtle">
+                              Тег: {tag.name}
+                            </Badge>
+                          ) : null;
+                        })}
                       </Flex>
                     </Box>
                   )}
@@ -501,7 +546,7 @@ function Events() {
       </Box>
 
       <Footer />
-    </Box>
+    </Box >
   );
 }
 
