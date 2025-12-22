@@ -14,6 +14,8 @@ module.exports = (db) => {
     PushSubscription,
     Achievement,
     UserAchievement,
+    Tag,
+    EventTag,
   } = db;
 
   // User ↔ Role
@@ -67,5 +69,11 @@ module.exports = (db) => {
 
     User.hasMany(UserAchievement, { foreignKey: 'user_id', as: 'userAchievements' });
     UserAchievement.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+  }
+
+  // Tags ↔ Events
+  if (Tag && Event && EventTag) {
+    Event.belongsToMany(Tag, { through: EventTag, foreignKey: 'event_id', as: 'tags' });
+    Tag.belongsToMany(Event, { through: EventTag, foreignKey: 'tag_id', as: 'events' });
   }
 };

@@ -47,7 +47,26 @@ class UserController {
 
     async getEvents(req, res) {
         try {
-            const events = await this.userRepository.getEvents();
+            const { tags } = req.query;
+            const filters = {};
+            if (tags) {
+                // Determine if tags is array or string (comma separated)
+                // If it's `?tags=1&tags=2`, express typically makes it an array.
+                // If `?tags=1,2`, it's a string.
+                if (Array.isArray(tags)) {
+                    filters.tags = tags.map(t => Number(t));
+                } else {
+                    // Try parsing as JSON or comma separated
+                    try {
+                        const parsed = JSON.parse(tags);
+                        filters.tags = Array.isArray(parsed) ? parsed : [parsed];
+                    } catch (e) {
+                        filters.tags = tags.split(',').map(t => Number(t));
+                    }
+                }
+            }
+
+            const events = await this.userRepository.getEvents(filters);
             const eventsData = await Promise.all(
                 events.map(async (event) => {
                     if (event.image) {

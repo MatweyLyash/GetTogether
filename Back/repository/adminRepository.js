@@ -40,15 +40,15 @@ class AdminRepository {
 
         // Помечаем категорию как удалённую
         await models.Category.update(
-    { deletedAt: new Date() },
-    { where: { id: category_id } }
-  );
+            { deletedAt: new Date() },
+            { where: { id: category_id } }
+        );
     }
 
     async getUsers() {
         return await models.User.findAll();
     }
-    
+
     async userBan(user_id, isBan) {
         await models.User.update({ is_blocked: isBan }, { where: { id: user_id } })
     }
@@ -77,7 +77,7 @@ class AdminRepository {
         await models.Event.findAll()
     }
 
-    async updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image) {
+    async updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags) {
         const updateData = {
             title,
             description,
@@ -91,9 +91,19 @@ class AdminRepository {
         if (image !== undefined) {
             updateData.image = image; // Обновляем изображение, если передано
         }
-        return await models.Event.update(updateData, {
+
+        const [updatedCount] = await models.Event.update(updateData, {
             where: { id: event_id }
         });
+
+        if (tags && Array.isArray(tags)) {
+            const event = await models.Event.findByPk(event_id);
+            if (event) {
+                await event.setTags(tags);
+            }
+        }
+
+        return updatedCount;
     }
 
     async deleteEvent(event_id) {

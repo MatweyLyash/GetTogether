@@ -108,49 +108,58 @@ class AdminController {
   }
 
   async updateEvent(req, res) {
-          try {
-              const {title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
-              const image = req.file?.buffer;
-              const { event_id } = req.params;
-  
-              if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
-                  title, description, date, location, category_id, price, capacity, telegram_chat_link
-              })) {
-                  return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
-              }
-  
-              const event = await AdminRepository.updateEvent( event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image);
-  
-              if (event == 1) {
-                  const updatedEvent = await UserRepository.getEvent( event_id, null);
-                  if (updatedEvent.image) {
-                      const { fileTypeFromBuffer } = await import('file-type');
-                      const fileType = await fileTypeFromBuffer(updatedEvent.image);
-                      const mime = fileType?.mime || 'image/jpeg';
-                      updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
-                  }
-                  return res.json({ message: 'Event updated successfully', event: updatedEvent });
-              }
-              return res.status(404).json({ error: "Event not found", event });
-          } catch (error) {
-              return res.status(500).json({ error: error.message });
-          }
+    try {
+      const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
+      const image = req.file?.buffer;
+      const { event_id } = req.params;
+
+      let parsedTags = undefined;
+      if (tags !== undefined) {
+        try {
+          parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+        } catch (e) {
+          console.warn('Error parsing tags:', e);
+        }
       }
 
-  async deleteEvent(req, res) {
-          try {
-              const { event_id } = req.params;  
-  
-              if (!eventValidator.validateId(event_id)) {
-                  return res.status(400).json({ error: 'Valid Event ID is required' });
-              }
-  
-              await AdminRepository.deleteEvent( event_id);
-              return res.status(204).send();
-          } catch (error) {
-              return res.status(500).json({ error: error.message });
-          }
+      if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
+        title, description, date, location, category_id, price, capacity, telegram_chat_link
+      })) {
+        return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
       }
+
+      const event = await AdminRepository.updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags);
+
+      if (event == 1) {
+        const updatedEvent = await UserRepository.getEvent(event_id, null);
+        if (updatedEvent.image) {
+          const { fileTypeFromBuffer } = await import('file-type');
+          const fileType = await fileTypeFromBuffer(updatedEvent.image);
+          const mime = fileType?.mime || 'image/jpeg';
+          updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
+        }
+        return res.json({ message: 'Event updated successfully', event: updatedEvent });
+      }
+      return res.status(404).json({ error: "Event not found", event });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  async deleteEvent(req, res) {
+    try {
+      const { event_id } = req.params;
+
+      if (!eventValidator.validateId(event_id)) {
+        return res.status(400).json({ error: 'Valid Event ID is required' });
+      }
+
+      await AdminRepository.deleteEvent(event_id);
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
 
   // Achievements CRUD
   async listAchievements(req, res) {

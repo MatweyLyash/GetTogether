@@ -2,6 +2,7 @@ const express = require('express');
 const userController = require('../controllers/userController');
 const AdminController = require('../controllers/adminController').controller;
 const organizerController = require('../controllers/organizerController');
+const TagController = require('../controllers/tagController');
 
 const router = express.Router();
 
@@ -42,6 +43,11 @@ router.get('/achievements', AdminController.listAchievements);
 router.post('/achievements', AdminController.createAchievement);
 router.put('/achievements/:achievement_id', AdminController.updateAchievement);
 router.delete('/achievements/:achievement_id', AdminController.deleteAchievement);
+
+// Tags CRUD
+router.post('/tags', TagController.createTag);
+router.put('/tags/:tag_id', TagController.updateTag);
+router.delete('/tags/:tag_id', TagController.deleteTag);
 
 
 

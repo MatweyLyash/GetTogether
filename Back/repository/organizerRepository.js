@@ -3,7 +3,7 @@ const { generateInviteLink } = require('../bot/telegramBot');
 const qrCodeService = require('../services/qrCodeService');
 
 class OrganizerRepository {
-    async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image) {
+    async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, tags) {
         const category = await models.Category.findOne({
             where: { id: category_id, deletedAt: null }
         });
@@ -11,32 +11,54 @@ class OrganizerRepository {
             throw new Error('Категория не найдена или удалена');
         }
 
-        return await models.Event.create({ creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image });
+        const event = await models.Event.create({ creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image });
+
+        if (tags && Array.isArray(tags) && tags.length > 0) {
+            await event.setTags(tags);
+        }
+
+        return event;
     }
 
     async getOwnEvents(creator_id) {
         return await models.Event.findAll({
             where: { creator_id },
-            include: {
-                model: models.Category,
-                as: 'category', // Указываем псевдоним, заданный в belongsTo
-                attributes: ['id', 'category_name']
-            }
+            include: [
+                {
+                    model: models.Category,
+                    as: 'category', // Указываем псевдоним, заданный в belongsTo
+                    attributes: ['id', 'category_name']
+                },
+                {
+                    model: models.Tag,
+                    as: 'tags',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
+                }
+            ]
         });
     }
 
     async getOwnEvent(creator_id, event_id) {
         return await models.Event.findOne({
             where: { creator_id: creator_id, id: event_id },
-            include: {
-                model: models.Category,
-                as: 'category', // Указываем псевдоним, заданный в belongsTo
-                attributes: ['id', 'category_name']
-            }
+            include: [
+                {
+                    model: models.Category,
+                    as: 'category', // Указываем псевдоним, заданный в belongsTo
+                    attributes: ['id', 'category_name']
+                },
+                {
+                    model: models.Tag,
+                    as: 'tags',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
+                }
+            ]
         });
     }
 
-    async updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image) {
+    async updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags) {
         const updateData = {
             title,
             description,
@@ -50,9 +72,19 @@ class OrganizerRepository {
         if (image !== undefined) {
             updateData.image = image; // Обновляем изображение, если передано
         }
-        return await models.Event.update(updateData, {
+
+        const [updatedCount] = await models.Event.update(updateData, {
             where: { creator_id, id: event_id }
         });
+
+        if (tags && Array.isArray(tags)) {
+            const event = await models.Event.findOne({ where: { id: event_id, creator_id } });
+            if (event) {
+                await event.setTags(tags);
+            }
+        }
+
+        return updatedCount;
     }
 
     async deleteEvent(creator_id, event_id) {

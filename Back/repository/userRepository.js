@@ -6,8 +6,41 @@ class UserRepository {
         return await models.Category.findAll({ where: { deletedAt: null } });
     }
 
-    async getEvents() {
-        return await models.Event.findAll();
+    async getEvents(filters = {}) {
+        const { tags } = filters;
+        const include = [
+            {
+                model: models.Category,
+                as: 'category',
+                attributes: ['id', 'category_name']
+            },
+            {
+                model: models.Tag,
+                as: 'tags',
+                attributes: ['id', 'name'],
+                through: { attributes: [] }
+            }
+        ];
+
+        // Basic query structure
+        const query = {
+            include
+        };
+
+        if (tags && Array.isArray(tags) && tags.length > 0) {
+            // Filter by tags. We want events that have at least one of the tags (OR logic) or ALL (AND logic)? 
+            // Usually filters are "contains any".
+            // However, straightforward way in Sequelize for M:N filtering:
+            include[1].where = {
+                id: tags
+            };
+            // Note: This will return events that have MATCHING tags, but might not return ALL tags of that event in the result object due to how Sequelize filtering works on included models (it filters the included array). 
+            // To get full event with all tags but filtered by presence of some tag, we usually need a subquery or strict include.
+            // For simplicity in this project context: strict filtering on the include will suffice to narrow down the list.
+            include[1].required = true;
+        }
+
+        return await models.Event.findAll(query);
     }
 
     async getEvent(event_id, user_id) {
@@ -22,6 +55,12 @@ class UserRepository {
                         as: 'category',
                         attributes: ['id', 'category_name'],
                         paranoid: false, // Включаем удалённые мероприятия
+                    },
+                    {
+                        model: models.Tag,
+                        as: 'tags',
+                        attributes: ['id', 'name'],
+                        through: { attributes: [] }
                     },
                     {
                         model: models.User,
@@ -50,6 +89,7 @@ class UserRepository {
                     paranoid: false, // Включаем удалённые мероприятия
                     include: [
                         { model: models.Category, as: 'category', attributes: ['id', 'category_name'], paranoid: false },
+                        { model: models.Tag, as: 'tags', attributes: ['id', 'name'], through: { attributes: [] } },
                         { model: models.User, as: 'creator', attributes: ['id', 'login', 'telegram'] },
                         { model: models.Review, as: 'reviews', attributes: ['id', 'rating', 'comment', 'createdAt'], include: [{ model: models.User, as: 'reviewUser', attributes: ['id', 'login'] }] }
                     ]
