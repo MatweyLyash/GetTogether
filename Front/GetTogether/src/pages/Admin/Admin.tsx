@@ -106,6 +106,11 @@ interface OrganizerRequest {
   id: string;
   user_id: string;
   status_id: number;
+  user?: {
+    id: string;
+    login: string;
+    telegram: string | null;
+  };
 }
 
 const triggerOptions = [
@@ -275,7 +280,7 @@ function Admin() {
     if (!achForm.image) {
       toast({
         title: 'Ошибка',
-        description: 'Добавьте изображение для ачивки.',
+        description: 'Добавьте изображение для достижения.',
         status: 'error',
         duration: 4000,
         isClosable: true,
@@ -295,11 +300,11 @@ function Admin() {
       if (editingAchievement) {
         const updated = await adminUpdateAchievement(editingAchievement.id, normalized);
         setAchievements((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-        toast({ title: 'Ачивка обновлена', status: 'success', duration: 3000, isClosable: true });
+        toast({ title: 'Достижение обновлено', status: 'success', duration: 3000, isClosable: true });
       } else {
         const created = await adminCreateAchievement(normalized);
         setAchievements((prev) => [...prev, created]);
-        toast({ title: 'Ачивка создана', status: 'success', duration: 3000, isClosable: true });
+        toast({ title: 'Достижение создано', status: 'success', duration: 3000, isClosable: true });
       }
       resetAchForm();
     } catch (error: any) {
@@ -328,7 +333,7 @@ function Admin() {
       setIsLoading(true);
       await adminDeleteAchievement(id);
       setAchievements((prev) => prev.filter((a) => a.id !== id));
-      toast({ title: 'Ачивка удалена', status: 'success', duration: 3000, isClosable: true });
+      toast({ title: 'Достижение удалено', status: 'success', duration: 3000, isClosable: true });
     } catch (error: any) {
       toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 4000, isClosable: true });
     } finally {
@@ -759,7 +764,7 @@ function Admin() {
                   <option value={1}>Пользователи</option>
                   <option value={2}>Запросы организаторов</option>
                   <option value={3}>Мероприятия</option>
-                  <option value={4}>Ачивки</option>
+                  <option value={4}>Достижения</option>
                   <option value={5}>Теги</option>
                 </Select>
               </FormControl>
@@ -778,7 +783,7 @@ function Admin() {
                   <Tab>Пользователи</Tab>
                   <Tab>Запросы организаторов</Tab>
                   <Tab>Мероприятия</Tab>
-                  <Tab>Ачивки</Tab>
+                  <Tab>Достижения</Tab>
                   <Tab>Теги</Tab>
                 </TabList>
               )}
@@ -982,6 +987,7 @@ function Admin() {
                         <Thead>
                           <Tr>
                             <Th>ID Польз.</Th>
+                            <Th>Telegram</Th>
                             <Th>Статус</Th>
                             <Th>Действия</Th>
                           </Tr>
@@ -990,6 +996,20 @@ function Admin() {
                           {organizerRequests.map((req) => (
                             <Tr key={req.id}>
                               <Td>{req.user_id}</Td>
+                              <Td>
+                                {req.user?.telegram ? (
+                                  <a
+                                    href={`https://t.me/${req.user.telegram.replace('@', '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: '#2E4FD7', textDecoration: 'underline' }}
+                                  >
+                                    {req.user.telegram}
+                                  </a>
+                                ) : (
+                                  <Text color="gray.500">Не указан</Text>
+                                )}
+                              </Td>
                               <Td>
                                 {req.status_id === 1
                                   ? 'Ожидает'
@@ -1277,7 +1297,7 @@ function Admin() {
                 {/* Achievements */}
                 <TabPanel px={{ base: 0, md: 4 }}>
                   <VStack spacing="1.5rem" align="stretch">
-                    <Heading size="md">{editingAchievement ? 'Редактирование ачивки' : 'Создать ачивку'}</Heading>
+                    <Heading size="md">{editingAchievement ? 'Редактирование достижения' : 'Создать достижение'}</Heading>
                     <VStack spacing="1rem" align="stretch">
                       <FormControl isRequired>
                         <FormLabel>Название</FormLabel>
@@ -1354,7 +1374,7 @@ function Admin() {
                             <Text fontSize="sm" color="gray.600">Превью:</Text>
                             <Image
                               src={achImagePreview || (typeof achForm.image === 'string' ? achForm.image : '')}
-                              alt="Превью ачивки"
+                              alt="Предосмотр достижения"
                               maxH="150px"
                               borderRadius="8px"
                             />
@@ -1379,7 +1399,7 @@ function Admin() {
                       </HStack>
                     </VStack>
 
-                    <Heading size="md">Список ачивок</Heading>
+                    <Heading size="md">Список достижений</Heading>
                     <Box overflowX="auto">
                       <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                         <Thead>

@@ -192,8 +192,8 @@ function Cabinet() {
       setMyAchievements(achievements || []);
     } catch (error: any) {
       toast({
-        title: 'Ошибка загрузки ачивок',
-        description: error.message || 'Не удалось загрузить ачивки',
+        title: 'Ошибка загрузки достижений',
+        description: error.message || 'Не удалось загрузить достижения',
         status: 'error',
         duration: 4000,
         isClosable: true,
@@ -1299,7 +1299,7 @@ function Cabinet() {
                       <option value={0}>Будущие мероприятия</option>
                       <option value={1}>Прошедшие мероприятия</option>
                       <option value={2}>Мои созданные</option>
-                      <option value={3}>Ачивки</option>
+                      <option value={3}>Достижения</option>
                     </Select>
                   </FormControl>
                 )}
@@ -1311,7 +1311,7 @@ function Cabinet() {
                       <Tab fontSize={fontSizeText}>Будущие</Tab>
                       <Tab fontSize={fontSizeText}>Прошедшие</Tab>
                       <Tab fontSize={fontSizeText}>Мои созданные</Tab>
-                      <Tab fontSize={fontSizeText}>Ачивки</Tab>
+                      <Tab fontSize={fontSizeText}>Достижения</Tab>
                     </TabList>
                   )}
                   <TabPanels>
@@ -1904,6 +1904,16 @@ function Cabinet() {
                             color="white"
                             _hover={{ bg: '#1e3fa9' }}
                             onClick={() => {
+                              if (!user_telegram) {
+                                toast({
+                                  title: 'Требуется привязка Telegram',
+                                  description: 'Для запроса статуса организатора необходимо привязать Telegram к вашему аккаунту',
+                                  status: 'warning',
+                                  duration: 5000,
+                                  isClosable: true,
+                                });
+                                return;
+                              }
                               setModalType('organizer');
                               onOpen();
                             }}
@@ -1930,10 +1940,10 @@ function Cabinet() {
 
                     <TabPanel>
                       <Text fontSize={fontSizeText} mb="1rem">
-                        Ваши ачивки
+                        Ваши достижения 
                       </Text>
                       {myAchievements.length === 0 ? (
-                        <Text fontSize={fontSizeText} color="gray.600">Ачивок пока нет</Text>
+                        <Text fontSize={fontSizeText} color="gray.600">Достижений пока нет</Text>
                       ) : (
                         <VStack spacing="3" align="stretch">
                           {myAchievements.map((ach) => {
