@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gettogether-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: gettogether2
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d  # для init скриптов
+    ports:
+      - "5433:5432"  # для доступа с хоста если нужно
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./Back
+    container_name: gettogether-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres  # имя сервиса PostgreSQL!
+      - DB_PORT=5433
+      - DB_NAME=gettogether2
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - PORT=5000
+    ports:
+      - "5000:5000"  # для отладки
+    networks:
+      - app-network
+    restart: always
+    command: sh -c "npm run migrate && node server.js"
+
+  frontend:
+    build: ./Front
+    container_name: gettogether-frontend
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=/api
+    volumes:
+      - ./qr_test/cert.pem:/etc/nginx/ssl/cert.pem:ro
+      - ./qr_test/key.pem:/etc/nginx/ssl/key.pem:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

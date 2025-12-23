@@ -10,7 +10,7 @@
     "username": "postgres",
     "password": "postgres",
     "database": "gettogether2",
-    "host": "127.0.0.1",
+    "host": "postgres",
     "dialect": "postgres"
   }
 }

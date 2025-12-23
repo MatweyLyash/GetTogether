@@ -1,6 +1,11 @@
 {
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "npx sequelize-cli db:migrate",
+    "seed": "npx sequelize-cli db:seed:all",
+    "migrate:undo": "npx sequelize-cli db:migrate:undo:all",
+    "migrate:reset": "npm run migrate:undo && npm run migrate && npm run seed"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
