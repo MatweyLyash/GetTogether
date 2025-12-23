@@ -21,9 +21,19 @@ class OrganizerController {
 
     async createEvent(req, res) {
         try {
-            const { title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
+            const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
             const creator_id = req.user.id;
             const image = req.file?.buffer; // Двоичные данные изображения
+
+            let parsedTags = [];
+            if (tags) {
+                try {
+                    // If it comes as a JSON string (common in multipart)
+                    parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+                } catch (e) {
+                    console.warn('Error parsing tags:', e);
+                }
+            }
 
             if (!eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity
@@ -32,7 +42,7 @@ class OrganizerController {
             }
             const organizer_verification_key = uuidv4();
 
-            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image);
+            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, parsedTags);
 
             if (event.image) {
                 const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
@@ -101,9 +111,19 @@ class OrganizerController {
 
     async updateEvent(req, res) {
         try {
-            const { event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link } = req.body;
+            const { event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
             const creator_id = req.user.id;
             const image = req.file?.buffer;
+
+            let parsedTags = undefined;
+            if (tags !== undefined) {
+                // only parse if provided
+                try {
+                    parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+                } catch (e) {
+                    console.warn('Error parsing tags:', e);
+                }
+            }
 
             if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity, telegram_chat_link
@@ -111,7 +131,7 @@ class OrganizerController {
                 return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
             }
 
-            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image);
+            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags);
 
             if (event == 1) {
                 const updatedEvent = await this.organizerRepository.getOwnEvent(creator_id, event_id);

@@ -47,7 +47,26 @@ class UserController {
 
     async getEvents(req, res) {
         try {
-            const events = await this.userRepository.getEvents();
+            const { tags } = req.query;
+            const filters = {};
+            if (tags) {
+                // Determine if tags is array or string (comma separated)
+                // If it's `?tags=1&tags=2`, express typically makes it an array.
+                // If `?tags=1,2`, it's a string.
+                if (Array.isArray(tags)) {
+                    filters.tags = tags.map(t => Number(t));
+                } else {
+                    // Try parsing as JSON or comma separated
+                    try {
+                        const parsed = JSON.parse(tags);
+                        filters.tags = Array.isArray(parsed) ? parsed : [parsed];
+                    } catch (e) {
+                        filters.tags = tags.split(',').map(t => Number(t));
+                    }
+                }
+            }
+
+            const events = await this.userRepository.getEvents(filters);
             const eventsData = await Promise.all(
                 events.map(async (event) => {
                     if (event.image) {
@@ -203,21 +222,39 @@ class UserController {
 
             // Achievement: посещение прошедших мероприятий и по категориям
             const now = new Date();
+            const result = [];
+
             for (const reg of registrations) {
                 const event = reg.Event;
                 if (!event) continue;
+
                 const isApproved = reg.status_id === 2;
                 const isPast = new Date(event.date) < now;
-                if (isApproved && isPast) {
+                // Check if scanned (approved and qr_code is null)
+                // Note: reg.qr_code is from DB. If it's a buffer, it's truthy. If null, falsy.
+                const isScanned = isApproved && !reg.qr_code;
+
+                if (isScanned && isPast) {
                     try {
                         await achievementService.processAttend(user_id, event);
                     } catch (e) {
                         console.warn('Achievement ATTEND error:', e.message);
                     }
                 }
+
+                // Prepare for response
+                const regJSON = reg.toJSON();
+                // Ensure qr_code is a simple truthy/falsy value for frontend simplicity
+                // If it exists (Buffer), we can just replace it with a marker string to avoid sending binary data
+                // If it is null, it stays null.
+                if (regJSON.qr_code) {
+                    regJSON.qr_code = 'QR_CODE_EXISTS';
+                }
+
+                result.push(regJSON);
             }
 
-            return res.json(registrations);
+            return res.json(result);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
@@ -344,7 +381,7 @@ class UserController {
 
             // Находим регистрацию с включённым событием
             const registration = await models.EventRegistration.findOne({
-                where: { 
+                where: {
                     id: registration_id,
                     user_id: user_id // Убеждаемся, что это регистрация текущего пользователя
                 },
@@ -368,7 +405,7 @@ class UserController {
 
             // Проверяем, что регистрация одобрена (status_id === 2)
             if (registration.status_id !== 2) {
-                return res.status(403).json({ 
+                return res.status(403).json({
                     error: 'QR-код доступен только для подтверждённых регистраций',
                     currentStatus: registration.status_id
                 });
@@ -376,7 +413,7 @@ class UserController {
 
             // Возвращаем сохранённый QR-код из БД
             if (!registration.qr_code) {
-                return res.status(404).json({ 
+                return res.status(404).json({
                     error: 'QR-код  был использован ранее.'
                 });
             }

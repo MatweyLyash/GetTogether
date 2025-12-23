@@ -18,6 +18,7 @@ export interface Event {
     createdAt: string;
     reviewUser: { id: string; login: string };
   }>;
+  tags?: { id: number; name: string }[];
 }
 
 export interface EventResponse {

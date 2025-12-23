@@ -2,8 +2,11 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { EventResponse } from '../types/event';
 
 // Базовый URL API задаётся через VITE_API_URL, по умолчанию — текущий хост:5000/api
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
-
+// const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  `${window.location.protocol}//${window.location.hostname}:5000/api`
+).replace(/\/$/, '');
 
 // Настройка Axios
 const authApi = axios.create({
@@ -76,6 +79,12 @@ interface Event {
   telegram_chat_id?: string | null;
   image?: any;
   reviews?: Review[];
+  tags?: Tag[];
+}
+
+export interface Tag {
+  id: number;
+  name: string;
 }
 
 interface EventRegistration {
@@ -791,11 +800,69 @@ export async function createSubscription(
       if (error.response?.status === 401) {
         throw new Error('Ошибка авторизации. Пожалуйста, перезайдите в систему.');
       }
+
+
       throw new Error(error.response?.data?.error || error.response?.data?.message || 'Ошибка при создании подписки');
     }
     throw new Error('Неизвестная ошибка');
   }
 }
+
+// Tags
+export interface Tag {
+
+  id: number;
+  name: string;
+}
+
+export async function getTags(): Promise<Tag[]> {
+  try { // Change to guestApi if public, or userApi
+    const response = await userApi.get<Tag[]>('/tags');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      // Fallback for admin if needed, but userApi should work for all logged in
+      throw new Error(error.response?.data?.error || 'Ошибка при получении тегов');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function createTag(name: string): Promise<Tag> {
+  try {
+    const response = await adminApi.post<Tag>('/tags', { name });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при создании тега');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function updateTag(id: number, name: string): Promise<Tag> {
+  try {
+    const response = await adminApi.put<Tag>(`/tags/${id}`, { name });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при обновлении тега');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function deleteTag(id: number): Promise<void> {
+  try {
+    await adminApi.delete(`/tags/${id}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при удалении тега');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
 
 export async function getSubscriptions(): Promise<EventSubscription[]> {
   try {

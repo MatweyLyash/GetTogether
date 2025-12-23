@@ -21,7 +21,7 @@
   flex-direction: column;
   width: 100%;
   gap: 1.5rem;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
     justify-content: flex-start;
@@ -35,7 +35,7 @@
   border-radius: 12px;
   align-self: flex-start;
   box-shadow: 0 2px 8px rgba(46, 79, 215, 0.1);
-  
+
   @media (min-width: 768px) {
     width: 280px;
     position: sticky;
@@ -54,8 +54,18 @@
   .content {
     padding: 1rem;
   }
-  
+
   .filterSidebar {
     padding: 1rem;
+  }
+}
+
+:global {
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
+
+  .react-datepicker-popper {
+    z-index: 1000 !important;
   }
 }

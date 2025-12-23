@@ -38,8 +38,10 @@ async function main() {
     'Role',
     'Status',
     'Category', // Категории должны быть раньше Событий и Достижений
+    'Tag',      // Теги - независимая сущность
     'User',
     'Event',    // События после пользователей и категорий
+    'EventTag', // Связь мероприятий и тегов
     'Achievement', // Достижения после категорий и событий (так как могут ссылаться на них)
     'UserAchievement',
     'OrganizerRequest',
@@ -65,6 +67,7 @@ async function main() {
   const eventsSet = new Set((json.Event || []).map((r) => r.id));
   const statusesSet = new Set((json.Status || []).map((r) => r.id));
   const categoriesSet = new Set((json.Category || []).map((r) => r.id));
+  const tagsSet = new Set((json.Tag || []).map((r) => r.id));
   const achievementsSet = new Set((json.Achievement || []).map((r) => r.id));
 
   const reviveBuffers = (row) => {
@@ -110,6 +113,8 @@ async function main() {
         return rows.filter((r) => usersSet.has(r.user_id) && eventsSet.has(r.event_id));
       case 'UserAchievement':
         return rows.filter((r) => usersSet.has(r.user_id) && achievementsSet.has(r.achievement_id));
+      case 'EventTag':
+        return rows.filter((r) => eventsSet.has(r.event_id) && tagsSet.has(r.tag_id));
       default:
         return rows;
     }
