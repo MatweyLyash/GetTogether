@@ -477,6 +477,9 @@ export async function createEvent(formData: FormData): Promise<{ event: Event; m
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 413) {
+        throw new Error('Файл слишком большой. Максимальный размер — 1МБ');
+      }
       throw new Error(error.response?.data?.error || 'Ошибка при создании мероприятия');
     }
     throw new Error('Неизвестная ошибка');
@@ -517,6 +520,9 @@ export async function updateEvent(event_id: string, formData: FormData): Promise
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 413) {
+        throw new Error('Файл слишком большой. Максимальный размер — 1МБ');
+      }
       throw new Error(error.response?.data?.error || 'Ошибка при обновлении мероприятия');
     }
     throw new Error('Неизвестная ошибка');
@@ -662,6 +668,9 @@ export async function updateEventByAdmin(eventId: string, data: FormData): Promi
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 413) {
+        throw new Error('Файл слишком большой. Максимальный размер — 1МБ');
+      }
       throw new Error(error.response?.data?.error || 'Ошибка при обновлении мероприятия');
     }
     throw new Error('Неизвестная ошибка');
@@ -814,7 +823,7 @@ export interface Tag {
 
 export async function getTags(): Promise<Tag[]> {
   try { // Change to guestApi if public, or userApi
-    const response = await userApi.get<Tag[]>('/tags');
+    const response = await guestApi.get<Tag[]>('/tags');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

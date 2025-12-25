@@ -35,10 +35,12 @@ class OrganizerController {
                 }
             }
 
-            if (!eventValidator.validateEvent({
+            const validation = eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity
-            })) {
-                return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
+            });
+
+            if (!validation.valid) {
+                return res.status(400).json({ error: validation.errors.join(', ') });
             }
             const organizer_verification_key = uuidv4();
 
@@ -59,7 +61,14 @@ class OrganizerController {
                 message: `Событие создано. Добавьте бота @GetTogetherPSKPbot в группу как администратора и отправьте в группе: /verify ${organizer_verification_key}`
             });
         } catch (error) {
-            return res.status(500).json({ error: error.message });
+            console.error('Create event error:', error);
+            if (error.name === 'SequelizeValidationError') {
+                return res.status(400).json({ error: 'Ошибка валидации данных: ' + error.errors.map(e => e.message).join(', ') });
+            }
+            if (error.name === 'SequelizeUniqueConstraintError') {
+                return res.status(400).json({ error: 'Такое событие уже существует' });
+            }
+            return res.status(500).json({ error: 'Внутренняя ошибка сервера: ' + error.message });
         }
     }
 
@@ -125,10 +134,16 @@ class OrganizerController {
                 }
             }
 
-            if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
+            if (!eventValidator.validateId(event_id)) {
+                return res.status(400).json({ error: 'Некорректный ID мероприятия' });
+            }
+
+            const validation = eventValidator.validateEvent({
                 title, description, date, location, category_id, price, capacity, telegram_chat_link
-            })) {
-                return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
+            });
+
+            if (!validation.valid) {
+                return res.status(400).json({ error: validation.errors.join(', ') });
             }
 
             const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags);
@@ -141,11 +156,15 @@ class OrganizerController {
                     const mime = fileType?.mime || 'image/jpeg';
                     updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
                 }
-                return res.json({ message: 'Event updated successfully', event: updatedEvent });
+                return res.json({ message: 'Мероприятие обновлено', event: updatedEvent });
             }
-            return res.status(404).json({ error: "Event not found", event });
+            return res.status(404).json({ error: "Мероприятие не найдено", event });
         } catch (error) {
-            return res.status(500).json({ error: error.message });
+            console.error('Update event error:', error);
+            if (error.name === 'SequelizeValidationError') {
+                return res.status(400).json({ error: 'Ошибка валидации данных: ' + error.errors.map(e => e.message).join(', ') });
+            }
+            return res.status(500).json({ error: 'Внутренняя ошибка сервера: ' + error.message });
         }
     }
 

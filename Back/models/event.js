@@ -2,7 +2,7 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class Event extends Model {}
+  class Event extends Model { }
   Event.init({
     id: {
       type: DataTypes.INTEGER,
@@ -21,21 +21,41 @@ module.exports = (sequelize, DataTypes) => {
     },
     title: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'Название не может быть пустым' },
+        len: { args: [1, 255], msg: 'Название должно быть от 1 до 255 символов' }
+      }
     },
     description: {
-      type: DataTypes.TEXT
+      type: DataTypes.TEXT,
+      validate: {
+        len: { args: [0, 1000], msg: 'Описание не должно превышать 1000 символов' }
+      }
     },
     date: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        isDate: { msg: 'Некорректный формат даты' },
+        isAfter: {
+          args: new Date().toISOString(),
+          msg: 'Дата мероприятия должна быть в будущем'
+        }
+      }
     },
     location: {
-      type: DataTypes.STRING(255)
+      type: DataTypes.STRING(255),
+      validate: {
+        len: { args: [0, 255], msg: 'Место проведения не должно превышать 255 символов' }
+      }
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),
-      defaultValue: 0
+      defaultValue: 0,
+      validate: {
+        min: { args: [0], msg: 'Цена не может быть отрицательной' }
+      }
     },
     telegram_chat_link: {
       type: DataTypes.STRING(255),
@@ -51,7 +71,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     capacity: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        min: { args: [1], msg: 'Вместимость должна быть не менее 1 человека' }
+      }
     },
     image: {
       type: DataTypes.BLOB,
