@@ -6,6 +6,7 @@ const AchievementRepository = require('./../repository/achievementRepository').r
 
 const validators = require('../services/baseValidators');
 const eventValidator = require('../services/eventValidator');
+const models = require('../models');
 
 
 class AdminController {
@@ -37,6 +38,7 @@ class AdminController {
       res.status(500).json({ error: error.message });
     }
   }
+
 
   async deleteCategory(req, res) {
     try {
@@ -122,10 +124,12 @@ class AdminController {
         }
       }
 
-      if (!eventValidator.validateId(event_id) || !eventValidator.validateEvent({
+      const validation = eventValidator.validateEvent({
         title, description, date, location, category_id, price, capacity, telegram_chat_link
-      })) {
-        return res.status(400).json({ error: 'Все поля должны быть заполнены и валидны' });
+      });
+
+      if (!eventValidator.validateId(event_id) || !validation.valid) {
+        return res.status(400).json({ error: validation.errors ? validation.errors.join(', ') : 'Все поля должны быть заполнены и валидны' });
       }
 
       const event = await AdminRepository.updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags);
@@ -133,12 +137,11 @@ class AdminController {
       if (event == 1) {
         const updatedEvent = await UserRepository.getEvent(event_id, null);
         if (updatedEvent.image) {
-          const { fileTypeFromBuffer } = await import('file-type');
-          const fileType = await fileTypeFromBuffer(updatedEvent.image);
-          const mime = fileType?.mime || 'image/jpeg';
+          const { getMimeType } = require('../utils/fileUtils');
+          const mime = await getMimeType(updatedEvent.image);
           updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
         }
-        return res.json({ message: 'Event updated successfully', event: updatedEvent });
+        return res.status(200).json({ message: 'Event updated successfully', event: updatedEvent });
       }
       return res.status(404).json({ error: "Event not found", event });
     } catch (error) {

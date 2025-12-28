@@ -215,30 +215,33 @@ class UserController {
         }
     }
 
+
     async getOwnEventsRegistration(req, res) {
         try {
             const user_id = req.user.id;
             const registrations = await this.userRepository.getOwnEventsRegistration(user_id);
 
-            // Achievement: посещение прошедших мероприятий и по категориям
+            // Achievement: посещение прошедших мероприятий (для случаев, когда дата была изменена после сканирования QR)
             const now = new Date();
             const result = [];
 
             for (const reg of registrations) {
                 const event = reg.Event;
-                if (!event) continue;
+                if (event) {
+                    const isApproved = reg.status_id === 2;
+                    const isPast = new Date(event.date) < now;
+                    // Check if scanned (approved and qr_code is null)
+                    // Note: reg.qr_code is from DB. If it's a buffer, it's truthy. If null, falsy.
+                    const isScanned = isApproved && !reg.qr_code;
 
-                const isApproved = reg.status_id === 2;
-                const isPast = new Date(event.date) < now;
-                // Check if scanned (approved and qr_code is null)
-                // Note: reg.qr_code is from DB. If it's a buffer, it's truthy. If null, falsy.
-                const isScanned = isApproved && !reg.qr_code;
-
-                if (isScanned && isPast) {
-                    try {
-                        await achievementService.processAttend(user_id, event);
-                    } catch (e) {
-                        console.warn('Achievement ATTEND error:', e.message);
+                    // Начисляем достижения, если QR был отсканирован и событие стало прошедшим
+                    // processAttend использует metadataKey для предотвращения повторного начисления
+                    if (isScanned && isPast) {
+                        try {
+                            await achievementService.processAttend(user_id, event);
+                        } catch (e) {
+                            console.warn('Achievement ATTEND error:', e.message);
+                        }
                     }
                 }
 
@@ -366,10 +369,6 @@ class UserController {
         }
     }
 
-    /**
-     * Получить QR-код для подтверждённой регистрации на мероприятие
-     * GET /api/user/events/registration/:registration_id/qrcode
-     */
     async getRegistrationQRCode(req, res) {
         try {
             const { registration_id } = req.params;

@@ -54,7 +54,6 @@ function EventCard({ event }: EventCardProps) {
         color="white"
         _hover={{ bg: '#1e3fa9' }}
         _active={{ bg: '#15307a' }}
-        mt="auto"
         width="100%"
       >
         Подробнее

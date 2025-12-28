@@ -27,7 +27,6 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  AspectRatio,
   Skeleton,
 } from '@chakra-ui/react';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUserFriends, FaTelegram, FaStar, FaMoneyBill, FaQrcode } from 'react-icons/fa';
@@ -329,32 +328,22 @@ function EventPage() {
             overflow="hidden"
           >
             <Box w={{ base: '100%', lg: '40%' }}>
-              <AspectRatio ratio={4 / 3} w="100%">
+              <div className={styles.eventImageWrapper}>
                 <Skeleton isLoaded={!!event.image}>
-                  <Image
+                  <img
                     src={
                       event.image ||
                       'https://blog.eboost.com/wp-content/uploads/2016/11/background-of-people-smiling-4184.jpg'
                     }
                     alt={event.title}
-                    objectFit="cover"
-                    fallbackSrc="https://via.placeholder.com/800x600?text=Event+Image"
-                    borderRadius="lg"
+                    className={styles.eventImage}
+                    loading="lazy"
                   />
                 </Skeleton>
-              </AspectRatio>
-              <Badge
-                position="absolute"
-                mt={-10}
-                ml={3}
-                colorScheme={event.price > 0 ? 'yellow' : 'green'}
-                fontSize="md"
-                p="2"
-                borderRadius="md"
-                boxShadow="md"
-              >
-                {event.price > 0 ? `${event.price} BYN` : 'Бесплатно'}
-              </Badge>
+                <span className={styles.eventPriceBadge}>
+                  {event.price > 0 ? `${event.price} BYN` : 'Бесплатно'}
+                </span>
+              </div>
             </Box>
 
             <VStack align="stretch" flex="1" p={{ base: 4, md: 6 }} spacing={4}>

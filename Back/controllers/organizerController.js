@@ -47,9 +47,8 @@ class OrganizerController {
             const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, parsedTags);
 
             if (event.image) {
-                const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
-                const fileType = await fileTypeFromBuffer(event.image);
-                const mime = fileType?.mime || 'image/jpeg'; // JPEG по умолчанию
+                const { getMimeType } = require('../utils/fileUtils');
+                const mime = await getMimeType(event.image);
                 event.dataValues.image = `data:${mime};base64,${event.image.toString('base64')}`;
             }
 
@@ -68,7 +67,7 @@ class OrganizerController {
             if (error.name === 'SequelizeUniqueConstraintError') {
                 return res.status(400).json({ error: 'Такое событие уже существует' });
             }
-            return res.status(500).json({ error: 'Внутренняя ошибка сервера: ' + error.message });
+            return res.status(500).json({ error: 'Внутренняя ошибка сервера: ' + error.message, stack: error.stack });
         }
     }
 
@@ -79,9 +78,8 @@ class OrganizerController {
 
             for (const event of events) {
                 if (event.image) {
-                    const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
-                    const fileType = await fileTypeFromBuffer(event.image);
-                    const mime = fileType?.mime || 'image/jpeg';
+                    const { getMimeType } = require('../utils/fileUtils');
+                    const mime = await getMimeType(event.image);
                     event.dataValues.image = `data:${mime};base64,${event.image.toString('base64')}`;
                 }
             }
@@ -106,9 +104,8 @@ class OrganizerController {
             }
 
             if (event.image) {
-                const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
-                const fileType = await fileTypeFromBuffer(event.image);
-                const mime = fileType?.mime || 'image/jpeg';
+                const { getMimeType } = require('../utils/fileUtils');
+                const mime = await getMimeType(event.image);
                 event.dataValues.image = `data:${mime};base64,${event.image.toString('base64')}`;
             }
 
@@ -120,7 +117,8 @@ class OrganizerController {
 
     async updateEvent(req, res) {
         try {
-            const { event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
+            const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
+            const { event_id } = req.params;
             const creator_id = req.user.id;
             const image = req.file?.buffer;
 
@@ -151,9 +149,8 @@ class OrganizerController {
             if (event == 1) {
                 const updatedEvent = await this.organizerRepository.getOwnEvent(creator_id, event_id);
                 if (updatedEvent.image) {
-                    const { fileTypeFromBuffer } = await import('file-type'); // Динамический импорт
-                    const fileType = await fileTypeFromBuffer(updatedEvent.image);
-                    const mime = fileType?.mime || 'image/jpeg';
+                    const { getMimeType } = require('../utils/fileUtils');
+                    const mime = await getMimeType(updatedEvent.image);
                     updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
                 }
                 return res.json({ message: 'Мероприятие обновлено', event: updatedEvent });

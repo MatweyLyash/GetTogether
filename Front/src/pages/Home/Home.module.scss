@@ -96,7 +96,7 @@
 
   @media (max-width: 768px) {
     min-height: 500px;
-    
+
     .slick-prev,
     .slick-next {
       display: none !important;
@@ -111,6 +111,7 @@
 }
 
 .reviews {
+  display: none;
   width: 100%;
   padding: 1rem 0;
 }

@@ -159,6 +159,7 @@ function Admin() {
   const toast = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const achFileInputRef = useRef<HTMLInputElement>(null);
 
   // Определяем, мобильная ли версия
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -458,7 +459,7 @@ function Admin() {
     if (userId === user?.id) {
       toast({
         title: 'Ошибка',
-        description: 'Нельзя забанить самого себя',
+        description: 'Нельзя заблокировать самого себя',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -475,7 +476,7 @@ function Admin() {
       })));
       toast({
         title: 'Успех',
-        description: `Пользователь ${isBanned ? 'разбанен' : 'заблокирован'}`,
+        description: `Пользователь ${isBanned ? 'разблокирован' : 'заблокирован'}`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -721,6 +722,19 @@ function Admin() {
     return matchesRole && matchesSearch;
   });
 
+  // Функция для получения русского названия триггера
+  const getTriggerLabel = (trigger: string) => {
+    const option = triggerOptions.find(opt => opt.value === trigger);
+    return option ? option.label : trigger;
+  };
+
+  // Функция для получения названия категории по ID
+  const getCategoryName = (categoryId: number | null | undefined) => {
+    if (!categoryId) return null;
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.category_name : `ID: ${categoryId}`;
+  };
+
   return (
     <Box className={styles.container} mx="auto">
       <style>
@@ -954,7 +968,7 @@ function Admin() {
                                     onClick={() => handleBanUser(u.id, u.is_blocked || false)}
                                     isDisabled={isLoading || u.id === user?.id}
                                   >
-                                    {u.is_blocked ? 'Разбанить' : 'Забанить'}
+                                    {u.is_blocked ? 'Разблокировать' : 'Заблокировать'}
                                   </Button>
                                   {u.role_id === 2 && (
                                     <Button
@@ -986,7 +1000,8 @@ function Admin() {
                       <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
                         <Thead>
                           <Tr>
-                            <Th>ID Польз.</Th>
+                            <Th>Username</Th>
+                            <Th display={{ base: 'none', md: 'table-cell' }}>ID Польз.</Th>
                             <Th>Telegram</Th>
                             <Th>Статус</Th>
                             <Th>Действия</Th>
@@ -995,7 +1010,8 @@ function Admin() {
                         <Tbody>
                           {organizerRequests.map((req) => (
                             <Tr key={req.id}>
-                              <Td>{req.user_id}</Td>
+                              <Td>{req.user?.login || req.user_id}</Td>
+                              <Td display={{ base: 'none', md: 'table-cell' }}>{req.user_id}</Td>
                               <Td>
                                 {req.user?.telegram ? (
                                   <a
@@ -1367,16 +1383,36 @@ function Admin() {
                         )}
                       </HStack>
                       <FormControl>
-                        <FormLabel>Изображение (опционально)</FormLabel>
-                        <Input type="file" accept="image/*" onChange={handleAchImageChange} />
+                        <FormLabel>Изображение</FormLabel>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          ref={achFileInputRef}
+                          onChange={handleAchImageChange}
+                          style={{ display: 'none' }}
+                        />
+                        <Button
+                          bg="#2E4FD7"
+                          color="white"
+                          _hover={{ bg: '#1e3fa9' }}
+                          onClick={() => achFileInputRef.current?.click()}
+                          size="md"
+                          mb={achImagePreview || achForm.image ? 4 : 0}
+                        >
+                          Выбрать изображение
+                        </Button>
                         {(achImagePreview || achForm.image) && (
-                          <Box mt="2">
-                            <Text fontSize="sm" color="gray.600">Превью:</Text>
+                          <Box mt="4" textAlign="center">
+                            <Text fontWeight="bold" mb="2">Превью:</Text>
                             <Image
                               src={achImagePreview || (typeof achForm.image === 'string' ? achForm.image : '')}
                               alt="Предосмотр достижения"
-                              maxH="150px"
+                              maxW="400px"
+                              maxH="300px"
                               borderRadius="8px"
+                              boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
+                              display="block"
+                              margin="0 auto"
                             />
                           </Box>
                         )}
@@ -1407,37 +1443,58 @@ function Admin() {
                             <Th>#</Th>
                             <Th>Название</Th>
                             <Th>Триггер</Th>
-                            <Th>Score</Th>
+                            <Th>Очки</Th>
                             <Th>Условия</Th>
                             <Th>Действия</Th>
                           </Tr>
                         </Thead>
                         <Tbody>
-                          {achievements.map((a) => (
-                            <Tr key={a.id}>
-                              <Td>{a.id}</Td>
-                              <Td>{a.name}</Td>
-                              <Td>{a.trigger}</Td>
-                              <Td>{a.score}</Td>
-                              <Td>
-                                <Text fontSize="sm">
-                                  {a.condition_event_id ? `event_id: ${a.condition_event_id}` : ''}
-                                  {a.condition_category_id ? ` cat_id: ${a.condition_category_id}` : ''}
-                                  {a.condition_payload ? ` payload: ${JSON.stringify(a.condition_payload)}` : ''}
-                                </Text>
-                              </Td>
-                              <Td>
-                                <HStack spacing="2">
-                                  <Button size="xs" colorScheme="blue" onClick={() => handleAchEdit(a)} isDisabled={isLoading}>
-                                    Ред.
-                                  </Button>
-                                  <Button size="xs" colorScheme="red" onClick={() => handleAchDelete(a.id)} isDisabled={isLoading}>
-                                    Удалить
-                                  </Button>
-                                </HStack>
-                              </Td>
-                            </Tr>
-                          ))}
+                          {achievements.map((a) => {
+                            const categoryName = getCategoryName(a.condition_category_id);
+                            const conditions: string[] = [];
+                            
+                            if (a.condition_event_id) {
+                              const event = events.find(e => e.id === String(a.condition_event_id));
+                              conditions.push(`Мероприятие: ${event ? event.title : `ID ${a.condition_event_id}`}`);
+                            }
+                            if (a.condition_category_id && categoryName) {
+                              conditions.push(`Категория: ${categoryName}`);
+                            }
+                            if (a.condition_payload) {
+                              conditions.push(`Доп. условия: ${JSON.stringify(a.condition_payload)}`);
+                            }
+                            if (conditions.length === 0) {
+                              conditions.push('Без условий');
+                            }
+
+                            return (
+                              <Tr key={a.id}>
+                                <Td>{a.id}</Td>
+                                <Td>{a.name}</Td>
+                                <Td>{getTriggerLabel(a.trigger)}</Td>
+                                <Td>{a.score}</Td>
+                                <Td>
+                                  <VStack align="start" spacing={1}>
+                                    {conditions.map((condition, idx) => (
+                                      <Text key={idx} fontSize="sm">
+                                        {condition}
+                                      </Text>
+                                    ))}
+                                  </VStack>
+                                </Td>
+                                <Td>
+                                  <HStack spacing="2">
+                                    <Button size="xs" colorScheme="blue" onClick={() => handleAchEdit(a)} isDisabled={isLoading}>
+                                      Ред.
+                                    </Button>
+                                    <Button size="xs" colorScheme="red" onClick={() => handleAchDelete(a.id)} isDisabled={isLoading}>
+                                      Удалить
+                                    </Button>
+                                  </HStack>
+                                </Td>
+                              </Tr>
+                            );
+                          })}
                         </Tbody>
                       </Table>
                     </Box>

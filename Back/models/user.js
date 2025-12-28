@@ -2,7 +2,7 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {}
+  class User extends Model { }
   User.init({
     id: {
       type: DataTypes.INTEGER,
@@ -16,6 +16,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     telegram: {
       type: DataTypes.STRING(255),
+      unique: true
+    },
+    chat_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
       unique: true
     },
     login: {

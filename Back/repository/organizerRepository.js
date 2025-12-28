@@ -1,6 +1,7 @@
 const models = require('../models');
 const { generateInviteLink } = require('../bot/telegramBot');
 const qrCodeService = require('../services/qrCodeService');
+const achievementService = require('../services/achievementService');
 
 class OrganizerRepository {
     async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, tags) {
@@ -193,6 +194,17 @@ class OrganizerRepository {
         // 5. Очищаем QR-код (делаем его одноразовым)
         registration.qr_code = null;
         await registration.save();
+
+        // 6. Начисляем достижения за посещение (только если событие уже прошло)
+        const now = new Date();
+        const eventDate = new Date(registration.Event.date);
+        if (eventDate < now) {
+            try {
+                await achievementService.processAttend(user_id, event);
+            } catch (e) {
+                console.warn('Achievement ATTEND error:', e.message);
+            }
+        }
 
         return {
             valid: true,

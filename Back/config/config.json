@@ -12,5 +12,13 @@
     "database": "gettogether2",
     "host": "postgres",
     "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "postgres",
+    "database": "gettogether_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "logging": false
   }
 }

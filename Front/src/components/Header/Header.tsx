@@ -71,7 +71,7 @@ function Header() {
         )}
         {(isAdmin && isAuthenticated) && (
           <Link to="/admin" className={styles.navItem}>
-            Админка
+            Админ. панель
           </Link>
         )}
       </Flex>
@@ -117,7 +117,7 @@ function Header() {
               )}
               {isAdmin && isAuthenticated && (
                 <Link to="/admin" onClick={onClose}>
-                  Админка
+                  Админ. панель
                 </Link>
               )}
             </Flex>

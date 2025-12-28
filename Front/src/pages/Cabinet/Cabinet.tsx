@@ -49,6 +49,7 @@ registerLocale('ru', ru);
 
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
+import { TelegramLinkGuideModal } from '../../components/TelegramLinkGuideModal/TelegramLinkGuideModal';
 import {
   getOwnEventsRegistration,
   createReview,
@@ -179,6 +180,7 @@ function Cabinet() {
   const user_telegram = user?.telegram;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isTelegramModalOpen, onOpen: onTelegramModalOpen, onClose: onTelegramModalClose } = useDisclosure();
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [modalType, setModalType] = useState<'organizer' | 'delete' | null>(null);
 
@@ -1985,7 +1987,7 @@ function Cabinet() {
                                   <Progress value={percent} size="sm" mt="1" colorScheme={ach.is_unlocked ? 'green' : 'blue'} />
                                   {ach.unlocked_at && (
                                     <Text fontSize="xs" color="green.600" mt="1">
-                                      Открыто: {new Date(ach.unlocked_at).toLocaleString()}
+                                      Открыто: {new Date(ach.unlocked_at).toLocaleString('ru-RU', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                     </Text>
                                   )}
                                 </Box>
@@ -2020,7 +2022,7 @@ function Cabinet() {
                   bg="#2E4FD7"
                   color="white"
                   _hover={{ bg: '#1e3fa9' }}
-                  onClick={handleLinkTelegram}
+                  onClick={user?.telegram?.startsWith('PENDING_') ? handleLinkTelegram : onTelegramModalOpen}
                   isDisabled={isLoading}
                   size={buttonSize}
                 >
@@ -2077,6 +2079,13 @@ function Cabinet() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+      <TelegramLinkGuideModal
+        isOpen={isTelegramModalOpen}
+        onClose={onTelegramModalClose}
+        onSuccess={() => {
+          setTelegram('');
+        }}
+      />
     </Box>
   );
 }

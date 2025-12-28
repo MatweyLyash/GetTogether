@@ -96,7 +96,7 @@ class UserRepository {
                 });
 
                 if (!event) {
-                    throw new Error('Event not found');
+                    return null;
                 }
 
                 // Проверяем регистрацию текущего пользователя

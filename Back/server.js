@@ -9,6 +9,9 @@ const util = require('util');
 const execPromise = util.promisify(exec);
 const PORT = process.env.PORT || 5000;
 
+// Импортируем Telegram бота, чтобы он запустился при старте сервера
+require('./bot/telegramBot');
+
 // Функция для проверки, существует ли пользователь admin
 async function isAdminUserMissing(sequelize) {
   try {
