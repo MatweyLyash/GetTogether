@@ -34,39 +34,39 @@ export function ActiveFiltersDisplay({
 
   return (
     <Box pt="1rem">
-      <Text fontSize="sm" color="gray.600" mb="0.5rem">
+      <Text fontSize="sm" color="rgba(66, 32, 6, 0.64)" mb="0.5rem" fontWeight="700">
         Активные фильтры:
       </Text>
       <Flex flexWrap="wrap" gap="0.5rem">
         {searchTitle && (
-          <Badge colorScheme="blue" variant="subtle">
+          <Badge bg="#fff7d6" color="#422006" borderRadius="full" px={3} py={1} border="1px solid rgba(234, 179, 8, 0.16)">
             Название: {searchTitle}
           </Badge>
         )}
         {searchLocation && (
-          <Badge colorScheme="green" variant="subtle">
+          <Badge bg="#fef3c7" color="#422006" borderRadius="full" px={3} py={1} border="1px solid rgba(234, 179, 8, 0.16)">
             Локация: {searchLocation}
           </Badge>
         )}
         {selectedCategory && (
-          <Badge colorScheme="purple" variant="subtle">
+          <Badge bg="rgba(255,255,255,0.74)" color="#422006" borderRadius="full" px={3} py={1} border="1px solid rgba(234, 179, 8, 0.16)">
             {categoryNames[selectedCategory] || `Категория ${selectedCategory}`}
           </Badge>
         )}
         {startDate && (
-          <Badge colorScheme="orange" variant="subtle">
+          <Badge bg="#fff7d6" color="#422006" borderRadius="full" px={3} py={1} border="1px solid rgba(234, 179, 8, 0.16)">
             От: {startDate.toLocaleString('ru-RU')}
           </Badge>
         )}
         {endDate && (
-          <Badge colorScheme="orange" variant="subtle">
+          <Badge bg="#fff7d6" color="#422006" borderRadius="full" px={3} py={1} border="1px solid rgba(234, 179, 8, 0.16)">
             До: {endDate.toLocaleString('ru-RU')}
           </Badge>
         )}
         {selectedTags.map((tagId) => {
           const tag = tags.find((t) => t.id === tagId);
           return tag ? (
-            <Badge key={tag.id} colorScheme="blue" variant="subtle">
+            <Badge key={tag.id} bg="#facc15" color="#422006" borderRadius="full" px={3} py={1} border="1px solid rgba(234, 179, 8, 0.16)">
               Тег: {tag.name}
             </Badge>
           ) : null;

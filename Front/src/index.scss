@@ -1,13 +1,93 @@
 @import 'slick-carousel/slick/slick.css';
 @import 'slick-carousel/slick/slick-theme.css';
 
+:root {
+  --gt-bg: #fffdf5;
+  --gt-surface: rgba(255, 255, 255, 0.84);
+  --gt-surface-solid: #fffef9;
+  --gt-card: #ffffff;
+  --gt-card-muted: #fffbeb;
+  --gt-primary: #facc15;
+  --gt-primary-strong: #eab308;
+  --gt-primary-soft: #fef3c7;
+  --gt-primary-pale: #fef9c3;
+  --gt-ink: #422006;
+  --gt-ink-soft: rgba(66, 32, 6, 0.72);
+  --gt-border: rgba(234, 179, 8, 0.18);
+  --gt-shadow: 0 28px 60px rgba(140, 91, 14, 0.12);
+  --gt-shadow-soft: 0 14px 30px rgba(140, 91, 14, 0.08);
+  --gt-radius-xl: 2rem;
+  --gt-radius-2xl: 2.5rem;
+}
+
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  
-  body {
-    font-family: 'Inter', sans-serif;
-  }
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--gt-ink);
+  background:
+    radial-gradient(circle at top left, rgba(250, 204, 21, 0.24), transparent 24%),
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 20%),
+    linear-gradient(180deg, #fffef8 0%, var(--gt-bg) 38%, #fffaf0 100%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.75) 0 2px, transparent 2px),
+    radial-gradient(circle at 80% 14%, rgba(255, 255, 255, 0.6) 0 1px, transparent 1px);
+  opacity: 0.4;
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(250, 204, 21, 0.45);
+  color: var(--gt-ink);
+}
+
+.slick-dots li button:before {
+  color: rgba(66, 32, 6, 0.25);
+  font-size: 10px;
+}
+
+.slick-dots li.slick-active button:before {
+  color: var(--gt-primary-strong);
+}
+
+.react-datepicker {
+  border: 1px solid var(--gt-border);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: var(--gt-shadow-soft);
+}
+
+.react-datepicker__header {
+  background: var(--gt-primary-soft);
+  border-bottom: 1px solid var(--gt-border);
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__time-list-item--selected {
+  background: var(--gt-primary-strong) !important;
+  color: var(--gt-ink) !important;
+}

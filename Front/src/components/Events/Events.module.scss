@@ -6,28 +6,29 @@
 
 .content {
   flex: 1;
-  padding: 1.5rem;
+  padding: 1rem 1rem 0;
 }
 
 .contentContainer {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 1.5rem;
-  max-width: 1400px;
+  max-width: 1240px;
 }
 
 .filterSidebar {
   width: 100%;
   padding: 1.5rem;
-  background-color: #E7EBFC;
-  border-radius: 12px;
+  background: rgba(255, 251, 235, 0.8);
+  border: 1px solid rgba(234, 179, 8, 0.16);
+  border-radius: 2rem;
   align-self: flex-start;
-  box-shadow: 0 2px 8px rgba(46, 79, 215, 0.1);
+  box-shadow: 0 20px 36px rgba(140, 91, 14, 0.08);
 
   @media (min-width: 768px) {
     width: 280px;
     position: sticky;
-    top: 2rem;
+    top: 6rem;
     flex-shrink: 0;
   }
 }

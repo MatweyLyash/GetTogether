@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { TabPanel, VStack, Heading, Input, Button, Table, Thead, Tbody, Tr, Th, Td, HStack, useToast, useBreakpointValue } from '@chakra-ui/react';
+import { TabPanel, VStack, Heading, Input, Table, Thead, Tbody, Tr, Th, Td, HStack, useToast, useBreakpointValue, IconButton, Tooltip } from '@chakra-ui/react';
+import { FaCheck, FaEdit, FaPlus, FaTimes, FaTrash } from 'react-icons/fa';
 
 interface Tag {
   id: number;
@@ -53,9 +54,7 @@ export function TagsTab({ tags, isLoading, onAdd, onRename, onDelete }: TagsTabP
               bg="white"
               size={buttonSize}
             />
-            <Button bg="#2E4FD7" color="white" _hover={{ bg: '#1e3fa9' }} size={buttonSize} onClick={handleAdd} isLoading={isLoading}>
-              Добавить
-            </Button>
+            <Tooltip label="Добавить тег"><IconButton aria-label="Добавить тег" icon={<FaPlus />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} size={buttonSize} onClick={handleAdd} isLoading={isLoading} /></Tooltip>
           </HStack>
         </VStack>
 
@@ -89,21 +88,13 @@ export function TagsTab({ tags, isLoading, onAdd, onRename, onDelete }: TagsTabP
                       <HStack spacing={2}>
                         {editTag?.id === tag.id ? (
                           <>
-                            <Button size={buttonSize} colorScheme="green" onClick={() => handleRename(tag.id)} isLoading={isLoading}>
-                              Сохранить
-                            </Button>
-                            <Button size={buttonSize} variant="ghost" onClick={() => setEditTag(null)}>
-                              Отмена
-                            </Button>
+                            <Tooltip label="Сохранить"><IconButton aria-label="Сохранить" icon={<FaCheck />} size={buttonSize} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleRename(tag.id)} isLoading={isLoading} /></Tooltip>
+                            <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} size={buttonSize} variant="ghost" onClick={() => setEditTag(null)} /></Tooltip>
                           </>
                         ) : (
                           <>
-                            <Button size={buttonSize} colorScheme="blue" onClick={() => setEditTag({ id: tag.id, name: tag.name })}>
-                              Ред.
-                            </Button>
-                            <Button size={buttonSize} colorScheme="red" onClick={() => onDelete(tag.id)}>
-                              Удалить
-                            </Button>
+                            <Tooltip label="Редактировать"><IconButton aria-label="Редактировать" icon={<FaEdit />} size={buttonSize} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => setEditTag({ id: tag.id, name: tag.name })} /></Tooltip>
+                            <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size={buttonSize} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => onDelete(tag.id)} /></Tooltip>
                           </>
                         )}
                       </HStack>

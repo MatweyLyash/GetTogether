@@ -69,6 +69,11 @@ interface Event {
   capacity: number;
   telegram_chat_link: string | null;
   creator_id?: string;
+  creator?: {
+    id: string | number;
+    login: string | null;
+    telegram: string | null;
+  } | null;
   created_at?: string;
   updated_at?: string;
   deletedAt?: string | null;

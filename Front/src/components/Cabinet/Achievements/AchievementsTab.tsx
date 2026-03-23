@@ -25,13 +25,13 @@ export function AchievementsTab({ achievements, isLoading, withPanel = true }: A
   };
 
   const content = isLoading ? (
-    <Text>Загрузка...</Text>
+    <Text color="rgba(66, 32, 6, 0.64)">Загрузка...</Text>
   ) : achievements.length === 0 ? (
-    <Box width="100%">
-      <Text color="gray.600">Достижений пока нет</Text>
+    <Box width="100%" bg="rgba(255,255,255,0.82)" p="6" borderRadius="2xl" border="1px solid rgba(234, 179, 8, 0.16)">
+      <Text color="rgba(66, 32, 6, 0.64)">Достижений пока нет</Text>
     </Box>
   ) : (
-    <VStack spacing="3" align="stretch" width="100%">
+    <VStack spacing="4" align="stretch" width="100%">
       {achievements.map((item) => {
         const progressMax = item.score > 0 ? item.score : 1;
         const percent = Math.min(100, Math.round((item.progress / progressMax) * 100));
@@ -40,20 +40,24 @@ export function AchievementsTab({ achievements, isLoading, withPanel = true }: A
         return (
           <Box
             key={item.id}
-            p="4"
+            p="5"
             width="100%"
             borderWidth="1px"
-            borderRadius="md"
-            bg="white"
-            boxShadow="sm"
+            borderRadius="2xl"
+            bg="rgba(255,255,255,0.9)"
+            boxShadow="0 18px 34px rgba(140, 91, 14, 0.08)"
+            borderColor="rgba(234, 179, 8, 0.16)"
+            position="relative"
+            overflow="hidden"
           >
+            <Box position="absolute" top="-28px" right="-20px" w="110px" h="110px" borderRadius="full" bg="rgba(250, 204, 21, 0.16)" />
             <HStack justify="space-between" align="start" spacing="4" flexWrap="wrap">
               <Box flex="1">
                 <HStack spacing="2">
-                  <Text fontWeight="bold">{item.name}</Text>
-                  {item.is_unlocked && <Badge colorScheme="green">Получено</Badge>}
+                  <Text fontWeight="800" fontFamily="Outfit, sans-serif" fontSize="xl" color="#422006">{item.name}</Text>
+                  {item.is_unlocked && <Badge bg="#facc15" color="#422006" borderRadius="full" px={3}>Получено</Badge>}
                 </HStack>
-                <Text mt="1" fontSize="sm" color="gray.700">
+                <Text mt="1" fontSize="sm" color="rgba(66, 32, 6, 0.74)">
                   {item.description || 'Описание отсутствует'}
                 </Text>
               </Box>
@@ -61,19 +65,21 @@ export function AchievementsTab({ achievements, isLoading, withPanel = true }: A
                 <Image
                   src={imageSrc}
                   alt={item.name}
-                  boxSize="64px"
+                  boxSize="72px"
                   objectFit="cover"
-                  borderRadius="md"
+                  borderRadius="2xl"
+                  transform="rotate(-4deg)"
+                  boxShadow="0 12px 24px rgba(140, 91, 14, 0.12)"
                 />
               )}
             </HStack>
             <Box mt="3">
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" color="rgba(66, 32, 6, 0.62)" fontWeight="600">
                 Прогресс: {item.progress} / {item.score}
               </Text>
-              <Progress value={percent} size="sm" mt="1" colorScheme={item.is_unlocked ? 'green' : 'blue'} />
+              <Progress value={percent} size="sm" mt="2" borderRadius="full" sx={{ '& > div': { background: item.is_unlocked ? '#facc15' : '#fef3c7' } }} />
               {item.unlocked_at && (
-                <Text fontSize="xs" color="green.600" mt="1">
+                <Text fontSize="xs" color="#a16207" mt="2">
                   Открыто: {new Date(item.unlocked_at).toLocaleString()}
                 </Text>
               )}

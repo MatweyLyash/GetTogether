@@ -30,7 +30,9 @@ export function RegistrationActions({
   if (isOrganizer) {
     return (
       <Button
-        colorScheme="teal"
+        bg="#facc15"
+        color="#422006"
+        _hover={{ bg: '#eab308' }}
         size="lg"
         w="100%"
         onClick={onEdit}
@@ -44,7 +46,9 @@ export function RegistrationActions({
   if (!isRegistered && !isArchived) {
     return (
       <Button
-        colorScheme="blue"
+        bg="#facc15"
+        color="#422006"
+        _hover={{ bg: '#eab308' }}
         size="lg"
         w="100%"
         isDisabled={registrationClosed}
@@ -58,7 +62,7 @@ export function RegistrationActions({
   if (isRegistered && !isArchived) {
     return (
       <VStack spacing={4} w="100%">
-        <Button colorScheme="green" size="lg" w="100%" isDisabled>
+        <Button bg="rgba(255,255,255,0.82)" color="#7c4a19" border="1px solid rgba(234, 179, 8, 0.16)" size="lg" w="100%" isDisabled>
           {registrationStatus === 2
             ? 'Ваша заявка подтверждена'
             : registrationStatus === 3
@@ -71,7 +75,9 @@ export function RegistrationActions({
         {registrationStatus === 2 && (
           <Button
             leftIcon={<FaQrcode />}
-            colorScheme="purple"
+            bg="#facc15"
+            color="#422006"
+            _hover={{ bg: '#eab308' }}
             size="lg"
             w="100%"
             onClick={onGetQR}
@@ -81,7 +87,7 @@ export function RegistrationActions({
         )}
 
         {(registrationStatus === 1 || registrationStatus === null) && (
-          <Button colorScheme="red" size="lg" w="100%" onClick={onCancel}>
+          <Button variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" size="lg" w="100%" onClick={onCancel}>
             Отозвать заявку
           </Button>
         )}
@@ -90,7 +96,7 @@ export function RegistrationActions({
   }
 
   return (
-    <Button colorScheme="gray" size="lg" w="100%" isDisabled>
+    <Button bg="rgba(255,255,255,0.82)" color="rgba(66, 32, 6, 0.56)" size="lg" w="100%" isDisabled>
       Мероприятие завершено
     </Button>
   );

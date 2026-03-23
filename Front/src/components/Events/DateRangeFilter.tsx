@@ -26,7 +26,7 @@ export function DateRangeFilter({
   return (
     <>
       <FormControl>
-        <FormLabel fontSize="sm">Дата (от)</FormLabel>
+        <FormLabel fontSize="sm" color="rgba(66, 32, 6, 0.74)" fontWeight="700">Дата (от)</FormLabel>
         <Box width="100%">
           <DatePicker
             selected={startDate}
@@ -40,14 +40,14 @@ export function DateRangeFilter({
             placeholderText="Выберите дату и время"
             portalId="root-portal"
             customInput={
-              <Input bg="white" size={buttonSize} width="100%" />
+              <Input bg="rgba(255,255,255,0.9)" size={buttonSize} width="100%" borderRadius="1.3rem" />
             }
           />
         </Box>
       </FormControl>
 
       <FormControl>
-        <FormLabel fontSize="sm">Дата (до)</FormLabel>
+        <FormLabel fontSize="sm" color="rgba(66, 32, 6, 0.74)" fontWeight="700">Дата (до)</FormLabel>
         <Box width="100%">
           <DatePicker
             selected={endDate}
@@ -61,7 +61,7 @@ export function DateRangeFilter({
             placeholderText="Выберите дату и время"
             portalId="root-portal"
             customInput={
-              <Input bg="white" size={buttonSize} width="100%" />
+              <Input bg="rgba(255,255,255,0.9)" size={buttonSize} width="100%" borderRadius="1.3rem" />
             }
           />
         </Box>

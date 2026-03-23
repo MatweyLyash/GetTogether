@@ -24,25 +24,27 @@ export function RegistrationCTA({ subHeadingSize }: RegistrationCTAProps) {
         className={styles.cta}
         p={{ base: 6, md: 10 }}
         textAlign="center"
-        bgGradient="linear(135deg, #E7EBFC 0%, #D5DFFB 100%)"
-        borderRadius="xl"
+        bgGradient="linear(135deg, rgba(254, 249, 195, 0.95) 0%, rgba(255, 255, 255, 0.96) 100%)"
+        borderRadius="2xl"
+        border="1px solid rgba(234, 179, 8, 0.18)"
+        boxShadow="0 22px 38px rgba(140, 91, 14, 0.1)"
       >
         <VStack spacing={4}>
           <Heading as="h3" size={headingSize}>
-            Присоединяйтесь к GetTogether!
+            Присоединяйтесь к клубу хороших встреч
           </Heading>
-          <Text fontSize={{ base: 'md', md: 'lg' }} color="gray.600" maxW="500px">
-            Создавайте и посещайте уникальные события
+          <Text fontSize={{ base: 'md', md: 'lg' }} color="rgba(66, 32, 6, 0.72)" maxW="560px">
+            Создавайте уютные события, находите новых знакомых рядом и собирайте своё маленькое сообщество вокруг любимого дела.
           </Text>
           <Link to="/login">
             <Button
-              bg="#2E4FD7"
-              color="white"
-              _hover={{ bg: '#1e3fa9', transform: 'translateY(-2px)' }}
+              bg="#facc15"
+              color="#422006"
+              _hover={{ bg: '#eab308', transform: 'scale(1.05)' }}
               _active={{ transform: 'translateY(0)' }}
               size={buttonSize}
-              borderRadius="lg"
-              boxShadow="md"
+              borderRadius="999px"
+              boxShadow="0 16px 28px rgba(140, 91, 14, 0.16)"
               transition="all 0.2s"
               px={8}
             >

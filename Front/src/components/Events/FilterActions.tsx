@@ -21,9 +21,9 @@ export function FilterActions({
   return (
     <VStack spacing={2} pt="1rem">
       <Button
-        bg="#2E4FD7"
-        color="white"
-        _hover={{ bg: '#1e3fa9' }}
+        bg="#facc15"
+        color="#422006"
+        _hover={{ bg: '#eab308', transform: 'scale(1.03)' }}
         size={buttonSize}
         width="100%"
         onClick={onApply}
@@ -33,11 +33,11 @@ export function FilterActions({
       </Button>
       <Button
         variant="outline"
-        colorScheme="blue"
         size={buttonSize}
         width="100%"
         onClick={onReset}
         isDisabled={isLoading || !hasFilters}
+        borderColor="rgba(234, 179, 8, 0.22)"
       >
         Сбросить
       </Button>

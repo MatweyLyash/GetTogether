@@ -69,13 +69,16 @@ class UserController {
             const events = await this.userRepository.getEvents(filters);
             const eventsData = await Promise.all(
                 events.map(async (event) => {
-                    if (event.image) {
+                    const plainEvent = typeof event.toJSON === 'function' ? event.toJSON() : event;
+
+                    if (plainEvent.image) {
                         const { fileTypeFromBuffer } = await import('file-type');
-                        const fileType = await fileTypeFromBuffer(event.image);
+                        const fileType = await fileTypeFromBuffer(plainEvent.image);
                         const mime = fileType?.mime || 'image/jpeg';
-                        event.image = `data:${mime};base64,${event.image.toString('base64')}`;
+                        plainEvent.image = `data:${mime};base64,${plainEvent.image.toString('base64')}`;
                     }
-                    return event;
+
+                    return plainEvent;
                 })
             );
             return res.json(eventsData);
@@ -99,7 +102,8 @@ class UserController {
                 return res.status(404).json({ error: 'Event not found' });
             }
 
-            const event = result.event || result;
+            const rawEvent = result.event || result;
+            const event = typeof rawEvent?.toJSON === 'function' ? rawEvent.toJSON() : rawEvent;
 
             if (event.image) {
                 const { fileTypeFromBuffer } = await import('file-type');
@@ -108,7 +112,14 @@ class UserController {
                 event.image = `data:${mime};base64,${event.image.toString('base64')}`;
             }
 
-            return res.json(result);
+            if (result.event) {
+                return res.json({
+                    ...result,
+                    event,
+                });
+            }
+
+            return res.json(event);
         } catch (error) {
             console.error('Ошибка получения события:', error);
             return res.status(500).json({ error: error.message });

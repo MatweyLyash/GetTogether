@@ -47,7 +47,7 @@ export function PastEventsList({
   };
 
   if (pastEvents.length === 0) {
-    return <Text fontSize={buttonSize} color="gray.600">Нет прошедших мероприятий</Text>;
+    return <Text fontSize={buttonSize} color="rgba(66, 32, 6, 0.64)">Нет прошедших мероприятий</Text>;
   }
 
   return (
@@ -66,7 +66,7 @@ export function PastEventsList({
               hasReview={hasReview}
             />
             {showReviewForm && (
-              <VStack spacing="2" p="3" bg="gray.50" borderRadius="md">
+              <VStack spacing="2" p="4" bg="rgba(255,255,255,0.82)" borderRadius="2xl" border="1px solid rgba(234, 179, 8, 0.16)">
                 <Select
                   value={review.rating}
                   onChange={(e) => setReview({ ...review, rating: Number(e.target.value) })}
@@ -85,7 +85,9 @@ export function PastEventsList({
                   size={buttonSize}
                 />
                 <Button
-                  colorScheme="blue"
+                  bg="#facc15"
+                  color="#422006"
+                  _hover={{ bg: '#eab308' }}
                   size={buttonSize}
                   onClick={() => handleReviewSubmit(reg.event_id)}
                   isLoading={isLoading}

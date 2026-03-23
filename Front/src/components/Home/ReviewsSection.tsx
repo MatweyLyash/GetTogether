@@ -65,25 +65,26 @@ export function ReviewsSection({ reviews, events, isLoading }: ReviewsSectionPro
               {reviews.map((review) => (
                 <motion.div key={review.id} variants={itemVariants} whileHover={{ y: -5 }}>
                   <Box
-                    bg="white"
+                    bg="rgba(255,255,255,0.88)"
                     p={5}
-                    borderRadius="lg"
-                    boxShadow="sm"
+                    borderRadius="2xl"
+                    boxShadow="0 16px 28px rgba(140, 91, 14, 0.08)"
                     border="1px solid"
-                    borderColor="gray.100"
-                    _hover={{ boxShadow: 'md' }}
+                    borderColor="rgba(234, 179, 8, 0.16)"
+                    _hover={{ boxShadow: '0 22px 34px rgba(140, 91, 14, 0.12)' }}
                     transition="all 0.2s"
+                    transform={Number(review.id) % 2 === 0 ? 'rotate(-1deg)' : 'rotate(1deg)'}
                   >
-                    <Text fontWeight="bold" color="#2E4FD7">
+                    <Text fontWeight="bold" color="#422006">
                       {review.user.login}
                     </Text>
-                    <Text fontSize="sm" color="gray.500" mb={2}>
+                    <Text fontSize="sm" color="rgba(66, 32, 6, 0.56)" mb={2}>
                       {events.find((e) => e.id === review.event_id)?.title}
                     </Text>
-                    <Text color="gray.700" mb={2}>
+                    <Text color="rgba(66, 32, 6, 0.78)" mb={2}>
                       {review.comment}
                     </Text>
-                    <Text color="#FFB800" fontSize="lg">
+                    <Text color="#eab308" fontSize="lg">
                       {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                     </Text>
                   </Box>

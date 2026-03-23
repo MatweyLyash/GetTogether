@@ -92,17 +92,18 @@ function Login() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Heading as="h1" size={{ base: 'lg', md: 'xl' }} mb="1rem" color="#2E4FD7">
+            <Heading as="h1" size={{ base: 'lg', md: 'xl' }} mb="1rem" color="#422006" letterSpacing="-0.05em">
               GetTogether
             </Heading>
-            <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="#333">
+            <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="rgba(66, 32, 6, 0.72)">
               Войдите или зарегистрируйтесь, чтобы присоединиться к событиям
             </Text>
             <Box
-              bg="#FEFEFE"
+              bg="rgba(255,255,255,0.9)"
               p={{ base: '1.5rem', md: '2rem' }}
-              borderRadius="md"
-              boxShadow="sm"
+              borderRadius="2rem"
+              border="1px solid rgba(234, 179, 8, 0.16)"
+              boxShadow="0 20px 36px rgba(140, 91, 14, 0.08)"
               maxW="400px"
               w="100%"
             >

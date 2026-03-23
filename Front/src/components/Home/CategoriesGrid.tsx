@@ -63,21 +63,22 @@ export function CategoriesGrid({ categories, isLoading }: CategoriesGridProps) {
                 >
                   <Link to="/events" state={{ category: String(cat.id) }}>
                     <Box
-                      bg="white"
+                      bg="rgba(255,255,255,0.86)"
                       p={4}
-                      borderRadius="lg"
-                      boxShadow="sm"
+                      borderRadius="2xl"
+                      boxShadow="0 16px 28px rgba(140, 91, 14, 0.08)"
                       textAlign="center"
                       border="1px solid"
-                      borderColor="gray.100"
+                      borderColor="rgba(234, 179, 8, 0.16)"
                       _hover={{
-                        boxShadow: 'lg',
-                        borderColor: '#2E4FD7',
-                        bg: '#F8F9FE',
+                        boxShadow: '0 22px 34px rgba(140, 91, 14, 0.12)',
+                        borderColor: '#eab308',
+                        bg: '#fff7d6',
                       }}
                       transition="all 0.2s"
+                      transform={cat.id % 2 === 0 ? 'rotate(-1deg)' : 'rotate(1deg)'}
                     >
-                      <Text fontWeight="medium" color="gray.700">
+                      <Text fontWeight="700" color="#422006">
                         {cat.category_name}
                       </Text>
                     </Box>

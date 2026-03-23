@@ -40,8 +40,7 @@ export function AdminTabs({ activeTab, onTabChange, children }: AdminTabsProps) 
       )}
 
       <Tabs
-        variant="enclosed"
-        colorScheme="blue"
+        variant="soft-rounded"
         index={activeTab}
         onChange={onTabChange}
         display={isMobile ? 'none' : 'block'}

@@ -80,7 +80,7 @@ export function RegisterForm({ onSubmit, isLoading = false }: RegisterFormProps)
             value={loginInput}
             onChange={(e) => setLoginInput(e.target.value)}
             placeholder="Введите логин"
-            bg="#E7EBFC"
+            bg="rgba(255,255,255,0.92)"
           />
         </FormControl>
         <FormControl mb="1rem">
@@ -90,7 +90,7 @@ export function RegisterForm({ onSubmit, isLoading = false }: RegisterFormProps)
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Введите пароль"
-            bg="#E7EBFC"
+            bg="rgba(255,255,255,0.92)"
           />
           <PasswordRequirements password={password} />
         </FormControl>
@@ -101,14 +101,14 @@ export function RegisterForm({ onSubmit, isLoading = false }: RegisterFormProps)
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Повторите пароль"
-            bg="#E7EBFC"
+            bg="rgba(255,255,255,0.92)"
           />
         </FormControl>
         <Button
-          bg="#2E4FD7"
-          color="white"
-          _hover={{ bg: '#1e3fa9' }}
-          _active={{ bg: '#15307a' }}
+          bg="#facc15"
+          color="#422006"
+          _hover={{ bg: '#eab308' }}
+          _active={{ bg: '#ca8a04' }}
           w="100%"
           isLoading={isLoading}
           onClick={handleSubmit}

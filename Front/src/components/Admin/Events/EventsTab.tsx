@@ -9,7 +9,6 @@ import {
   Tr,
   Th,
   Td,
-  Button,
   HStack,
   Badge,
   Modal,
@@ -24,8 +23,11 @@ import {
   Input,
   Select,
   useBreakpointValue,
+  IconButton,
+  Tooltip,
 } from '@chakra-ui/react';
 import { Tag } from '../../../api/api';
+import { FaCheck, FaEdit, FaTimes, FaTrash } from 'react-icons/fa';
 
 interface Event {
   id: string;
@@ -103,16 +105,12 @@ export function EventsTab({ events, categories, isLoading, onUpdate, onDelete }:
                   <Td>{formatDate(event.date)}</Td>
                   <Td>{event.location}</Td>
                   <Td>
-                    <Badge colorScheme="blue">{event.category?.category_name || 'N/A'}</Badge>
+                    <Badge bg="#fff7d6" color="#422006" borderRadius="full" px={3} py={1}>{event.category?.category_name || 'N/A'}</Badge>
                   </Td>
                   <Td>
                     <HStack spacing={2}>
-                      <Button size={buttonSize} colorScheme="blue" onClick={() => setEditEvent(event)}>
-                        Ред.
-                      </Button>
-                      <Button size={buttonSize} colorScheme="red" onClick={() => setEventToDelete(event.id)}>
-                        Удалить
-                      </Button>
+                      <Tooltip label="Редактировать"><IconButton aria-label="Редактировать" icon={<FaEdit />} size={buttonSize} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => setEditEvent(event)} /></Tooltip>
+                      <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size={buttonSize} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => setEventToDelete(event.id)} /></Tooltip>
                     </HStack>
                   </Td>
                 </Tr>
@@ -125,7 +123,7 @@ export function EventsTab({ events, categories, isLoading, onUpdate, onDelete }:
       {/* Edit Modal */}
       <Modal isOpen={!!editEvent} onClose={() => setEditEvent(null)} isCentered>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
           <ModalHeader>Редактировать мероприятие</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -147,12 +145,8 @@ export function EventsTab({ events, categories, isLoading, onUpdate, onDelete }:
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={() => setEditEvent(null)}>
-              Отмена
-            </Button>
-            <Button colorScheme="blue" onClick={handleUpdate} isLoading={isLoading}>
-              Сохранить
-            </Button>
+            <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="ghost" mr={3} onClick={() => setEditEvent(null)} /></Tooltip>
+            <Tooltip label="Сохранить"><IconButton aria-label="Сохранить" icon={<FaCheck />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={handleUpdate} isLoading={isLoading} /></Tooltip>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -160,17 +154,13 @@ export function EventsTab({ events, categories, isLoading, onUpdate, onDelete }:
       {/* Delete Modal */}
       <Modal isOpen={!!eventToDelete} onClose={() => setEventToDelete(null)} isCentered>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
           <ModalHeader>Удалить мероприятие</ModalHeader>
           <ModalCloseButton />
           <ModalBody>Вы уверены?</ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={() => setEventToDelete(null)}>
-              Отмена
-            </Button>
-            <Button colorScheme="red" onClick={handleDelete} isLoading={isLoading}>
-              Удалить
-            </Button>
+            <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="ghost" mr={3} onClick={() => setEventToDelete(null)} /></Tooltip>
+            <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={handleDelete} isLoading={isLoading} /></Tooltip>
           </ModalFooter>
         </ModalContent>
       </Modal>

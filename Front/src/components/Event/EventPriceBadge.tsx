@@ -18,13 +18,13 @@ export function EventPriceBadge({ price }: EventPriceBadgeProps) {
       right={4}
       zIndex={2}
       bgGradient="linear(90deg, #ffe066 60%, #fffbe6 100%)"
-      color="#2e4fd7"
+      color="#422006"
       fontWeight={700}
       fontSize="1.1rem"
       px={5}
       py={2}
       borderRadius="1.2rem"
-      boxShadow="0 2px 8px rgba(46, 79, 215, 0.10)"
+      boxShadow="0 12px 24px rgba(140, 91, 14, 0.14)"
       border="2px solid #fffbe6"
       whiteSpace="nowrap"
     >

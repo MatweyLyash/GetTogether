@@ -10,14 +10,80 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 2rem;
+    padding: 1.5rem 1rem 0;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1240px;
     margin: 0 auto;
+  }
+
+  .content :global(.chakra-tabs__tab-panel) {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(234, 179, 8, 0.16);
+    border-radius: 2rem;
+    box-shadow: 0 20px 36px rgba(140, 91, 14, 0.08);
+  }
+
+  .content :global(.chakra-table) {
+    background: transparent;
+  }
+
+  .content :global(th) {
+    color: rgba(66, 32, 6, 0.62);
+  }
+
+  .content :global(td) {
+    color: #422006;
+  }
+
+  .eventEditorForm {
+    background: linear-gradient(180deg, rgba(255, 251, 235, 0.82), rgba(255, 255, 255, 0.92));
+    border: 1px solid rgba(234, 179, 8, 0.16);
+    border-radius: 2rem;
+    padding: 1.75rem;
+    box-shadow: 0 20px 36px rgba(140, 91, 14, 0.08);
+  }
+
+  .eventEditorRow,
+  .eventEditorRowWide {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .eventEditorRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .eventEditorRowWide {
+    grid-template-columns: 1.2fr 0.8fr 0.8fr;
+  }
+
+  .eventEditorImage {
+    border-radius: 1.5rem;
+    overflow: hidden;
+    max-height: 240px;
+    box-shadow: 0 12px 26px rgba(140, 91, 14, 0.14);
+  }
+
+  .eventEditorForm :global(.react-datepicker-wrapper) {
+    width: 100%;
+  }
+
+  .eventEditorForm :global(.react-datepicker__input-container) {
+    width: 100%;
   }
   
   @media (max-width: 768px) {
     .content {
       padding: 1rem;
+    }
+
+    .eventEditorForm {
+      padding: 1.25rem;
+    }
+
+    .eventEditorRow,
+    .eventEditorRowWide {
+      grid-template-columns: 1fr;
     }
   }

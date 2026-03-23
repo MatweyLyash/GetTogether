@@ -13,16 +13,18 @@ interface TagsFilterProps {
 export function TagsFilter({ tags, selectedTags, onToggleTag }: TagsFilterProps) {
   return (
     <FormControl>
-      <FormLabel fontSize="sm">Теги</FormLabel>
+      <FormLabel fontSize="sm" color="rgba(66, 32, 6, 0.74)" fontWeight="700">Теги</FormLabel>
       <Flex flexWrap="wrap" gap="0.5rem">
         {tags.map((tag) => (
           <Badge
             key={tag.id}
-            px={2}
-            py={1}
-            borderRadius="md"
+            px={3}
+            py={2}
+            borderRadius="full"
             cursor="pointer"
-            colorScheme={selectedTags.includes(tag.id) ? 'blue' : 'gray'}
+            bg={selectedTags.includes(tag.id) ? '#facc15' : 'rgba(255,255,255,0.74)'}
+            color="#422006"
+            border="1px solid rgba(234, 179, 8, 0.16)"
             onClick={() => onToggleTag(tag.id)}
           >
             {tag.name}

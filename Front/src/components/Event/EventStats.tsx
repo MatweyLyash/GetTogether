@@ -32,22 +32,22 @@ export function EventStats({ date, location, capacity, price }: EventStatsData) 
   return (
     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
       <EventStatItem
-        icon={<FaCalendarAlt color="#2E4FD7" />}
+        icon={<FaCalendarAlt color="#eab308" />}
         label="Дата и время"
         value={formattedDate}
       />
       <EventStatItem
-        icon={<FaMapMarkerAlt color="#2E4FD7" />}
+        icon={<FaMapMarkerAlt color="#eab308" />}
         label="Место проведения"
         value={location}
       />
       <EventStatItem
-        icon={<FaUserFriends color="#2E4FD7" />}
+        icon={<FaUserFriends color="#eab308" />}
         label="Свободных мест"
         value={`${capacity} мест`}
       />
       <EventStatItem
-        icon={<FaMoneyBill color="#2E4FD7" />}
+        icon={<FaMoneyBill color="#eab308" />}
         label="Стоимость"
         value={numericPrice > 0 ? displayPrice : 'Бесплатно'}
       />

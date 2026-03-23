@@ -39,32 +39,48 @@ export function HeroBanner({
   return (
     <Box
       className={styles.banner}
-      bgGradient="linear(135deg, #E7EBFC 0%, #FEFEFE 50%, #E7EBFC 100%)"
+      bgGradient="linear(135deg, rgba(255, 249, 195, 0.96) 0%, rgba(255, 255, 255, 0.92) 48%, rgba(254, 243, 199, 0.95) 100%)"
       position="relative"
       overflow="hidden"
+      border="1px solid"
+      borderColor="rgba(234, 179, 8, 0.18)"
     >
+      <Box position="absolute" top="-28px" left="-24px" w="132px" h="132px" bg="rgba(250, 204, 21, 0.22)" borderRadius="full" />
+      <Box position="absolute" bottom="-44px" right="8%" w="160px" h="160px" bg="rgba(251, 191, 36, 0.14)" borderRadius="full" />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.7, type: 'spring', stiffness: 110, damping: 16 }}
       >
         <VStack spacing={{ base: 4, md: 6 }} align="center">
+          <Text
+            px={4}
+            py={2}
+            borderRadius="full"
+            bg="rgba(255,255,255,0.75)"
+            border="1px solid rgba(234, 179, 8, 0.16)"
+            fontWeight="600"
+            color="rgba(66, 32, 6, 0.72)"
+          >
+            Солнечные встречи по интересам
+          </Text>
           <Heading
             as="h1"
             size={headingSize}
             textAlign="center"
-            bgGradient="linear(to-r, #2E4FD7, #5A7AE8)"
-            bgClip="text"
+            color="#422006"
+            letterSpacing="-0.06em"
+            maxW="760px"
           >
-            Найдите своё следующее приключение
+            Найдите компанию для тёплого выходного, хобби и простых радостей в городе
           </Heading>
           <Text
             fontSize={{ base: 'md', md: 'lg' }}
-            color="gray.600"
+            color="rgba(66, 32, 6, 0.72)"
             textAlign="center"
             maxW="600px"
           >
-            Концерты, мастер-классы, вечеринки — всё в одном месте с GetTogether
+            Ярмарки, киновечера, клубы по интересам и мастер-классы без официоза. Просто люди, район и хороший повод встретиться.
           </Text>
           <Flex
             gap={{ base: 3, md: 4 }}
@@ -81,11 +97,11 @@ export function HeroBanner({
                 placeholder="Поиск по названию"
                 value={searchQueryByTitle}
                 onChange={(e) => onSearchTitleChange(e.target.value)}
-                bg="white"
-                borderRadius="lg"
-                borderColor="gray.200"
-                _hover={{ borderColor: '#2E4FD7' }}
-                _focus={{ borderColor: '#2E4FD7', boxShadow: '0 0 0 1px #2E4FD7' }}
+                bg="rgba(255,255,255,0.9)"
+                borderRadius="999px"
+                borderColor="rgba(234, 179, 8, 0.18)"
+                _hover={{ borderColor: '#eab308' }}
+                _focus={{ borderColor: '#eab308', boxShadow: '0 0 0 3px rgba(250, 204, 21, 0.24)' }}
               />
             </InputGroup>
             <InputGroup size={buttonSize} flex={1}>
@@ -101,24 +117,24 @@ export function HeroBanner({
                 placeholder="Поиск по месту"
                 value={searchQueryByLocation}
                 onChange={(e) => onSearchLocationChange(e.target.value)}
-                bg="white"
-                borderRadius="lg"
-                borderColor="gray.200"
-                _hover={{ borderColor: '#2E4FD7' }}
-                _focus={{ borderColor: '#2E4FD7', boxShadow: '0 0 0 1px #2E4FD7' }}
+                bg="rgba(255,255,255,0.9)"
+                borderRadius="999px"
+                borderColor="rgba(234, 179, 8, 0.18)"
+                _hover={{ borderColor: '#eab308' }}
+                _focus={{ borderColor: '#eab308', boxShadow: '0 0 0 3px rgba(250, 204, 21, 0.24)' }}
               />
             </InputGroup>
             <Button
-              bg="#2E4FD7"
-              color="white"
-              _hover={{ bg: '#1e3fa9', transform: 'translateY(-2px)' }}
+              bg="#facc15"
+              color="#422006"
+              _hover={{ bg: '#eab308', transform: 'scale(1.05)' }}
               _active={{ transform: 'translateY(0)' }}
               size={buttonSize}
               onClick={onSearch}
               leftIcon={<SearchIcon />}
-              borderRadius="lg"
-              transition="all 0.2s"
-              boxShadow="md"
+              borderRadius="999px"
+              transition="all 0.25s"
+              boxShadow="0 16px 28px rgba(140, 91, 14, 0.16)"
               minW={{ base: 'full', md: '120px' }}
             >
               Поиск

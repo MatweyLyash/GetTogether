@@ -36,9 +36,25 @@ import {
   useDisclosure,
   useBreakpointValue,
   Badge,
+  IconButton,
+  Tooltip,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ru } from 'date-fns/locale/ru';
+import {
+  FaBan,
+  FaCheck,
+  FaCloudUploadAlt,
+  FaEdit,
+  FaPlus,
+  FaTimes,
+  FaTrash,
+  FaUnlockAlt,
+  FaUserMinus,
+} from 'react-icons/fa';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import { useAuth } from '../../AuthContext/AuthContext';
@@ -68,6 +84,8 @@ import {
   deleteTag,
 } from '../../api/api';
 import styles from './Admin.module.scss';
+
+registerLocale('ru', ru);
 
 const triggerOptions = [
   { value: 'apply', label: 'Заявка' },
@@ -432,6 +450,14 @@ function Admin() {
     }
   };
 
+  const handleAdminEventDateChange = (date: Date | null) => {
+    if (!date || !editEvent) return;
+    setEditEvent({
+      ...editEvent,
+      date: date.toISOString().slice(0, 16),
+    });
+  };
+
   const handleDeleteEvent = async (eventId: string) => {
     setEventToDelete(eventId);
     onDeleteEventModalOpen();
@@ -546,14 +572,14 @@ function Admin() {
       <Header />
       <Box className={styles.content}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ width: '100%' }}>
-          <Heading size={{ base: 'lg', md: 'xl' }} mb="2rem">
+          <Heading size={{ base: 'lg', md: 'xl' }} mb="2rem" color="#422006" letterSpacing="-0.05em">
             Панель администратора
           </Heading>
 
           {isMobile && (
             <FormControl mb="1.5rem">
-              <FormLabel fontWeight="bold">Выберите раздел</FormLabel>
-              <Select value={activeTab} onChange={(e) => setActiveTab(Number(e.target.value))} bg="#E7EBFC" size="lg">
+              <FormLabel fontWeight="bold" color="rgba(66, 32, 6, 0.78)">Выберите раздел</FormLabel>
+              <Select value={activeTab} onChange={(e) => setActiveTab(Number(e.target.value))} bg="rgba(255,255,255,0.92)" size="lg">
                 <option value={0}>Категории</option>
                 <option value={1}>Пользователи</option>
                 <option value={2}>Запросы организаторов</option>
@@ -564,15 +590,15 @@ function Admin() {
             </FormControl>
           )}
 
-          <Tabs variant="soft-rounded" colorScheme="blue" index={activeTab} onChange={(index) => setActiveTab(index)}>
+          <Tabs variant="soft-rounded" index={activeTab} onChange={(index) => setActiveTab(index)}>
             {!isMobile && (
               <TabList mb="1rem" flexWrap="wrap" gap="0.5rem">
-                <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Категории</Tab>
-                <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Пользователи</Tab>
-                <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Запросы организаторов</Tab>
-                <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Мероприятия</Tab>
-                <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Достижения</Tab>
-                <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Теги</Tab>
+                <Tab px="1.25rem" py="0.85rem">Категории</Tab>
+                <Tab px="1.25rem" py="0.85rem">Пользователи</Tab>
+                <Tab px="1.25rem" py="0.85rem">Запросы организаторов</Tab>
+                <Tab px="1.25rem" py="0.85rem">Мероприятия</Tab>
+                <Tab px="1.25rem" py="0.85rem">Достижения</Tab>
+                <Tab px="1.25rem" py="0.85rem">Теги</Tab>
               </TabList>
             )}
             <TabPanels>
@@ -583,10 +609,8 @@ function Admin() {
                   <FormControl>
                     <FormLabel>Добавить категорию</FormLabel>
                     <VStack spacing="2" align="stretch">
-                      <Input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Название категории" bg="#E7EBFC" />
-                      <Button bg="#2E4FD7" color="white" _hover={{ bg: '#1e3fa9' }} onClick={handleAddCategory} isDisabled={isLoading} width={{ base: '100%', md: 'auto' }} alignSelf={{ base: 'stretch', md: 'flex-start' }}>
-                        Добавить
-                      </Button>
+                      <Input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Название категории" bg="rgba(255,255,255,0.92)" />
+                      <Tooltip label="Добавить категорию"><IconButton aria-label="Добавить категорию" icon={<FaPlus />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={handleAddCategory} isDisabled={isLoading} alignSelf={{ base: 'stretch', md: 'flex-start' }} /></Tooltip>
                     </VStack>
                   </FormControl>
                   <Heading size="md">Список категорий</Heading>
@@ -605,7 +629,7 @@ function Admin() {
                             <Td>{cat.id}</Td>
                             <Td>
                               {editCategory && editCategory.id === cat.id ? (
-                                <Input value={editCategory.name} onChange={(e) => setEditCategory({ ...editCategory, name: e.target.value })} bg="white" size="sm" />
+                                <Input value={editCategory.name} onChange={(e) => setEditCategory({ ...editCategory, name: e.target.value })} bg="rgba(255,255,255,0.92)" size="sm" />
                               ) : (
                                 cat.category_name
                               )}
@@ -614,21 +638,13 @@ function Admin() {
                               <HStack spacing="2">
                                 {editCategory && editCategory.id === cat.id ? (
                                   <>
-                                    <Button size="xs" colorScheme="green" onClick={() => handleRenameCategory(cat.id)} isDisabled={isLoading}>
-                                      Сохранить
-                                    </Button>
-                                    <Button size="xs" variant="outline" onClick={() => setEditCategory(null)}>
-                                      Отмена
-                                    </Button>
+                                    <Tooltip label="Сохранить"><IconButton aria-label="Сохранить" icon={<FaCheck />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleRenameCategory(cat.id)} isDisabled={isLoading} /></Tooltip>
+                                    <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} size="xs" variant="outline" onClick={() => setEditCategory(null)} /></Tooltip>
                                   </>
                                 ) : (
                                   <>
-                                    <Button size="xs" colorScheme="blue" onClick={() => setEditCategory({ id: cat.id, name: cat.category_name })}>
-                                      Переименовать
-                                    </Button>
-                                    <Button size="xs" colorScheme="red" onClick={() => handleDeleteCategory(cat.id)}>
-                                      Удалить
-                                    </Button>
+                                    <Tooltip label="Переименовать"><IconButton aria-label="Переименовать" icon={<FaEdit />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => setEditCategory({ id: cat.id, name: cat.category_name })} /></Tooltip>
+                                    <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleDeleteCategory(cat.id)} /></Tooltip>
                                   </>
                                 )}
                               </HStack>
@@ -653,7 +669,7 @@ function Admin() {
                       bg="white"
                       maxW="250px"
                     />
-                    <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} bg="white" maxW="200px">
+                      <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} bg="rgba(255,255,255,0.92)" maxW="200px">
                       <option value="">Все роли</option>
                       <option value="1">Пользователь</option>
                       <option value="2">Организатор</option>
@@ -678,28 +694,19 @@ function Admin() {
                             <Td>{u.id}</Td>
                             <Td fontWeight="medium">{u.login}</Td>
                             <Td>
-                              <Badge colorScheme={u.role_id === 3 ? 'red' : u.role_id === 2 ? 'green' : 'blue'}>
+                              <Badge bg={u.role_id === 3 ? '#fde2e2' : u.role_id === 2 ? '#fef3c7' : '#fff7d6'} color="#422006" borderRadius="full" px={3} py={1}>
                                 {u.role_id === 3 ? 'Админ' : u.role_id === 2 ? 'Организатор' : 'Пользователь'}
                               </Badge>
                             </Td>
                             <Td>{u.telegram || '—'}</Td>
                             <Td>
-                              <Badge colorScheme={u.is_blocked ? 'red' : 'green'}>{u.is_blocked ? 'Заблокирован' : 'Активен'}</Badge>
+                              <Badge bg={u.is_blocked ? '#fee2e2' : '#fef3c7'} color="#422006" borderRadius="full" px={3} py={1}>{u.is_blocked ? 'Заблокирован' : 'Активен'}</Badge>
                             </Td>
                             <Td>
                               <HStack spacing="2">
-                                <Button
-                                  size="xs"
-                                  colorScheme={u.is_blocked ? 'green' : 'red'}
-                                  onClick={() => handleBanUser(u.id, u.is_blocked)}
-                                  isDisabled={isLoading}
-                                >
-                                  {u.is_blocked ? 'Разблокировать' : 'Заблокировать'}
-                                </Button>
+                                <Tooltip label={u.is_blocked ? 'Разблокировать пользователя' : 'Заблокировать пользователя'}><IconButton aria-label={u.is_blocked ? 'Разблокировать пользователя' : 'Заблокировать пользователя'} icon={u.is_blocked ? <FaUnlockAlt /> : <FaBan />} size="xs" bg={u.is_blocked ? '#facc15' : '#fff7d6'} color="#422006" _hover={{ bg: u.is_blocked ? '#eab308' : '#fef3c7' }} onClick={() => handleBanUser(u.id, u.is_blocked)} isDisabled={isLoading} /></Tooltip>
                                 {u.role_id === 2 && (
-                                  <Button size="xs" colorScheme="orange" onClick={() => handleUnassignOrganizer(u.id)} isDisabled={isLoading}>
-                                    Снять роль
-                                  </Button>
+                                  <Tooltip label="Снять роль организатора"><IconButton aria-label="Снять роль организатора" icon={<FaUserMinus />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleUnassignOrganizer(u.id)} isDisabled={isLoading} /></Tooltip>
                                 )}
                               </HStack>
                             </Td>
@@ -716,7 +723,7 @@ function Admin() {
                 <VStack spacing="2rem" align="stretch" width="100%">
                   <Heading size="md">Запросы на статус организатора</Heading>
                   {organizerRequests.length === 0 ? (
-                    <Text color="gray.600" textAlign="center" py={8}>
+                    <Text color="rgba(66, 32, 6, 0.64)" textAlign="center" py={8}>
                       Нет запросов
                     </Text>
                   ) : (
@@ -738,19 +745,15 @@ function Admin() {
                               <Td fontWeight="medium">{req.user?.login || 'N/A'}</Td>
                               <Td>{req.user?.telegram || '—'}</Td>
                               <Td>
-                                <Badge colorScheme={req.status_id === 2 ? 'green' : req.status_id === 3 ? 'red' : 'yellow'}>
+                                <Badge bg={req.status_id === 2 ? '#fef3c7' : req.status_id === 3 ? '#fee2e2' : '#fff7d6'} color="#422006" borderRadius="full" px={3} py={1}>
                                   {req.status_id === 2 ? 'Одобрено' : req.status_id === 3 ? 'Отклонено' : 'На рассмотрении'}
                                 </Badge>
                               </Td>
                               <Td>
                                 {req.status_id === 1 && (
                                   <HStack spacing="2">
-                                    <Button size="xs" colorScheme="green" onClick={() => handleOrganizerResponse(req.id, true)} isDisabled={isLoading}>
-                                      Одобрить
-                                    </Button>
-                                    <Button size="xs" colorScheme="red" onClick={() => handleOrganizerResponse(req.id, false)} isDisabled={isLoading}>
-                                      Отклонить
-                                    </Button>
+                                    <Tooltip label="Одобрить"><IconButton aria-label="Одобрить" icon={<FaCheck />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleOrganizerResponse(req.id, true)} isDisabled={isLoading} /></Tooltip>
+                                    <Tooltip label="Отклонить"><IconButton aria-label="Отклонить" icon={<FaTimes />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleOrganizerResponse(req.id, false)} isDisabled={isLoading} /></Tooltip>
                                   </HStack>
                                 )}
                               </Td>
@@ -777,12 +780,11 @@ function Admin() {
                       setEventTabIndex(index);
                     }}
                     variant="soft-rounded"
-                    colorScheme="blue"
                     width="100%"
                     isLazy
                   >
                     <TabList mb="1rem" flexWrap="wrap" gap="0.5rem">
-                      <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Список мероприятий</Tab>
+                      <Tab px="1.25rem" py="0.85rem">Список мероприятий</Tab>
                       <Tab display="none">Редактирование мероприятия</Tab>
                     </TabList>
                     <TabPanels width="100%">
@@ -807,16 +809,12 @@ function Admin() {
                                   <Td>{new Date(event.date).toLocaleDateString('ru-RU')}</Td>
                                   <Td>{event.location}</Td>
                                   <Td>
-                                    <Badge colorScheme="blue">{getCategoryName(event.category_id)}</Badge>
+                                    <Badge bg="#fff7d6" color="#422006" borderRadius="full" px={3} py={1}>{getCategoryName(event.category_id)}</Badge>
                                   </Td>
                                   <Td>
                                     <HStack spacing="2">
-                                      <Button size="xs" colorScheme="blue" onClick={() => openEventEditor(event)}>
-                                        Ред.
-                                      </Button>
-                                      <Button size="xs" colorScheme="red" onClick={() => handleDeleteEvent(event.id)}>
-                                        Удалить
-                                      </Button>
+                                      <Tooltip label="Редактировать"><IconButton aria-label="Редактировать" icon={<FaEdit />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => openEventEditor(event)} /></Tooltip>
+                                      <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleDeleteEvent(event.id)} /></Tooltip>
                                     </HStack>
                                   </Td>
                                 </Tr>
@@ -828,67 +826,156 @@ function Admin() {
 
                       <TabPanel px={0}>
                         {editEvent && (
-                          <VStack spacing="1rem" align="stretch">
-                            <Heading size="md">Редактирование мероприятия</Heading>
+                          <VStack spacing="6" align="stretch" className={styles.eventEditorForm}>
+                            <Heading size="lg" color="#422006" letterSpacing="-0.04em">
+                              Редактировать событие
+                            </Heading>
+
                             <FormControl isRequired>
-                              <FormLabel>Название</FormLabel>
-                              <Input value={editEvent.title || ''} onChange={(e) => setEditEvent({ ...editEvent, title: e.target.value })} bg="#E7EBFC" />
+                              <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Название</FormLabel>
+                              <Input
+                                value={editEvent.title || ''}
+                                onChange={(e) => setEditEvent({ ...editEvent, title: e.target.value })}
+                                placeholder="Введите название"
+                                bg="rgba(255,255,255,0.92)"
+                              />
                             </FormControl>
+
                             <FormControl isRequired>
-                              <FormLabel>Описание</FormLabel>
-                              <Textarea value={editEvent.description || ''} onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })} bg="#E7EBFC" />
+                              <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Описание</FormLabel>
+                              <Textarea
+                                value={editEvent.description || ''}
+                                onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
+                                placeholder="Опишите мероприятие"
+                                rows={5}
+                                bg="rgba(255,255,255,0.92)"
+                                borderRadius="1.5rem"
+                              />
                             </FormControl>
-                            <HStack w="100%" spacing="1rem" align="stretch" flexWrap="wrap">
+
+                            <Box className={styles.eventEditorRow}>
                               <FormControl isRequired>
-                                <FormLabel>Дата</FormLabel>
-                                <Input type="datetime-local" value={editEvent.date || ''} onChange={(e) => setEditEvent({ ...editEvent, date: e.target.value })} bg="#E7EBFC" />
+                                <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Дата и время</FormLabel>
+                                <DatePicker
+                                  selected={editEvent.date ? new Date(editEvent.date) : null}
+                                  onChange={handleAdminEventDateChange}
+                                  showTimeSelect
+                                  timeFormat="HH:mm"
+                                  timeIntervals={15}
+                                  dateFormat="dd.MM.yyyy HH:mm"
+                                  locale="ru"
+                                  placeholderText="Выберите дату и время"
+                                  portalId="root-portal"
+                                  customInput={<Input bg="rgba(255,255,255,0.92)" width="100%" />}
+                                />
                               </FormControl>
+
                               <FormControl isRequired>
-                                <FormLabel>Место</FormLabel>
-                                <Input value={editEvent.location || ''} onChange={(e) => setEditEvent({ ...editEvent, location: e.target.value })} bg="#E7EBFC" />
+                                <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Место проведения</FormLabel>
+                                <Input
+                                  value={editEvent.location || ''}
+                                  onChange={(e) => setEditEvent({ ...editEvent, location: e.target.value })}
+                                  placeholder="Где пройдет мероприятие"
+                                  bg="rgba(255,255,255,0.92)"
+                                />
                               </FormControl>
-                            </HStack>
-                            <HStack w="100%" spacing="1rem" align="stretch" flexWrap="wrap">
+                            </Box>
+
+                            <Box className={styles.eventEditorRowWide}>
                               <FormControl isRequired>
-                                <FormLabel>Категория</FormLabel>
-                                <Select value={editEvent.category_id || ''} onChange={(e) => setEditEvent({ ...editEvent, category_id: Number(e.target.value) })} bg="#E7EBFC">
+                                <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Категория</FormLabel>
+                                <Select
+                                  value={editEvent.category_id || ''}
+                                  onChange={(e) => setEditEvent({ ...editEvent, category_id: Number(e.target.value) })}
+                                  bg="rgba(255,255,255,0.92)"
+                                >
                                   {categories.map((cat) => (
                                     <option key={cat.id} value={cat.id}>{cat.category_name}</option>
                                   ))}
                                 </Select>
                               </FormControl>
+
                               <FormControl isRequired>
-                                <FormLabel>Цена</FormLabel>
-                                <Input type="number" value={editEvent.price || ''} onChange={(e) => setEditEvent({ ...editEvent, price: Number(e.target.value) })} bg="#E7EBFC" />
+                                <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Цена (BYN)</FormLabel>
+                                <Input
+                                  type="number"
+                                  value={editEvent.price || ''}
+                                  onChange={(e) => setEditEvent({ ...editEvent, price: Number(e.target.value) })}
+                                  placeholder="0"
+                                  bg="rgba(255,255,255,0.92)"
+                                />
                               </FormControl>
+
                               <FormControl isRequired>
-                                <FormLabel>Места</FormLabel>
-                                <Input type="number" value={editEvent.capacity || ''} onChange={(e) => setEditEvent({ ...editEvent, capacity: Number(e.target.value) })} bg="#E7EBFC" />
+                                <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Количество мест</FormLabel>
+                                <Input
+                                  type="number"
+                                  value={editEvent.capacity || ''}
+                                  onChange={(e) => setEditEvent({ ...editEvent, capacity: Number(e.target.value) })}
+                                  placeholder="50"
+                                  bg="rgba(255,255,255,0.92)"
+                                />
                               </FormControl>
-                            </HStack>
+                            </Box>
+
                             <FormControl>
-                              <FormLabel>Telegram чат</FormLabel>
-                              <Input value={editEvent.telegram_chat_link || ''} onChange={(e) => setEditEvent({ ...editEvent, telegram_chat_link: e.target.value })} bg="#E7EBFC" />
+                              <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Telegram чат</FormLabel>
+                              <Input
+                                value={editEvent.telegram_chat_link || ''}
+                                onChange={(e) => setEditEvent({ ...editEvent, telegram_chat_link: e.target.value })}
+                                placeholder="@your_chat"
+                                bg="rgba(255,255,255,0.92)"
+                              />
                             </FormControl>
+
                             <FormControl>
-                              <FormLabel>Изображение</FormLabel>
+                              <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Изображение</FormLabel>
                               <Input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} display="none" />
-                              <Button onClick={() => fileInputRef.current?.click()} variant="outline" colorScheme="blue" width="100%">
+                              <Button
+                                onClick={() => fileInputRef.current?.click()}
+                                variant="outline"
+                                width="100%"
+                                leftIcon={<FaCloudUploadAlt />}
+                              >
                                 {imagePreview ? 'Заменить изображение' : 'Загрузить изображение'}
                               </Button>
                               {imagePreview && (
-                                <Box mt={3} borderRadius="12px" overflow="hidden" maxH="240px">
+                                <Box mt={3} className={styles.eventEditorImage}>
                                   <Image src={imagePreview} alt="Preview" w="100%" h="100%" objectFit="cover" />
                                 </Box>
                               )}
                             </FormControl>
-                            <HStack spacing="1rem">
-                              <Button variant="outline" onClick={closeEventEditor} isDisabled={isLoading}>
-                                Отмена
-                              </Button>
-                              <Button bg="#2E4FD7" color="white" _hover={{ bg: '#1e3fa9' }} onClick={() => handleUpdateEvent(editEvent.id)} isLoading={isLoading}>
-                                Сохранить
-                              </Button>
+
+                            <HStack spacing="3" mt="2" justify="flex-end">
+                              <Tooltip label="Сохранить изменения">
+                                <IconButton
+                                  aria-label="Сохранить изменения"
+                                  icon={<FaCheck />}
+                                  bg="#facc15"
+                                  color="#422006"
+                                  _hover={{ bg: '#eab308', transform: 'scale(1.05)' }}
+                                  onClick={() => handleUpdateEvent(editEvent.id)}
+                                  isLoading={isLoading}
+                                  isDisabled={
+                                    !editEvent.title ||
+                                    !editEvent.description ||
+                                    !editEvent.date ||
+                                    !editEvent.location ||
+                                    !editEvent.category_id ||
+                                    !editEvent.price ||
+                                    !editEvent.capacity
+                                  }
+                                />
+                              </Tooltip>
+                              <Tooltip label="Отменить редактирование">
+                                <IconButton
+                                  aria-label="Отменить редактирование"
+                                  icon={<FaTimes />}
+                                  variant="outline"
+                                  onClick={closeEventEditor}
+                                  isDisabled={isLoading}
+                                />
+                              </Tooltip>
                             </HStack>
                           </VStack>
                         )}
@@ -905,21 +992,21 @@ function Admin() {
                   <VStack spacing="1rem" align="stretch">
                     <FormControl isRequired>
                       <FormLabel>Название</FormLabel>
-                      <Input value={achForm.name} onChange={(e) => setAchForm((f) => ({ ...f, name: e.target.value }))} placeholder="Название" bg="#E7EBFC" />
+                      <Input value={achForm.name} onChange={(e) => setAchForm((f) => ({ ...f, name: e.target.value }))} placeholder="Название" bg="rgba(255,255,255,0.92)" />
                     </FormControl>
                     <FormControl>
                       <FormLabel>Описание</FormLabel>
-                      <Textarea value={achForm.description || ''} onChange={(e) => setAchForm((f) => ({ ...f, description: e.target.value }))} placeholder="Краткое описание" bg="#E7EBFC" />
+                      <Textarea value={achForm.description || ''} onChange={(e) => setAchForm((f) => ({ ...f, description: e.target.value }))} placeholder="Краткое описание" bg="rgba(255,255,255,0.92)" borderRadius="1.5rem" />
                     </FormControl>
                     <HStack spacing="1rem" align="stretch" flexWrap="wrap">
                       <FormControl width={{ base: '100%', md: '200px' }} isRequired>
                         <FormLabel>Очки / score</FormLabel>
-                        <Input type="number" min={1} value={achForm.score} onChange={(e) => setAchForm((f) => ({ ...f, score: Number(e.target.value) }))} bg="#E7EBFC" />
-                        <Text fontSize="sm" color="gray.600" mt="1">Минимум действий для открытия (например, 3 посещения)</Text>
+                        <Input type="number" min={1} value={achForm.score} onChange={(e) => setAchForm((f) => ({ ...f, score: Number(e.target.value) }))} bg="rgba(255,255,255,0.92)" />
+                        <Text fontSize="sm" color="rgba(66, 32, 6, 0.64)" mt="1">Минимум действий для открытия (например, 3 посещения)</Text>
                       </FormControl>
                       <FormControl width={{ base: '100%', md: '220px' }} isRequired>
                         <FormLabel>Триггер</FormLabel>
-                        <Select value={achForm.trigger} onChange={(e) => setAchForm((f) => ({ ...f, trigger: e.target.value as AchievementPayload['trigger'] }))} bg="#E7EBFC">
+                        <Select value={achForm.trigger} onChange={(e) => setAchForm((f) => ({ ...f, trigger: e.target.value as AchievementPayload['trigger'] }))} bg="rgba(255,255,255,0.92)">
                           {triggerOptions.map((t) => (
                             <option key={t.value} value={t.value}>{t.label}</option>
                           ))}
@@ -932,7 +1019,7 @@ function Admin() {
                             placeholder="Выберите категорию"
                             value={achForm.condition_category_id ? String(achForm.condition_category_id) : ''}
                             onChange={(e) => setAchForm((f) => ({ ...f, condition_category_id: e.target.value ? Number(e.target.value) : null }))}
-                            bg="#E7EBFC"
+                            bg="rgba(255,255,255,0.92)"
                           >
                             {categories.map((cat) => (
                               <option key={cat.id} value={cat.id}>{cat.category_name}</option>
@@ -944,7 +1031,7 @@ function Admin() {
                     <FormControl>
                       <FormLabel>Изображение (опционально)</FormLabel>
                       <Input type="file" accept="image/*" ref={achFileInputRef} onChange={handleAchImageChange} display="none" />
-                      <Button onClick={() => achFileInputRef.current?.click()} variant="outline" colorScheme="blue" width="100%">
+                      <Button onClick={() => achFileInputRef.current?.click()} variant="outline" width="100%" leftIcon={<FaCloudUploadAlt />}>
                         {achImagePreview || achForm.image ? 'Заменить изображение' : 'Загрузить изображение'}
                       </Button>
                       {(achImagePreview || achForm.image) && (
@@ -954,13 +1041,9 @@ function Admin() {
                       )}
                     </FormControl>
                     <HStack spacing="1rem">
-                      <Button bg="#2E4FD7" color="white" _hover={{ bg: '#1e3fa9' }} onClick={handleAchSubmit} isDisabled={isLoading}>
-                        {editingAchievement ? 'Сохранить' : 'Создать'}
-                      </Button>
+                      <Tooltip label={editingAchievement ? 'Сохранить достижение' : 'Создать достижение'}><IconButton aria-label={editingAchievement ? 'Сохранить достижение' : 'Создать достижение'} icon={editingAchievement ? <FaCheck /> : <FaPlus />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={handleAchSubmit} isDisabled={isLoading} /></Tooltip>
                       {editingAchievement && (
-                        <Button variant="outline" onClick={resetAchForm} isDisabled={isLoading}>
-                          Отмена
-                        </Button>
+                        <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="outline" onClick={resetAchForm} isDisabled={isLoading} /></Tooltip>
                       )}
                     </HStack>
                   </VStack>
@@ -993,12 +1076,8 @@ function Admin() {
                             </Td>
                             <Td>
                               <HStack spacing="2">
-                                <Button size="xs" colorScheme="blue" onClick={() => handleAchEdit(a)} isDisabled={isLoading}>
-                                  Ред.
-                                </Button>
-                                <Button size="xs" colorScheme="red" onClick={() => handleAchDelete(a.id)} isDisabled={isLoading}>
-                                  Удалить
-                                </Button>
+                                <Tooltip label="Редактировать"><IconButton aria-label="Редактировать" icon={<FaEdit />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleAchEdit(a)} isDisabled={isLoading} /></Tooltip>
+                                <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleAchDelete(a.id)} isDisabled={isLoading} /></Tooltip>
                               </HStack>
                             </Td>
                           </Tr>
@@ -1016,10 +1095,8 @@ function Admin() {
                   <FormControl>
                     <FormLabel>Добавить тег</FormLabel>
                     <VStack spacing="2" align="stretch">
-                      <Input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Название тега" bg="#E7EBFC" />
-                      <Button bg="#2E4FD7" color="white" _hover={{ bg: '#1e3fa9' }} onClick={handleAddTag} isDisabled={isLoading} width={{ base: '100%', md: 'auto' }} alignSelf={{ base: 'stretch', md: 'flex-start' }}>
-                        Добавить
-                      </Button>
+                      <Input value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Название тега" bg="rgba(255,255,255,0.92)" />
+                      <Tooltip label="Добавить тег"><IconButton aria-label="Добавить тег" icon={<FaPlus />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={handleAddTag} isDisabled={isLoading} alignSelf={{ base: 'stretch', md: 'flex-start' }} /></Tooltip>
                     </VStack>
                   </FormControl>
                   <Heading size="md">Список тегов</Heading>
@@ -1038,7 +1115,7 @@ function Admin() {
                             <Td>{tag.id}</Td>
                             <Td>
                               {editTag && editTag.id === tag.id ? (
-                                <Input value={editTag.name} onChange={(e) => setEditTag({ ...editTag, name: e.target.value })} bg="white" size="sm" />
+                                <Input value={editTag.name} onChange={(e) => setEditTag({ ...editTag, name: e.target.value })} bg="rgba(255,255,255,0.92)" size="sm" />
                               ) : (
                                 tag.name
                               )}
@@ -1047,21 +1124,13 @@ function Admin() {
                               <HStack spacing="2">
                                 {editTag && editTag.id === tag.id ? (
                                   <>
-                                    <Button size="xs" colorScheme="green" onClick={() => handleRenameTag(tag.id)} isDisabled={isLoading}>
-                                      Сохранить
-                                    </Button>
-                                    <Button size="xs" variant="outline" onClick={() => setEditTag(null)}>
-                                      Отмена
-                                    </Button>
+                                    <Tooltip label="Сохранить"><IconButton aria-label="Сохранить" icon={<FaCheck />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleRenameTag(tag.id)} isDisabled={isLoading} /></Tooltip>
+                                    <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} size="xs" variant="outline" onClick={() => setEditTag(null)} /></Tooltip>
                                   </>
                                 ) : (
                                   <>
-                                    <Button size="xs" colorScheme="blue" onClick={() => setEditTag({ id: tag.id, name: tag.name })}>
-                                      Переименовать
-                                    </Button>
-                                    <Button size="xs" colorScheme="red" onClick={() => handleDeleteTag(tag.id)}>
-                                      Удалить
-                                    </Button>
+                                    <Tooltip label="Переименовать"><IconButton aria-label="Переименовать" icon={<FaEdit />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => setEditTag({ id: tag.id, name: tag.name })} /></Tooltip>
+                                    <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleDeleteTag(tag.id)} /></Tooltip>
                                   </>
                                 )}
                               </HStack>
@@ -1082,13 +1151,13 @@ function Admin() {
       {/* Delete Category Modal */}
       <Modal isOpen={isDeleteCategoryModalOpen} onClose={onDeleteCategoryModalClose} isCentered>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
           <ModalHeader>Удалить категорию</ModalHeader>
           <ModalCloseButton />
           <ModalBody>Вы уверены?</ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onDeleteCategoryModalClose}>Отмена</Button>
-            <Button colorScheme="red" onClick={confirmDeleteCategory} isLoading={isLoading}>Удалить</Button>
+            <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="ghost" mr={3} onClick={onDeleteCategoryModalClose} /></Tooltip>
+            <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={confirmDeleteCategory} isLoading={isLoading} /></Tooltip>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -1096,26 +1165,26 @@ function Admin() {
       {/* Delete Event Modal */}
       <Modal isOpen={isDeleteEventModalOpen} onClose={onDeleteEventModalClose} isCentered>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
           <ModalHeader>Удалить мероприятие</ModalHeader>
           <ModalCloseButton />
           <ModalBody>Вы уверены?</ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onDeleteEventModalClose}>Отмена</Button>
-            <Button colorScheme="red" onClick={confirmDeleteEvent} isLoading={isLoading}>Удалить</Button>
+            <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="ghost" mr={3} onClick={onDeleteEventModalClose} /></Tooltip>
+            <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={confirmDeleteEvent} isLoading={isLoading} /></Tooltip>
           </ModalFooter>
         </ModalContent>
       </Modal>
       {/* Delete Tag Modal */}
       <Modal isOpen={isDeleteTagModalOpen} onClose={onDeleteTagModalClose} isCentered>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
           <ModalHeader>Удалить тег</ModalHeader>
           <ModalCloseButton />
           <ModalBody>Вы уверены?</ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onDeleteTagModalClose}>Отмена</Button>
-            <Button colorScheme="red" onClick={confirmDeleteTag} isLoading={isLoading}>Удалить</Button>
+            <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="ghost" mr={3} onClick={onDeleteTagModalClose} /></Tooltip>
+            <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={confirmDeleteTag} isLoading={isLoading} /></Tooltip>
           </ModalFooter>
         </ModalContent>
       </Modal>

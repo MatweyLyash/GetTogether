@@ -3,7 +3,6 @@ import {
   TabPanel,
   VStack,
   Heading,
-  Button,
   HStack,
   Badge,
   Text,
@@ -16,10 +15,13 @@ import {
   Stack,
   Image,
   useToast,
+  IconButton,
+  Tooltip,
 } from '@chakra-ui/react';
 import { Tag } from '../../../api/api';
 import { EventFormData, CabinetEvent } from '../types';
 import { EventFormTab } from '../EventForm/EventFormTab';
+import { FaEdit, FaEye, FaKey, FaTrash, FaUsers } from 'react-icons/fa';
 
 interface OwnEventsTabProps {
   events: CabinetEvent[];
@@ -135,50 +137,46 @@ export function OwnEventsTab({
     const imageSrc = toImageSrc(event.image);
 
     return (
-      <Box key={event.id} borderWidth="1px" borderRadius="md" p="4" bg="white" boxShadow="sm">
+      <Box
+        key={event.id}
+        borderWidth="1px"
+        borderRadius="2xl"
+        p="5"
+        bg="rgba(255,255,255,0.9)"
+        boxShadow="0 18px 34px rgba(140, 91, 14, 0.08)"
+        borderColor="rgba(234, 179, 8, 0.16)"
+      >
         <Stack direction={{ base: 'column', md: 'row' }} spacing="4" align="stretch">
           {imageSrc && (
-            <Box flexShrink={0} w={{ base: '100%', md: '220px' }} h={{ base: '180px', md: '160px' }} overflow="hidden" borderRadius="md">
+            <Box flexShrink={0} w={{ base: '100%', md: '220px' }} h={{ base: '180px', md: '160px' }} overflow="hidden" borderRadius="2xl" transform="rotate(-1.2deg)">
               <Image src={imageSrc} alt={event.title} w="100%" h="100%" objectFit="cover" />
             </Box>
           )}
           <VStack align="stretch" spacing="3" flex="1">
             <Box>
               <HStack spacing="2" flexWrap="wrap" mb="2">
-                <Text fontWeight="bold" fontSize="lg">{event.title}</Text>
-                <Badge colorScheme="blue">{event.category.category_name}</Badge>
+                <Text fontWeight="800" fontSize="xl" fontFamily="Outfit, sans-serif" color="#422006">{event.title}</Text>
+                <Badge bg="#fff7d6" color="#422006" borderRadius="full" px={3} py={1}>{event.category.category_name}</Badge>
               </HStack>
-              <Text color="gray.700">Дата: {formatDate(event.date)}</Text>
-              <Text color="gray.700">Место: {event.location}</Text>
-              <Text color="gray.700">Мест: {event.capacity}</Text>
+              <Text color="rgba(66, 32, 6, 0.74)">Дата: {formatDate(event.date)}</Text>
+              <Text color="rgba(66, 32, 6, 0.74)">Место: {event.location}</Text>
+              <Text color="rgba(66, 32, 6, 0.74)">Мест: {event.capacity}</Text>
             </Box>
 
             <Stack direction={{ base: 'column', md: 'row' }} spacing="2" flexWrap="wrap">
               {!archived ? (
                 <>
-                  <Button size={buttonSize} colorScheme="blue" onClick={() => onEdit(event)} isDisabled={isLoading}>
-                    Редактировать
-                  </Button>
-                  <Button size={buttonSize} colorScheme="red" onClick={() => onDelete(event.id)} isDisabled={isLoading}>
-                    Удалить
-                  </Button>
+                  <Tooltip label="Редактировать мероприятие"><IconButton aria-label="Редактировать мероприятие" icon={<FaEdit />} size={buttonSize} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => onEdit(event)} isDisabled={isLoading} /></Tooltip>
+                  <Tooltip label="Удалить мероприятие"><IconButton aria-label="Удалить мероприятие" icon={<FaTrash />} size={buttonSize} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => onDelete(event.id)} isDisabled={isLoading} /></Tooltip>
                 </>
               ) : (
                 <>
-                  <Button size={buttonSize} colorScheme="teal" onClick={() => onNavigate(event.id)} isDisabled={isLoading}>
-                    Перейти
-                  </Button>
-                  <Button size={buttonSize} colorScheme="red" onClick={() => onDelete(event.id)} isDisabled={isLoading}>
-                    Удалить
-                  </Button>
+                  <Tooltip label="Открыть мероприятие"><IconButton aria-label="Открыть мероприятие" icon={<FaEye />} size={buttonSize} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => onNavigate(event.id)} isDisabled={isLoading} /></Tooltip>
+                  <Tooltip label="Удалить мероприятие"><IconButton aria-label="Удалить мероприятие" icon={<FaTrash />} size={buttonSize} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => onDelete(event.id)} isDisabled={isLoading} /></Tooltip>
                 </>
               )}
-              <Button size={buttonSize} colorScheme="green" onClick={() => onViewRequests(event.id)} isDisabled={isLoading}>
-                Показать заявки
-              </Button>
-              <Button size={buttonSize} colorScheme="purple" onClick={() => handleShowKey(event)} isDisabled={isLoading || !event.organizer_verification_key}>
-                Показать ключ
-              </Button>
+              <Tooltip label="Посмотреть заявки"><IconButton aria-label="Посмотреть заявки" icon={<FaUsers />} size={buttonSize} variant="outline" onClick={() => onViewRequests(event.id)} isDisabled={isLoading} /></Tooltip>
+              <Tooltip label="Показать ключ"><IconButton aria-label="Показать ключ" icon={<FaKey />} size={buttonSize} variant="ghost" onClick={() => handleShowKey(event)} isDisabled={isLoading || !event.organizer_verification_key} /></Tooltip>
             </Stack>
           </VStack>
         </Stack>
@@ -196,21 +194,20 @@ export function OwnEventsTab({
         setSubTabIndex(index);
       }}
       variant="soft-rounded"
-      colorScheme="blue"
       width="100%"
       isLazy
     >
       <TabList mb="1rem" flexWrap="wrap" gap="0.5rem">
-        <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Список мероприятий</Tab>
-        <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Создать мероприятие</Tab>
-        <Tab _selected={{ bg: '#2E4FD7', color: 'white' }}>Архив</Tab>
+        <Tab px="1.25rem" py="0.85rem">Список мероприятий</Tab>
+        <Tab px="1.25rem" py="0.85rem">Создать мероприятие</Tab>
+        <Tab px="1.25rem" py="0.85rem">Архив</Tab>
         <Tab display="none">Редактирование мероприятия</Tab>
       </TabList>
       <TabPanels width="100%">
         <TabPanel px={0}>
           <VStack spacing="4" align="stretch" w="100%">
             {activeEvents.length === 0 ? (
-              <Text color="gray.600">У вас пока нет активных мероприятий</Text>
+              <Text color="rgba(66, 32, 6, 0.64)">У вас пока нет активных мероприятий</Text>
             ) : (
               activeEvents.map((event) => <EventCard key={event.id} event={event} />)
             )}
@@ -237,7 +234,7 @@ export function OwnEventsTab({
           <VStack spacing="4" align="stretch" w="100%">
             <Heading size="lg" mb="2">Архив</Heading>
             {archivedEvents.length === 0 ? (
-              <Text color="gray.600">Нет мероприятий в архиве</Text>
+              <Text color="rgba(66, 32, 6, 0.64)">Нет мероприятий в архиве</Text>
             ) : (
               archivedEvents.map((event) => <EventCard key={event.id} event={event} archived />)
             )}

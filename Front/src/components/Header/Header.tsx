@@ -78,10 +78,10 @@ function Header() {
       <Box className={styles.mobileMenu}>
         <Button
           onClick={handleAuthAction}
-          bg="#2E4FD7"
-          color="white"
-          _hover={{ bg: '#1e3fa9' }}
-          _active={{ bg: '#15307a' }}
+          bg="#facc15"
+          color="#422006"
+          _hover={{ bg: '#eab308', transform: 'scale(1.04)' }}
+          _active={{ bg: '#ca8a04' }}
           size={{ base: 'md', md: 'lg' }}
           className={styles.authButton}
         >
@@ -95,28 +95,28 @@ function Header() {
       </Box>
       <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
         <DrawerOverlay />
-        <DrawerContent>
-          <DrawerHeader borderBottomWidth="1px">Меню</DrawerHeader>
+        <DrawerContent bg="#fffdf5" color="#422006">
+          <DrawerHeader borderBottomWidth="1px" borderColor="rgba(234, 179, 8, 0.18)">Меню</DrawerHeader>
           <DrawerBody>
-            <Flex direction="column" gap="1rem">
-              <Link to="/" onClick={onClose}>
+            <Flex direction="column" gap="1rem" className={styles.drawerNav}>
+              <Link to="/" onClick={onClose} className={styles.drawerLink}>
                 Главная
               </Link>
-              <Link to="/events" onClick={onClose}>
+              <Link to="/events" onClick={onClose} className={styles.drawerLink}>
                 Мероприятия
               </Link>
               {isAuthenticated && (
-                <Link to="/cabinet" onClick={onClose}>
+                <Link to="/cabinet" onClick={onClose} className={styles.drawerLink}>
                   Личный кабинет
                 </Link>
               )}
               {isOrganizer && isAuthenticated && (
-                <Link to="/scanner" onClick={onClose}>
+                <Link to="/scanner" onClick={onClose} className={styles.drawerLink}>
                   Сканер QR
                 </Link>
               )}
               {isAdmin && isAuthenticated && (
-                <Link to="/admin" onClick={onClose}>
+                <Link to="/admin" onClick={onClose} className={styles.drawerLink}>
                   Админ. панель
                 </Link>
               )}
@@ -127,7 +127,7 @@ function Header() {
 
       <Modal isOpen={isLogoutModalOpen} onClose={onLogoutModalClose}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
           <ModalHeader>Подтверждение выхода</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -138,10 +138,10 @@ function Header() {
               Отмена
             </Button>
             <Button 
-              colorScheme="blue" 
               onClick={handleLogout}
-              bg="#2E4FD7"
-              _hover={{ bg: '#1e3fa9' }}
+              bg="#facc15"
+              color="#422006"
+              _hover={{ bg: '#eab308' }}
             >
               Выйти
             </Button>

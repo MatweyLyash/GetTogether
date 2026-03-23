@@ -17,7 +17,6 @@ export function CabinetTabs({ tabIndex, onTabChange, tabs }: CabinetTabsProps) {
   return (
     <Tabs
       variant="soft-rounded"
-      colorScheme="blue"
       index={tabIndex}
       onChange={onTabChange}
       size={isMobile ? 'sm' : 'md'}
@@ -26,7 +25,7 @@ export function CabinetTabs({ tabIndex, onTabChange, tabs }: CabinetTabsProps) {
       <TabList mb="1rem" flexWrap="wrap" gap="0.5rem">
         {tabs.map((tab) => {
           return (
-            <Tab key={tab.label} fontSize={fontSize} _selected={{ bg: '#2E4FD7', color: 'white' }}>
+            <Tab key={tab.label} fontSize={fontSize} px="1.25rem" py="0.85rem">
               {tab.label}
             </Tab>
           );

@@ -12,21 +12,23 @@ interface AuthTabsProps {
  */
 export function AuthTabs({ activeTab, onTabChange }: AuthTabsProps) {
   return (
-    <Flex mb="1.5rem" justify="center" gap="1rem">
+    <Flex mb="1.5rem" justify="center" gap="0.5rem" p="0.35rem" bg="rgba(255,255,255,0.72)" border="1px solid rgba(234, 179, 8, 0.16)" borderRadius="full">
       <Button
         variant={activeTab === 'login' ? 'solid' : 'ghost'}
-        bg={activeTab === 'login' ? '#2E4FD7' : 'transparent'}
-        color={activeTab === 'login' ? 'white' : '#2E4FD7'}
-        _hover={{ bg: activeTab === 'login' ? '#1e3fa9' : '#E7EBFC' }}
+        bg={activeTab === 'login' ? '#facc15' : 'transparent'}
+        color="#422006"
+        _hover={{ bg: activeTab === 'login' ? '#eab308' : '#fff7d6' }}
+        borderRadius="full"
         onClick={() => onTabChange('login')}
       >
         Вход
       </Button>
       <Button
         variant={activeTab === 'register' ? 'solid' : 'ghost'}
-        bg={activeTab === 'register' ? '#2E4FD7' : 'transparent'}
-        color={activeTab === 'register' ? 'white' : '#2E4FD7'}
-        _hover={{ bg: activeTab === 'register' ? '#1e3fa9' : '#E7EBFC' }}
+        bg={activeTab === 'register' ? '#facc15' : 'transparent'}
+        color="#422006"
+        _hover={{ bg: activeTab === 'register' ? '#eab308' : '#fff7d6' }}
+        borderRadius="full"
         onClick={() => onTabChange('register')}
       >
         Регистрация

@@ -15,6 +15,11 @@ class UserRepository {
                 attributes: ['id', 'category_name']
             },
             {
+                model: models.User,
+                as: 'creator',
+                attributes: ['id', 'login', 'telegram']
+            },
+            {
                 model: models.Tag,
                 as: 'tags',
                 attributes: ['id', 'name'],
@@ -31,13 +36,13 @@ class UserRepository {
             // Filter by tags. We want events that have at least one of the tags (OR logic) or ALL (AND logic)? 
             // Usually filters are "contains any".
             // However, straightforward way in Sequelize for M:N filtering:
-            include[1].where = {
+            include[2].where = {
                 id: tags
             };
             // Note: This will return events that have MATCHING tags, but might not return ALL tags of that event in the result object due to how Sequelize filtering works on included models (it filters the included array). 
             // To get full event with all tags but filtered by presence of some tag, we usually need a subquery or strict include.
             // For simplicity in this project context: strict filtering on the include will suffice to narrow down the list.
-            include[1].required = true;
+            include[2].required = true;
         }
 
         return await models.Event.findAll(query);

@@ -28,7 +28,7 @@ export function RegistrationModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
         <ModalHeader>Подтверждение регистрации</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -38,7 +38,7 @@ export function RegistrationModal({
           <Button variant="ghost" mr={3} onClick={onClose}>
             Отмена
           </Button>
-          <Button colorScheme="blue" onClick={onConfirm} isLoading={isLoading}>
+          <Button bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={onConfirm} isLoading={isLoading}>
             Подтвердить
           </Button>
         </ModalFooter>

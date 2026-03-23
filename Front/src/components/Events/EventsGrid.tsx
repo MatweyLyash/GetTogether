@@ -9,19 +9,20 @@ interface EventsGridProps {
   columns?: {
     base: number;
     lg?: number;
+    xl?: number;
   };
 }
 
 /**
  * Grid of event cards with loading state
  */
-export function EventsGrid({ events, isLoading, columns = { base: 1, lg: 2 } }: EventsGridProps) {
+export function EventsGrid({ events, isLoading, columns = { base: 1, xl: 2 } }: EventsGridProps) {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" py="4rem" minH="300px">
         <VStack spacing={4}>
-          <Spinner size="xl" color="#2E4FD7" thickness="4px" />
-          <Text color="gray.600">Загрузка мероприятий...</Text>
+          <Spinner size="xl" color="#eab308" thickness="4px" />
+          <Text color="rgba(66, 32, 6, 0.64)">Загрузка мероприятий...</Text>
         </VStack>
       </Flex>
     );

@@ -9,7 +9,6 @@ import {
   Tr,
   Th,
   Td,
-  Button,
   HStack,
   Image,
   FormControl,
@@ -19,8 +18,11 @@ import {
   Select,
   useToast,
   useBreakpointValue,
+  IconButton,
+  Tooltip,
 } from '@chakra-ui/react';
 import { Achievement, AchievementPayload } from '../../../api/api';
+import { FaCheck, FaEdit, FaPlus, FaTimes, FaTrash } from 'react-icons/fa';
 
 interface AchievementsTabProps {
   achievements: Achievement[];
@@ -135,13 +137,9 @@ export function AchievementsTab({ achievements, categories, isLoading, onCreate,
             <Input value={formData.image || ''} onChange={(e) => setFormData({ ...formData, image: e.target.value })} bg="white" size={buttonSize} />
           </FormControl>
           <HStack>
-            <Button bg="#2E4FD7" color="white" _hover={{ bg: '#1e3fa9' }} size={buttonSize} onClick={handleSubmit} isLoading={isLoading}>
-              {editing ? 'Сохранить' : 'Создать'}
-            </Button>
+            <Tooltip label={editing ? 'Сохранить достижение' : 'Создать достижение'}><IconButton aria-label={editing ? 'Сохранить достижение' : 'Создать достижение'} icon={editing ? <FaCheck /> : <FaPlus />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} size={buttonSize} onClick={handleSubmit} isLoading={isLoading} /></Tooltip>
             {editing && (
-              <Button variant="outline" colorScheme="blue" size={buttonSize} onClick={resetForm}>
-                Отмена
-              </Button>
+              <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="outline" size={buttonSize} onClick={resetForm} /></Tooltip>
             )}
           </HStack>
         </VStack>
@@ -170,12 +168,8 @@ export function AchievementsTab({ achievements, categories, isLoading, onCreate,
                     <Td>{a.trigger}</Td>
                     <Td>
                       <HStack spacing={2}>
-                        <Button size={buttonSize} colorScheme="blue" onClick={() => handleEdit(a)}>
-                          Ред.
-                        </Button>
-                        <Button size={buttonSize} colorScheme="red" onClick={() => onDelete(a.id)}>
-                          Удалить
-                        </Button>
+                        <Tooltip label="Редактировать"><IconButton aria-label="Редактировать" icon={<FaEdit />} size={buttonSize} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleEdit(a)} /></Tooltip>
+                        <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size={buttonSize} variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => onDelete(a.id)} /></Tooltip>
                       </HStack>
                     </Td>
                   </Tr>

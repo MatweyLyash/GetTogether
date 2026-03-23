@@ -39,6 +39,11 @@ interface ApiEvent {
   created_at?: string;
   updated_at?: string;
   creator_id?: string | number;
+  creator?: {
+    id?: string | number;
+    login?: string | null;
+    telegram?: string | null;
+  } | null;
   deletedAt?: string | null;
   tags?: Tag[];
 }
@@ -92,36 +97,42 @@ function Events() {
             const currentDate = new Date();
             return eventDate > currentDate && !event.deletedAt;
           })
-          .map((event: ApiEvent) => ({
-            id: String(event.id),
-            title: event.title,
-            description: event.description,
-            date: event.date,
-            price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
-            capacity: event.capacity,
-            location: event.location,
-            image: event.image ?? null,
-            category: {
-              id: String(event.category_id),
-              category_name:
-                mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
-                `Категория ${event.category_id}`,
-            },
-            creator: {
-              id: String(event.creator_id || '0'),
-              login: `Organizer_${event.creator_id || '0'}`,
-              telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
-            },
-            reviews: [],
-            deletedAt: event.deletedAt ?? null,
-            category_id: event.category_id,
-            telegram_chat_link: event.telegram_chat_link ?? null,
-            telegram_chat_id: event.telegram_chat_id ?? null,
-            organizer_verification_key: event.organizer_verification_key ?? null,
-            created_at: event.created_at ?? null,
-            updated_at: event.updated_at ?? null,
-            tags: event.tags || [],
-          }));
+          .map((event: ApiEvent) => {
+            const creatorId = String(event.creator?.id ?? event.creator_id ?? '0');
+            const creatorLogin = event.creator?.login?.trim() || 'Организатор';
+            const creatorTelegram = event.creator?.telegram?.trim() || event.telegram_chat_link || null;
+
+            return {
+              id: String(event.id),
+              title: event.title,
+              description: event.description,
+              date: event.date,
+              price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
+              capacity: event.capacity,
+              location: event.location,
+              image: event.image ?? null,
+              category: {
+                id: String(event.category_id),
+                category_name:
+                  mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
+                  `Категория ${event.category_id}`,
+              },
+              creator: {
+                id: creatorId,
+                login: creatorLogin,
+                telegram: creatorTelegram || '',
+              },
+              reviews: [],
+              deletedAt: event.deletedAt ?? null,
+              category_id: event.category_id,
+              telegram_chat_link: event.telegram_chat_link ?? null,
+              telegram_chat_id: event.telegram_chat_id ?? null,
+              organizer_verification_key: event.organizer_verification_key ?? null,
+              created_at: event.created_at ?? null,
+              updated_at: event.updated_at ?? null,
+              tags: event.tags || [],
+            };
+          });
 
         setCategories(mappedCategories);
         setEvents(mappedEvents);
@@ -246,13 +257,14 @@ function Events() {
             as="h1"
             size={headingSize}
             mb="1.5rem"
-            color="#2E4FD7"
+            color="#422006"
             textAlign={{ base: 'center', md: 'left' }}
+            letterSpacing="-0.05em"
           >
-            Список мероприятий
+            Встречи рядом с вами
           </Heading>
 
-          <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="gray.600">
+          <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="rgba(66, 32, 6, 0.68)">
             Найдено мероприятий: {filteredEvents.length}
           </Text>
 

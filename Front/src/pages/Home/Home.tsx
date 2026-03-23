@@ -35,6 +35,11 @@ interface EventApiResponse {
   created_at?: string;
   updated_at?: string;
   creator_id?: string | number;
+  creator?: {
+    id?: string | number;
+    login?: string | null;
+    telegram?: string | null;
+  } | null;
   deletedAt?: string | null;
 }
 
@@ -83,35 +88,41 @@ function Home() {
             const currentDate = new Date();
             return eventDate > currentDate && !event.deletedAt;
           })
-          .map((event: EventApiResponse) => ({
-            id: String(event.id),
-            title: event.title,
-            description: event.description,
-            date: event.date,
-            price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
-            capacity: event.capacity,
-            location: event.location,
-            image: event.image ?? null,
-            category: {
-              id: String(event.category_id),
-              category_name:
-                mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
-                `Категория ${event.category_id}`,
-            },
-            creator: {
-              id: String(event.creator_id || '0'),
-              login: `Organizer_${event.creator_id || '0'}`,
-              telegram: event.telegram_chat_link || `@Organizer_${event.creator_id || '0'}`,
-            },
-            reviews: [],
-            deletedAt: event.deletedAt ?? null,
-            category_id: event.category_id,
-            telegram_chat_link: event.telegram_chat_link ?? null,
-            telegram_chat_id: event.telegram_chat_id ?? null,
-            organizer_verification_key: event.organizer_verification_key ?? null,
-            created_at: event.created_at ?? null,
-            updated_at: event.updated_at ?? null,
-          }));
+          .map((event: EventApiResponse) => {
+            const creatorId = String(event.creator?.id ?? event.creator_id ?? '0');
+            const creatorLogin = event.creator?.login?.trim() || 'Организатор';
+            const creatorTelegram = event.creator?.telegram?.trim() || event.telegram_chat_link || null;
+
+            return {
+              id: String(event.id),
+              title: event.title,
+              description: event.description,
+              date: event.date,
+              price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
+              capacity: event.capacity,
+              location: event.location,
+              image: event.image ?? null,
+              category: {
+                id: String(event.category_id),
+                category_name:
+                  mappedCategories.find((cat) => cat.id === event.category_id)?.category_name ||
+                  `Категория ${event.category_id}`,
+              },
+              creator: {
+                id: creatorId,
+                login: creatorLogin,
+                telegram: creatorTelegram || '',
+              },
+              reviews: [],
+              deletedAt: event.deletedAt ?? null,
+              category_id: event.category_id,
+              telegram_chat_link: event.telegram_chat_link ?? null,
+              telegram_chat_id: event.telegram_chat_id ?? null,
+              organizer_verification_key: event.organizer_verification_key ?? null,
+              created_at: event.created_at ?? null,
+              updated_at: event.updated_at ?? null,
+            };
+          });
 
         setCategories(mappedCategories);
         setEvents(mappedEvents);

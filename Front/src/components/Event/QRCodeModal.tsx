@@ -32,7 +32,7 @@ export function QRCodeModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent bg="#fffdf5" color="#422006" border="1px solid rgba(234, 179, 8, 0.18)" borderRadius="2rem">
         <ModalHeader>Ваш QR-код для входа</ModalHeader>
         <ModalCloseButton />
         <ModalBody display="flex" flexDirection="column" alignItems="center" pb={6}>
@@ -41,7 +41,7 @@ export function QRCodeModal({
           ) : qrCode ? (
             <VStack spacing={4}>
               <Image src={qrCode} alt="QR Code" boxSize="250px" />
-              <Text textAlign="center" color="gray.600">
+              <Text textAlign="center" color="rgba(66, 32, 6, 0.64)">
                 Покажите этот QR-код организатору при входе на мероприятие
               </Text>
             </VStack>
@@ -50,7 +50,7 @@ export function QRCodeModal({
           )}
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
+          <Button bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} mr={3} onClick={onClose}>
             Закрыть
           </Button>
         </ModalFooter>

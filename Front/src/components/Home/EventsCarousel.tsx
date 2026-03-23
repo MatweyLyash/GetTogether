@@ -21,13 +21,17 @@ export function EventsCarousel({ events, isLoading }: EventsCarouselProps) {
     dots: true,
     infinite: true,
     speed: 500,
-    slidesToShow: 3,
+    slidesToShow: 2,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
     arrows: true,
     dotsClass: 'slick-dots custom-dots',
     responsive: [
+      {
+        breakpoint: 1280,
+        settings: { slidesToShow: 2, slidesToScroll: 1, arrows: true },
+      },
       {
         breakpoint: 1024,
         settings: { slidesToShow: 2, slidesToScroll: 1, arrows: true },
@@ -75,8 +79,8 @@ export function EventsCarousel({ events, isLoading }: EventsCarouselProps) {
             ))}
           </Slider>
         ) : (
-          <Box textAlign="center" py={10} bg="gray.50" borderRadius="lg">
-            <Text color="gray.500">Нет предстоящих мероприятий</Text>
+          <Box textAlign="center" py={10} bg="rgba(255,255,255,0.75)" borderRadius="2xl" border="1px solid rgba(234, 179, 8, 0.16)">
+            <Text color="rgba(66, 32, 6, 0.64)">Нет предстоящих мероприятий</Text>
           </Box>
         )}
       </motion.div>

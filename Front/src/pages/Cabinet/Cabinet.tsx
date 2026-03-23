@@ -122,7 +122,11 @@ function Cabinet() {
 
   useEffect(() => {
     const { tabIndex: incomingTabIndex, isEditing: incomingIsEditing, eventId, eventData } = (location.state || {}) as any;
-    if (incomingTabIndex !== undefined) setTabIndex(incomingTabIndex);
+    if (incomingIsEditing) {
+      setTabIndex(2);
+    } else if (incomingTabIndex !== undefined) {
+      setTabIndex(incomingTabIndex);
+    }
     if (incomingIsEditing && eventData) {
       setIsEditing(true);
       setEditingEventId(eventId || null);
@@ -423,16 +427,16 @@ function Cabinet() {
     <CabinetLayout>
       <Header />
       <Box className={styles.content}>
-        <Heading as="h1" size={fontSizeHeading} mb="1rem" color="#2E4FD7">
+        <Heading as="h1" size={fontSizeHeading} mb="0.75rem" color="#422006" letterSpacing="-0.05em">
           Личный кабинет
         </Heading>
-        <Text fontSize={fontSizeText} mb="2rem" color="gray.600">
+        <Text fontSize={fontSizeText} mb="2rem" color="rgba(66, 32, 6, 0.68)">
           Пользователь: {user?.login || 'Гость'}
         </Text>
         <CabinetTabs tabIndex={tabIndex} onTabChange={setTabIndex} tabs={cabinetTabs} />
         {!isAdmin && (!user?.telegram || user?.telegram.startsWith('PENDING_')) && (
-          <VStack spacing="4" mt="2rem" align="stretch" width="100%">
-            <Text fontSize={fontSizeText}>
+          <VStack spacing="4" mt="2rem" align="stretch" width="100%" bg="rgba(255,255,255,0.82)" p="1.5rem" borderRadius="2rem" border="1px solid rgba(234, 179, 8, 0.16)" boxShadow="0 18px 34px rgba(140, 91, 14, 0.08)">
+            <Text fontSize={fontSizeText} color="rgba(66, 32, 6, 0.78)">
               {user?.telegram
                 ? `Подтвердите привязку Telegram-тега ${user.telegram.replace('PENDING_', '')} в течение 2 минут`
                 : 'Привяжите ваш Telegram-аккаунт'}
@@ -443,13 +447,13 @@ function Cabinet() {
                 value={telegram}
                 onChange={(e) => setTelegram(e.target.value)}
                 placeholder="@username"
-                bg="#E7EBFC"
+                bg="rgba(255,255,255,0.92)"
               />
             </FormControl>
             <Button
-              bg="#2E4FD7"
-              color="white"
-              _hover={{ bg: '#1e3fa9' }}
+              bg="#facc15"
+              color="#422006"
+              _hover={{ bg: '#eab308', transform: 'scale(1.03)' }}
               onClick={() => handleLinkTelegram(telegram)}
               isDisabled={isLoading}
             >

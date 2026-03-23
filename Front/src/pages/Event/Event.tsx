@@ -149,6 +149,7 @@ function EventPage() {
     if (!id || !event) return;
     navigate('/cabinet', {
       state: {
+        tabIndex: 2,
         isEditing: true,
         eventId: id,
         eventData: {
@@ -273,9 +274,10 @@ function EventPage() {
           <Flex
             direction={{ base: 'column', lg: 'row' }}
             gap={{ base: 6, lg: 10 }}
-            bg="white"
-            boxShadow="lg"
-            borderRadius="lg"
+            bg="rgba(255,255,255,0.9)"
+            boxShadow="0 28px 50px rgba(140, 91, 14, 0.12)"
+            borderRadius="2xl"
+            border="1px solid rgba(234, 179, 8, 0.16)"
             overflow="hidden"
           >
             <Box w={{ base: '100%', lg: '40%' }} position="relative">

@@ -14,8 +14,12 @@ import {
   Text,
   useBreakpointValue,
   Flex,
+  HStack,
+  IconButton,
+  Tooltip,
 } from '@chakra-ui/react';
 import DatePicker from 'react-datepicker';
+import { FaCloudUploadAlt, FaPlus, FaSave, FaTimes } from 'react-icons/fa';
 import { Tag } from '../../../api/api';
 import { EventFormData } from '../types';
 
@@ -80,184 +84,178 @@ export function EventFormTab({
   const normalizedSelectedDate = selectedDate && !Number.isNaN(selectedDate.getTime()) ? selectedDate : null;
 
   const content = (
-      <VStack spacing="6" align="stretch" className="eventForm" w="100%">
-        <Heading size="lg">
-          {isEditing ? 'Редактировать событие' : 'Создать событие'}
-        </Heading>
+    <VStack spacing="6" align="stretch" className="eventForm" w="100%">
+      <Heading size="lg" color="#422006" letterSpacing="-0.04em">
+        {isEditing ? 'Редактировать событие' : 'Создать событие'}
+      </Heading>
 
-        <FormControl>
-          <FormLabel>Название</FormLabel>
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Название</FormLabel>
+        <Input
+          value={formData.title}
+          onChange={(e) => onFormDataChange({ title: e.target.value })}
+          placeholder="Введите название"
+          bg="rgba(255,255,255,0.92)"
+          size={buttonSize}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Описание</FormLabel>
+        <Textarea
+          value={formData.description}
+          onChange={(e) => onFormDataChange({ description: e.target.value })}
+          placeholder="Опишите мероприятие"
+          rows={4}
+          bg="rgba(255,255,255,0.92)"
+          size={buttonSize}
+          borderRadius="1.5rem"
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Дата и время</FormLabel>
+        <DatePicker
+          selected={normalizedSelectedDate}
+          onChange={handleDateChange}
+          showTimeSelect
+          timeFormat="HH:mm"
+          timeIntervals={15}
+          dateFormat="dd.MM.yyyy HH:mm"
+          locale="ru"
+          placeholderText="Выберите дату и время"
+          portalId="root-portal"
+          minDate={new Date()}
+          customInput={<Input bg="rgba(255,255,255,0.92)" size={buttonSize} width="100%" />}
+        />
+        {!isDateValid(formData.date) && formData.date && (
+          <Text color="red.500" fontSize="sm" mt={1}>
+            Дата должна быть минимум на сутки позже текущего времени
+          </Text>
+        )}
+      </FormControl>
+
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Место проведения</FormLabel>
+        <Input
+          value={formData.location}
+          onChange={(e) => onFormDataChange({ location: e.target.value })}
+          placeholder="Где пройдет мероприятие"
+          bg="rgba(255,255,255,0.92)"
+          size={buttonSize}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Категория</FormLabel>
+        <Select
+          value={formData.category_id}
+          onChange={(e) => onFormDataChange({ category_id: e.target.value })}
+          placeholder="Выберите категорию"
+          bg="rgba(255,255,255,0.92)"
+          size={buttonSize}
+        >
+          {categories.map((cat) => (
+            <option key={cat.id} value={String(cat.id)}>
+              {cat.category_name}
+            </option>
+          ))}
+        </Select>
+      </FormControl>
+
+      <Flex gap={4} flexWrap="wrap">
+        <FormControl flex={1} minW="150px">
+          <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Цена (BYN)</FormLabel>
           <Input
-            value={formData.title}
-            onChange={(e) => onFormDataChange({ title: e.target.value })}
-            placeholder="Введите название"
-            bg="#E7EBFC"
+            type="number"
+            value={formData.price}
+            onChange={(e) => onFormDataChange({ price: e.target.value })}
+            placeholder="0"
+            bg="rgba(255,255,255,0.92)"
             size={buttonSize}
           />
         </FormControl>
 
-        <FormControl>
-          <FormLabel>Описание</FormLabel>
-          <Textarea
-            value={formData.description}
-            onChange={(e) => onFormDataChange({ description: e.target.value })}
-            placeholder="Опишите мероприятие"
-            rows={4}
-            bg="#E7EBFC"
-            size={buttonSize}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>Дата и время</FormLabel>
-          <DatePicker
-            selected={normalizedSelectedDate}
-            onChange={handleDateChange}
-            showTimeSelect
-            timeFormat="HH:mm"
-            timeIntervals={15}
-            dateFormat="dd.MM.yyyy HH:mm"
-            locale="ru"
-            placeholderText="Выберите дату и время"
-            portalId="root-portal"
-            minDate={new Date()}
-            customInput={
-              <Input bg="#E7EBFC" size={buttonSize} width="100%" />
-            }
-          />
-          {!isDateValid(formData.date) && formData.date && (
-            <Text color="red.500" fontSize="sm" mt={1}>
-              Дата должна быть минимум на сутки позже текущего времени
-            </Text>
-          )}
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>Место проведения</FormLabel>
+        <FormControl flex={1} minW="150px">
+          <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Количество мест</FormLabel>
           <Input
-            value={formData.location}
-            onChange={(e) => onFormDataChange({ location: e.target.value })}
-            placeholder="Где пройдет мероприятие"
-            bg="#E7EBFC"
+            type="number"
+            value={formData.capacity}
+            onChange={(e) => onFormDataChange({ capacity: e.target.value })}
+            placeholder="50"
+            bg="rgba(255,255,255,0.92)"
             size={buttonSize}
           />
         </FormControl>
+      </Flex>
 
-        <FormControl>
-          <FormLabel>Категория</FormLabel>
-          <Select
-            value={formData.category_id}
-            onChange={(e) => onFormDataChange({ category_id: e.target.value })}
-            placeholder="Выберите категорию"
-            bg="#E7EBFC"
-            size={buttonSize}
-          >
-            {categories.map((cat) => (
-              <option key={cat.id} value={String(cat.id)}>
-                {cat.category_name}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Telegram чат</FormLabel>
+        <Input
+          value={formData.telegram_chat_link}
+          onChange={(e) => onFormDataChange({ telegram_chat_link: e.target.value })}
+          placeholder="@your_chat"
+          bg="rgba(255,255,255,0.92)"
+          size={buttonSize}
+        />
+      </FormControl>
 
-        <Flex gap={4} flexWrap="wrap">
-          <FormControl flex={1} minW="150px">
-            <FormLabel>Цена (BYN)</FormLabel>
-            <Input
-              type="number"
-              value={formData.price}
-              onChange={(e) => onFormDataChange({ price: e.target.value })}
-              placeholder="0"
-              bg="#E7EBFC"
-              size={buttonSize}
-            />
-          </FormControl>
-
-          <FormControl flex={1} minW="150px">
-            <FormLabel>Количество мест</FormLabel>
-            <Input
-              type="number"
-              value={formData.capacity}
-              onChange={(e) => onFormDataChange({ capacity: e.target.value })}
-              placeholder="50"
-              bg="#E7EBFC"
-              size={buttonSize}
-            />
-          </FormControl>
-        </Flex>
-
-        <FormControl>
-          <FormLabel>Telegram чат</FormLabel>
-          <Input
-            value={formData.telegram_chat_link}
-            onChange={(e) =>
-              onFormDataChange({ telegram_chat_link: e.target.value })
-            }
-            placeholder="@your_chat"
-            bg="#E7EBFC"
-            size={buttonSize}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>Теги</FormLabel>
-          <Flex flexWrap="wrap" gap={2}>
-            {tags.map((tag) => (
-              <Box
-                key={tag.id}
-                px={3}
-                py={1}
-                borderRadius="md"
-                cursor="pointer"
-                bg={formData.tags.includes(tag.id) ? 'blue.500' : 'gray.200'}
-                color={formData.tags.includes(tag.id) ? 'white' : 'gray.700'}
-                onClick={() => handleTagToggle(tag.id)}
-                _hover={{ opacity: 0.8 }}
-              >
-                {tag.name}
-              </Box>
-            ))}
-          </Flex>
-        </FormControl>
-
-        <FormControl>
-          <FormLabel>Изображение</FormLabel>
-          <Input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleImageSelect}
-            display="none"
-          />
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            variant="outline"
-            colorScheme="blue"
-            size={buttonSize}
-            width="100%"
-          >
-            {imagePreview ? 'Заменить изображение' : 'Загрузить изображение'}
-          </Button>
-          {imagePreview && (
-            <Box mt={3} className="eventFormImage">
-              <Image
-                src={imagePreview}
-                alt="Preview"
-                w="100%"
-                h="100%"
-                objectFit="cover"
-              />
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Теги</FormLabel>
+        <Flex flexWrap="wrap" gap={2}>
+          {tags.map((tag) => (
+            <Box
+              key={tag.id}
+              px={3}
+              py={2}
+              borderRadius="full"
+              cursor="pointer"
+              bg={formData.tags.includes(tag.id) ? '#facc15' : 'rgba(255,255,255,0.78)'}
+              color="#422006"
+              border="1px solid rgba(234, 179, 8, 0.16)"
+              onClick={() => handleTagToggle(tag.id)}
+              _hover={{ opacity: 0.8 }}
+            >
+              {tag.name}
             </Box>
-          )}
-        </FormControl>
+          ))}
+        </Flex>
+      </FormControl>
 
-        <Flex gap={3} mt={4}>
-          <Button
-            bg="#2E4FD7"
-            color="white"
-            _hover={{ bg: '#1e3fa9' }}
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Изображение</FormLabel>
+        <Input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleImageSelect}
+          display="none"
+        />
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          variant="outline"
+          size={buttonSize}
+          width="100%"
+          leftIcon={<FaCloudUploadAlt />}
+        >
+          {imagePreview ? 'Заменить изображение' : 'Загрузить изображение'}
+        </Button>
+        {imagePreview && (
+          <Box mt={3} className="eventFormImage">
+            <Image src={imagePreview} alt="Preview" w="100%" h="100%" objectFit="cover" />
+          </Box>
+        )}
+      </FormControl>
+
+      <HStack gap={3} mt={4} justify="flex-end">
+        <Tooltip label={isEditing ? 'Сохранить изменения' : 'Создать мероприятие'}>
+          <IconButton
+            aria-label={isEditing ? 'Сохранить изменения' : 'Создать мероприятие'}
+            icon={isEditing ? <FaSave /> : <FaPlus />}
+            bg="#facc15"
+            color="#422006"
+            _hover={{ bg: '#eab308', transform: 'scale(1.05)' }}
             size={buttonSize}
-            flex={1}
             onClick={onSubmit}
             isLoading={isLoading}
             isDisabled={
@@ -269,22 +267,21 @@ export function EventFormTab({
               !formData.price ||
               !formData.capacity
             }
-          >
-            {isEditing ? 'Сохранить' : 'Создать'}
-          </Button>
-          {isEditing && (
-            <Button
+          />
+        </Tooltip>
+        {isEditing && (
+          <Tooltip label="Отменить редактирование">
+            <IconButton
+              aria-label="Отменить редактирование"
+              icon={<FaTimes />}
               variant="outline"
-              colorScheme="blue"
               size={buttonSize}
-              flex={1}
               onClick={onCancelEdit}
-            >
-              Отмена
-            </Button>
-          )}
-        </Flex>
-      </VStack>
+            />
+          </Tooltip>
+        )}
+      </HStack>
+    </VStack>
   );
 
   return withPanel ? <TabPanel px={0}>{content}</TabPanel> : content;

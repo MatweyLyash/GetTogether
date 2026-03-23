@@ -23,7 +23,7 @@ export function FutureEventsList({ registrations, onNavigate }: FutureEventsList
   });
 
   if (futureEvents.length === 0) {
-    return <Text fontSize={fontSizeText} color="gray.600">Нет предстоящих мероприятий</Text>;
+    return <Text fontSize={fontSizeText} color="rgba(66, 32, 6, 0.64)">Нет предстоящих мероприятий</Text>;
   }
 
   return (

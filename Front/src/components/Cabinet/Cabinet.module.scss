@@ -6,8 +6,8 @@
 
 .content {
   flex: 1;
-  padding: 2rem 1rem;
-  max-width: 1200px;
+  padding: 1.5rem 1rem 0;
+  max-width: 1240px;
   margin: 0 auto;
   width: 100%;
 }
@@ -18,10 +18,10 @@
 }
 
 .tabContent {
-  background: white;
+  background: rgba(255, 255, 255, 0.88);
   padding: 1.5rem;
-  borderRadius: lg;
-  boxShadow: sm;
+  border-radius: 1.75rem;
+  box-shadow: 0 18px 34px rgba(140, 91, 14, 0.08);
 }
 
 /* Event Form */
@@ -35,7 +35,7 @@
   position: relative;
   width: 100%;
   height: 200px;
-  border-radius: lg;
+  border-radius: 1.75rem;
   overflow: hidden;
   background: #f0f0f0;
 }
@@ -53,23 +53,24 @@
 
 /* Cards */
 .card {
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   padding: 1rem;
-  border-radius: lg;
-  boxShadow: sm;
+  border-radius: 1.75rem;
+  box-shadow: 0 18px 34px rgba(140, 91, 14, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.14);
   transition: box-shadow 0.2s;
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 24px 40px rgba(140, 91, 14, 0.12);
 }
 
 /* Achievement */
 .achievementCard {
   text-align: center;
   padding: 1.5rem;
-  border: 2px solid #e7ebfc;
-  border-radius: xl;
+  border: 2px solid rgba(234, 179, 8, 0.16);
+  border-radius: 2rem;
 }
 
 .achievementCard.completed {

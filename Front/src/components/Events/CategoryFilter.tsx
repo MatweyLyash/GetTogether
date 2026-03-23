@@ -23,13 +23,14 @@ export function CategoryFilter({
 }: CategoryFilterProps) {
   return (
     <FormControl>
-      <FormLabel fontSize="sm">Категория</FormLabel>
+      <FormLabel fontSize="sm" color="rgba(66, 32, 6, 0.74)" fontWeight="700">Категория</FormLabel>
       <Select
         placeholder="Все категории"
         value={selectedCategory}
         onChange={(e) => onChange(e.target.value)}
-        bg="white"
+        bg="rgba(255,255,255,0.9)"
         size={buttonSize}
+        borderRadius="1.3rem"
       >
         {categories.map((cat) => (
           <option key={cat.id} value={String(cat.id)}>
