@@ -1,0 +1,41 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.banner {
+  padding: 3rem 1rem;
+  border-radius: xl;
+}
+
+.categories {
+  padding: 1rem 0;
+}
+
+.carousel {
+  padding: 1rem 0;
+}
+
+.reviews {
+  padding: 1rem 0;
+}
+
+.cta {
+  margin-top: 1rem;
+}
+
+.slide {
+  padding: 0.5rem;
+}

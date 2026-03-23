@@ -8,6 +8,7 @@ const { exec } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
 const PORT = process.env.PORT || 5000;
+const enableHttps = process.env.ENABLE_HTTPS === 'true';
 
 // Импортируем Telegram бота, чтобы он запустился при старте сервера
 require('./bot/telegramBot');
@@ -51,24 +52,23 @@ async function initializeDatabase() {
     }
 
     // Запускаем сервер
-    const https = require('https');
-    const fs = require('fs');
-    const path = require('path');
-    if (process.env.NODE_ENV === 'production') {
-       app.listen(PORT, () => {
-         console.log(`HTTP proxy Mode ${PORT}`);
-       })
-    }
-    else {
-        const options = {
-           key: fs.readFileSync(path.join(__dirname, '../qr_test/key.pem')),
-           cert: fs.readFileSync(path.join(__dirname, '../qr_test/cert.pem'))
-        };
-    
-     https.createServer(options, app).listen(PORT, () => {
+    if (enableHttps) {
+      const https = require('https');
+      const fs = require('fs');
+      const path = require('path');
+      const options = {
+        key: fs.readFileSync(path.join(__dirname, '../qr_test/key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, '../qr_test/cert.pem')),
+      };
+
+      https.createServer(options, app).listen(PORT, () => {
         console.log(`Сервер запущен на порту ${PORT} (HTTPS)`);
-     });
-}
+      });
+    } else {
+      app.listen(PORT, () => {
+        console.log(`Сервер запущен на порту ${PORT} (HTTP)`);
+      });
+    }
   } catch (err) {
     console.error('Ошибка при инициализации базы данных:', err);
     process.exit(1);

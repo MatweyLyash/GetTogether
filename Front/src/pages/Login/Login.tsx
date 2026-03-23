@@ -1,69 +1,42 @@
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Heading,
-  Text,
-  Input,
-  Button,
-  FormControl,
-  FormLabel,
-  useToast,
-  Flex,
-} from '@chakra-ui/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Box, Heading, Text, useToast } from '@chakra-ui/react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../../api/api';
-import {  useAuth } from '../../AuthContext/AuthContext';
+import { useAuth } from '../../AuthContext/AuthContext';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
+import { AuthContainer } from '../../components/Auth/AuthContainer';
+import { AuthTabs } from '../../components/Auth/AuthTabs';
+import { LoginForm } from '../../components/Auth/LoginForm';
+import { RegisterForm } from '../../components/Auth/RegisterForm';
 import styles from './Login.module.scss';
 
+type AuthTab = 'login' | 'register';
+
 function Login() {
-  const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [loginInput, setLoginInput] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [tab, setTab] = useState<AuthTab>('login');
   const [isLoading, setIsLoading] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loginUser } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
-  const { loginUser } = useAuth(); 
 
-  // Эффект для перенаправления после успешной авторизации
+  // Redirect after authentication
   useEffect(() => {
     if (isAuthenticated && user) {
-      switch (user.role_id) {
-        case 1: // Обычный пользователь
-          navigate('/');
-          break;
-        case 2: // Организатор
-          navigate('/cabinet');
-          break;
-        case 3: // Администратор
-          navigate('/admin');
-          break;
-        default:
-          navigate('/');
-      }
+      const redirectPaths: Record<number, string> = {
+        1: '/',
+        2: '/cabinet',
+        3: '/admin',
+      };
+      navigate(redirectPaths[user.role_id] || '/', { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
-  // Обработчик авторизации
-  const handleLogin = async () => {
-    if (!loginInput || !password) {
-      toast({
-        title: 'Ошибка',
-        description: 'Заполните все поля',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
+  const handleLoginSubmit = async (login: string, password: string) => {
     setIsLoading(true);
     try {
-      await loginUser({ login: loginInput, password });
+      await loginUser({ login, password });
       toast({
         title: 'Успех',
         description: 'Вход выполнен',
@@ -84,51 +57,10 @@ function Login() {
     }
   };
 
-  // Проверка пароля
-  const validatePassword = (pass: string): boolean => {
-    // Минимум 8 символов, хотя бы одна буква и одна цифра
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    return passwordRegex.test(pass);
-  };
-
-  // Обработчик регистрации
-  const handleRegister = async () => {
-    if (!loginInput || !password || !confirmPassword) {
-      toast({
-        title: 'Ошибка',
-        description: 'Заполните все поля',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      toast({
-        title: 'Ошибка',
-        description: 'Пароль должен содержать минимум 8 символов, включая буквы латиницы и цифры',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: 'Ошибка',
-        description: 'Пароли не совпадают',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
+  const handleRegisterSubmit = async (login: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await register({ login: loginInput, password });
+      const response = await register({ login, password });
       toast({
         title: 'Успех',
         description: response.message,
@@ -136,9 +68,6 @@ function Login() {
         duration: 3000,
         isClosable: true,
       });
-      setLoginInput('');
-      setPassword('');
-      setConfirmPassword('');
       setTab('login');
     } catch (error: any) {
       toast({
@@ -154,13 +83,7 @@ function Login() {
   };
 
   return (
-    <Box className={styles.container}>
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-          body { font-family: 'Inter', sans-serif; }
-        `}
-      </style>
+    <AuthContainer>
       <Header />
       <Box className={styles.content}>
         <Box className={styles.formContainer}>
@@ -175,133 +98,26 @@ function Login() {
             <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="#333">
               Войдите или зарегистрируйтесь, чтобы присоединиться к событиям
             </Text>
-            <Box bg="#FEFEFE" p={{ base: '1.5rem', md: '2rem' }} borderRadius="md" boxShadow="sm" maxW="400px" w="100%">
-              <Flex mb="1.5rem" justify="center" gap="1rem">
-                <Button
-                  variant={tab === 'login' ? 'solid' : 'ghost'}
-                  bg={tab === 'login' ? '#2E4FD7' : 'transparent'}
-                  color={tab === 'login' ? 'white' : '#2E4FD7'}
-                  _hover={{ bg: tab === 'login' ? '#1e3fa9' : '#E7EBFC' }}
-                  onClick={() => setTab('login')}
-                  className={styles.tabButton}
-                >
-                  Вход
-                </Button>
-                <Button
-                  variant={tab === 'register' ? 'solid' : 'ghost'}
-                  bg={tab === 'register' ? '#2E4FD7' : 'transparent'}
-                  color={tab === 'register' ? 'white' : '#2E4FD7'}
-                  _hover={{ bg: tab === 'register' ? '#1e3fa9' : '#E7EBFC' }}
-                  onClick={() => setTab('register')}
-                  className={styles.tabButton}
-                >
-                  Регистрация
-                </Button>
-              </Flex>
-              <AnimatePresence mode="wait">
-                {tab === 'login' ? (
-                  <Box className={styles.formWrapper}>
-                    <motion.div
-                      key="login"
-                      initial={{ opacity: 0, x: -50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 50 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <FormControl mb="1rem">
-                        <FormLabel>Логин</FormLabel>
-                        <Input
-                          value={loginInput}
-                          onChange={(e) => setLoginInput(e.target.value)}
-                          placeholder="Введите логин"
-                          bg="#E7EBFC"
-                        />
-                      </FormControl>
-                      <FormControl mb="1rem">
-                        <FormLabel>Пароль</FormLabel>
-                        <Input
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Введите пароль"
-                          bg="#E7EBFC"
-                        />
-                      </FormControl>
-                      <Button
-                        bg="#2E4FD7"
-                        color="white"
-                        _hover={{ bg: '#1e3fa9' }}
-                        _active={{ bg: '#15307a' }}
-                        w="100%"
-                        isLoading={isLoading}
-                        onClick={handleLogin}
-                      >
-                        Войти
-                      </Button>
-                    </motion.div>
-                  </Box>
-                ) : (
-                  <Box className={styles.formWrapper}>
-                    <motion.div
-                      key="register"
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <FormControl mb="1rem">
-                        <FormLabel>Логин</FormLabel>
-                        <Input
-                          value={loginInput}
-                          onChange={(e) => setLoginInput(e.target.value)}
-                          placeholder="Введите логин"
-                          bg="#E7EBFC"
-                        />
-                      </FormControl>
-                      <FormControl mb="1rem">
-                        <FormLabel>Пароль</FormLabel>
-                        <Input
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Введите пароль"
-                          bg="#E7EBFC"
-                        />
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                          Минимум 8 символов, включая буквы латиницы и цифры
-                        </Text>
-                      </FormControl>
-                      <FormControl mb="1rem">
-                        <FormLabel>Подтверждение пароля</FormLabel>
-                        <Input
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Повторите пароль"
-                          bg="#E7EBFC"
-                        />
-                      </FormControl>
-                      <Button
-                        bg="#2E4FD7"
-                        color="white"
-                        _hover={{ bg: '#1e3fa9' }}
-                        _active={{ bg: '#15307a' }}
-                        w="100%"
-                        isLoading={isLoading}
-                        onClick={handleRegister}
-                      >
-                        Зарегистрироваться
-                      </Button>
-                    </motion.div>
-                  </Box>
-                )}
-              </AnimatePresence>
+            <Box
+              bg="#FEFEFE"
+              p={{ base: '1.5rem', md: '2rem' }}
+              borderRadius="md"
+              boxShadow="sm"
+              maxW="400px"
+              w="100%"
+            >
+              <AuthTabs activeTab={tab} onTabChange={setTab} />
+              {tab === 'login' ? (
+                <LoginForm onSubmit={handleLoginSubmit} isLoading={isLoading} />
+              ) : (
+                <RegisterForm onSubmit={handleRegisterSubmit} isLoading={isLoading} />
+              )}
             </Box>
           </motion.div>
         </Box>
       </Box>
       <Footer />
-    </Box>
+    </AuthContainer>
   );
 }
 
