@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Box, Text, Heading, useToast, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Text, Heading, HStack, SimpleGrid, useToast, useBreakpointValue } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { getEvents, getCategories, getTags, Tag } from '../../api/api';
@@ -8,9 +8,9 @@ import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import { EventsLayout } from '../../components/Events/EventsLayout';
 import { FilterSidebar } from '../../components/Events/FilterSidebar';
-import { SearchFilter } from '../../components/Events/SearchFilter';
+import { SearchTitleFilter, SearchLocationFilter } from '../../components/Events/SearchFilter';
 import { CategoryFilter } from '../../components/Events/CategoryFilter';
-import { DateRangeFilter } from '../../components/Events/DateRangeFilter';
+import { StartDateFilter, EndDateFilter } from '../../components/Events/DateRangeFilter';
 import { TagsFilter } from '../../components/Events/TagsFilter';
 import { FilterActions } from '../../components/Events/FilterActions';
 import { ActiveFiltersDisplay } from '../../components/Events/ActiveFiltersDisplay';
@@ -64,7 +64,7 @@ function Events() {
   const location = useLocation();
 
   const headingSize = useBreakpointValue({ base: 'lg', md: 'xl' });
-  const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const categoryNames = useMemo(
     () =>
@@ -261,7 +261,7 @@ function Events() {
             textAlign={{ base: 'center', md: 'left' }}
             letterSpacing="-0.05em"
           >
-            Встречи рядом с вами
+            Мероприятия
           </Heading>
 
           <Text fontSize={{ base: 'md', md: 'lg' }} mb="2rem" color="rgba(66, 32, 6, 0.68)">
@@ -270,25 +270,29 @@ function Events() {
 
           <div className={styles.contentContainer}>
             <FilterSidebar isOpen={isFilterOpen} onToggle={() => setIsFilterOpen(!isFilterOpen)}>
-              <SearchFilter
-                searchTitle={searchTitle}
-                searchLocation={searchLocation}
-                onTitleChange={setSearchTitle}
-                onLocationChange={setSearchLocation}
-              />
-
-              <CategoryFilter
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onChange={setSelectedCategory}
-              />
-
-              <DateRangeFilter
-                startDate={startDate}
-                endDate={endDate}
-                onStartDateChange={setStartDate}
-                onEndDateChange={setEndDate}
-              />
+              <SimpleGrid columns={{ base: 1, sm: 2, md: 3, xl: 5 }} spacing="1rem">
+                <SearchTitleFilter
+                  searchTitle={searchTitle}
+                  onTitleChange={setSearchTitle}
+                />
+                <SearchLocationFilter
+                  searchLocation={searchLocation}
+                  onLocationChange={setSearchLocation}
+                />
+                <CategoryFilter
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onChange={setSelectedCategory}
+                />
+                <StartDateFilter
+                  startDate={startDate}
+                  onStartDateChange={setStartDate}
+                />
+                <EndDateFilter
+                  endDate={endDate}
+                  onEndDateChange={setEndDate}
+                />
+              </SimpleGrid>
 
               <TagsFilter
                 tags={tags}
@@ -300,23 +304,28 @@ function Events() {
                 }}
               />
 
-              <FilterActions
-                onApply={applyFilters}
-                onReset={handleReset}
-                isLoading={isLoading}
-                hasFilters={hasFilters}
-              />
-
-              <ActiveFiltersDisplay
-                searchTitle={searchTitle}
-                searchLocation={searchLocation}
-                selectedCategory={selectedCategory}
-                categoryNames={categoryNames}
-                startDate={startDate}
-                endDate={endDate}
-                selectedTags={selectedTags}
-                tags={tags}
-              />
+              <HStack align="flex-start" spacing="1rem" flexWrap="wrap">
+                <Box flexShrink={0}>
+                  <FilterActions
+                    onApply={applyFilters}
+                    onReset={handleReset}
+                    isLoading={isLoading}
+                    hasFilters={hasFilters}
+                  />
+                </Box>
+                <Box flex="1" minW="0">
+                  <ActiveFiltersDisplay
+                    searchTitle={searchTitle}
+                    searchLocation={searchLocation}
+                    selectedCategory={selectedCategory}
+                    categoryNames={categoryNames}
+                    startDate={startDate}
+                    endDate={endDate}
+                    selectedTags={selectedTags}
+                    tags={tags}
+                  />
+                </Box>
+              </HStack>
             </FilterSidebar>
 
             <div className={styles.eventContainer}>

@@ -115,6 +115,7 @@ function Admin() {
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
+  const [achievementTabIndex, setAchievementTabIndex] = useState(0);
   const [achForm, setAchForm] = useState<AchievementPayload>({
     name: '',
     description: '',
@@ -218,6 +219,20 @@ function Admin() {
     setEditingAchievement(null);
     setAchForm({ name: '', description: '', score: 1, trigger: 'apply', condition_category_id: null, condition_payload: null, image: '' });
     setAchImagePreview(null);
+    setAchievementTabIndex(0);
+    if (achFileInputRef.current) {
+      achFileInputRef.current.value = '';
+    }
+  };
+
+  const openAchievementCreator = () => {
+    setEditingAchievement(null);
+    setAchForm({ name: '', description: '', score: 1, trigger: 'apply', condition_category_id: null, condition_payload: null, image: '' });
+    setAchImagePreview(null);
+    setAchievementTabIndex(1);
+    if (achFileInputRef.current) {
+      achFileInputRef.current.value = '';
+    }
   };
 
   const handleAchSubmit = async () => {
@@ -265,7 +280,11 @@ function Admin() {
       condition_payload: null,
       image: typeof a.image === 'string' ? a.image : '',
     });
-    setAchImagePreview(typeof a.image === 'string' ? a.image : null);
+    setAchImagePreview(toImageSrc(a.image));
+    setAchievementTabIndex(1);
+    if (achFileInputRef.current) {
+      achFileInputRef.current.value = '';
+    }
   };
 
   const handleAchDelete = async (id: number) => {
@@ -552,6 +571,22 @@ function Admin() {
     if (!categoryId) return null;
     const category = categories.find((cat) => cat.id === categoryId);
     return category ? category.category_name : `ID: ${categoryId}`;
+  };
+
+  const getAchievementConditionLabel = (achievement: Achievement) => {
+    if (achievement.trigger === 'category' && achievement.condition_category_id) {
+      return getCategoryName(achievement.condition_category_id) || 'Без категории';
+    }
+
+    if (achievement.condition_event_id) {
+      return `Мероприятие #${achievement.condition_event_id}`;
+    }
+
+    if (achievement.condition_payload) {
+      return JSON.stringify(achievement.condition_payload);
+    }
+
+    return 'Без дополнительного условия';
   };
 
   if (authLoading) {
@@ -988,103 +1023,141 @@ function Admin() {
               {/* Achievements */}
               <TabPanel px={{ base: 0, md: 4 }}>
                 <VStack spacing="2rem" align="stretch" width="100%">
-                  <Heading size="md">{editingAchievement ? 'Редактирование достижения' : 'Создать достижение'}</Heading>
-                  <VStack spacing="1rem" align="stretch">
-                    <FormControl isRequired>
-                      <FormLabel>Название</FormLabel>
-                      <Input value={achForm.name} onChange={(e) => setAchForm((f) => ({ ...f, name: e.target.value }))} placeholder="Название" bg="rgba(255,255,255,0.92)" />
-                    </FormControl>
-                    <FormControl>
-                      <FormLabel>Описание</FormLabel>
-                      <Textarea value={achForm.description || ''} onChange={(e) => setAchForm((f) => ({ ...f, description: e.target.value }))} placeholder="Краткое описание" bg="rgba(255,255,255,0.92)" borderRadius="1.5rem" />
-                    </FormControl>
-                    <HStack spacing="1rem" align="stretch" flexWrap="wrap">
-                      <FormControl width={{ base: '100%', md: '200px' }} isRequired>
-                        <FormLabel>Очки / score</FormLabel>
-                        <Input type="number" min={1} value={achForm.score} onChange={(e) => setAchForm((f) => ({ ...f, score: Number(e.target.value) }))} bg="rgba(255,255,255,0.92)" />
-                        <Text fontSize="sm" color="rgba(66, 32, 6, 0.64)" mt="1">Минимум действий для открытия (например, 3 посещения)</Text>
-                      </FormControl>
-                      <FormControl width={{ base: '100%', md: '220px' }} isRequired>
-                        <FormLabel>Триггер</FormLabel>
-                        <Select value={achForm.trigger} onChange={(e) => setAchForm((f) => ({ ...f, trigger: e.target.value as AchievementPayload['trigger'] }))} bg="rgba(255,255,255,0.92)">
-                          {triggerOptions.map((t) => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      {achForm.trigger === 'category' && (
-                        <FormControl width={{ base: '100%', md: '220px' }}>
-                          <FormLabel>Категория (для category)</FormLabel>
-                          <Select
-                            placeholder="Выберите категорию"
-                            value={achForm.condition_category_id ? String(achForm.condition_category_id) : ''}
-                            onChange={(e) => setAchForm((f) => ({ ...f, condition_category_id: e.target.value ? Number(e.target.value) : null }))}
-                            bg="rgba(255,255,255,0.92)"
-                          >
-                            {categories.map((cat) => (
-                              <option key={cat.id} value={cat.id}>{cat.category_name}</option>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      )}
-                    </HStack>
-                    <FormControl>
-                      <FormLabel>Изображение (опционально)</FormLabel>
-                      <Input type="file" accept="image/*" ref={achFileInputRef} onChange={handleAchImageChange} display="none" />
-                      <Button onClick={() => achFileInputRef.current?.click()} variant="outline" width="100%" leftIcon={<FaCloudUploadAlt />}>
-                        {achImagePreview || achForm.image ? 'Заменить изображение' : 'Загрузить изображение'}
-                      </Button>
-                      {(achImagePreview || achForm.image) && (
-                        <Box mt={3} borderRadius="12px" overflow="hidden" maxH="240px">
-                          <Image src={achImagePreview || (typeof achForm.image === 'string' ? achForm.image : '')} alt="Предосмотр достижения" w="100%" h="100%" objectFit="cover" />
-                        </Box>
-                      )}
-                    </FormControl>
-                    <HStack spacing="1rem">
-                      <Tooltip label={editingAchievement ? 'Сохранить достижение' : 'Создать достижение'}><IconButton aria-label={editingAchievement ? 'Сохранить достижение' : 'Создать достижение'} icon={editingAchievement ? <FaCheck /> : <FaPlus />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={handleAchSubmit} isDisabled={isLoading} /></Tooltip>
-                      {editingAchievement && (
-                        <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="outline" onClick={resetAchForm} isDisabled={isLoading} /></Tooltip>
-                      )}
-                    </HStack>
-                  </VStack>
-                  <Heading size="md">Список достижений</Heading>
-                  <Box overflowX="auto">
-                    <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
-                      <Thead>
-                        <Tr>
-                          <Th>#</Th>
-                          <Th>Название</Th>
-                          <Th>Триггер</Th>
-                          <Th>Score</Th>
-                          <Th>Условия</Th>
-                          <Th>Действия</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {achievements.map((a) => (
-                          <Tr key={a.id}>
-                            <Td>{a.id}</Td>
-                            <Td>{a.name}</Td>
-                            <Td>{getTriggerLabel(a.trigger)}</Td>
-                            <Td>{a.score}</Td>
-                            <Td>
-                              <Text fontSize="sm">
-                                {a.condition_event_id ? `event_id: ${a.condition_event_id}` : ''}
-                                {a.condition_category_id ? ` cat_id: ${a.condition_category_id}` : ''}
-                                {a.condition_payload ? ` payload: ${JSON.stringify(a.condition_payload)}` : ''}
-                              </Text>
-                            </Td>
-                            <Td>
-                              <HStack spacing="2">
-                                <Tooltip label="Редактировать"><IconButton aria-label="Редактировать" icon={<FaEdit />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleAchEdit(a)} isDisabled={isLoading} /></Tooltip>
-                                <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleAchDelete(a.id)} isDisabled={isLoading} /></Tooltip>
-                              </HStack>
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
-                  </Box>
+                  <Heading size="md">Управление достижениями</Heading>
+                  <Tabs
+                    index={achievementTabIndex}
+                    onChange={(index) => {
+                      if (achievementTabIndex === 1 && index !== 1) {
+                        resetAchForm();
+                        return;
+                      }
+                      setAchievementTabIndex(index);
+                    }}
+                    variant="soft-rounded"
+                    width="100%"
+                    isLazy
+                  >
+                    <TabList mb="1rem" flexWrap="wrap" gap="0.5rem">
+                      <Tab px="1.25rem" py="0.85rem">Список достижений</Tab>
+                      <Tab display="none">{editingAchievement ? 'Редактирование достижения' : 'Создание достижения'}</Tab>
+                    </TabList>
+                    <TabPanels width="100%">
+                      <TabPanel px={0}>
+                        <VStack spacing="1.5rem" align="stretch" className={styles.achievementListPanel}>
+                          <HStack justify="space-between" align="center" flexWrap="wrap" className={styles.achievementToolbar}>
+                            <Heading size="md">Список достижений</Heading>
+                            <Button bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} leftIcon={<FaPlus />} onClick={openAchievementCreator} isDisabled={isLoading}>
+                              Создать достижение
+                            </Button>
+                          </HStack>
+                          <Box overflowX="auto">
+                            <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
+                              <Thead>
+                                <Tr>
+                                  <Th>#</Th>
+                                  <Th>Изображение</Th>
+                                  <Th>Название</Th>
+                                  <Th>Триггер</Th>
+                                  <Th>Score</Th>
+                                  <Th>Условия</Th>
+                                  <Th>Действия</Th>
+                                </Tr>
+                              </Thead>
+                              <Tbody>
+                                {achievements.map((a) => {
+                                  const imageSrc = toImageSrc(a.image);
+                                  return (
+                                    <Tr key={a.id}>
+                                      <Td>{a.id}</Td>
+                                      <Td>
+                                        {imageSrc ? (
+                                          <Image src={imageSrc} alt={a.name} boxSize="56px" objectFit="cover" borderRadius="12px" />
+                                        ) : (
+                                          <Text fontSize="sm" color="rgba(66, 32, 6, 0.64)">Нет изображения</Text>
+                                        )}
+                                      </Td>
+                                      <Td>{a.name}</Td>
+                                      <Td>{getTriggerLabel(a.trigger)}</Td>
+                                      <Td>{a.score}</Td>
+                                      <Td>
+                                        <Text fontSize="sm" className={styles.achievementCondition}>{getAchievementConditionLabel(a)}</Text>
+                                      </Td>
+                                      <Td>
+                                        <HStack spacing="2">
+                                          <Tooltip label="Редактировать"><IconButton aria-label="Редактировать" icon={<FaEdit />} size="xs" bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={() => handleAchEdit(a)} isDisabled={isLoading} /></Tooltip>
+                                          <Tooltip label="Удалить"><IconButton aria-label="Удалить" icon={<FaTrash />} size="xs" variant="outline" borderColor="rgba(180, 83, 9, 0.24)" color="#7c2d12" onClick={() => handleAchDelete(a.id)} isDisabled={isLoading} /></Tooltip>
+                                        </HStack>
+                                      </Td>
+                                    </Tr>
+                                  );
+                                })}
+                              </Tbody>
+                            </Table>
+                          </Box>
+                        </VStack>
+                      </TabPanel>
+
+                      <TabPanel px={0}>
+                        <VStack spacing="1rem" align="stretch" className={styles.achievementFormPanel}>
+                          <Heading size="md">{editingAchievement ? 'Редактирование достижения' : 'Создать достижение'}</Heading>
+                          <FormControl isRequired>
+                            <FormLabel>Название</FormLabel>
+                            <Input value={achForm.name} onChange={(e) => setAchForm((f) => ({ ...f, name: e.target.value }))} placeholder="Название" bg="rgba(255,255,255,0.92)" />
+                          </FormControl>
+                          <FormControl>
+                            <FormLabel>Описание</FormLabel>
+                            <Textarea value={achForm.description || ''} onChange={(e) => setAchForm((f) => ({ ...f, description: e.target.value }))} placeholder="Краткое описание" bg="rgba(255,255,255,0.92)" borderRadius="1.5rem" />
+                          </FormControl>
+                          <HStack spacing="1rem" align="stretch" flexWrap="wrap">
+                            <FormControl width={{ base: '100%', md: '200px' }} isRequired>
+                              <FormLabel>Очки / score</FormLabel>
+                              <Input type="number" min={1} value={achForm.score} onChange={(e) => setAchForm((f) => ({ ...f, score: Number(e.target.value) }))} bg="rgba(255,255,255,0.92)" />
+                              <Text fontSize="sm" color="rgba(66, 32, 6, 0.64)" mt="1">Минимум действий для открытия (например, 3 посещения)</Text>
+                            </FormControl>
+                            <FormControl width={{ base: '100%', md: '220px' }} isRequired>
+                              <FormLabel>Триггер</FormLabel>
+                              <Select value={achForm.trigger} onChange={(e) => setAchForm((f) => ({ ...f, trigger: e.target.value as AchievementPayload['trigger'] }))} bg="rgba(255,255,255,0.92)">
+                                {triggerOptions.map((t) => (
+                                  <option key={t.value} value={t.value}>{t.label}</option>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            {achForm.trigger === 'category' && (
+                              <FormControl width={{ base: '100%', md: '220px' }}>
+                                <FormLabel>Категория (для category)</FormLabel>
+                                <Select
+                                  placeholder="Выберите категорию"
+                                  value={achForm.condition_category_id ? String(achForm.condition_category_id) : ''}
+                                  onChange={(e) => setAchForm((f) => ({ ...f, condition_category_id: e.target.value ? Number(e.target.value) : null }))}
+                                  bg="rgba(255,255,255,0.92)"
+                                >
+                                  {categories.map((cat) => (
+                                    <option key={cat.id} value={cat.id}>{cat.category_name}</option>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            )}
+                          </HStack>
+                          <FormControl>
+                            <FormLabel>Изображение (опционально)</FormLabel>
+                            <Input type="file" accept="image/*" ref={achFileInputRef} onChange={handleAchImageChange} display="none" />
+                            <Button onClick={() => achFileInputRef.current?.click()} variant="outline" width="100%" leftIcon={<FaCloudUploadAlt />}>
+                              {achImagePreview || achForm.image ? 'Заменить изображение' : 'Загрузить изображение'}
+                            </Button>
+                            {(achImagePreview || achForm.image) && (
+                              <Box mt={3} className={styles.achievementPreview}>
+                                <Image src={achImagePreview || toImageSrc(achForm.image) || ''} alt="Предосмотр достижения" w="100%" h="100%" objectFit="cover" />
+                              </Box>
+                            )}
+                          </FormControl>
+                          <HStack spacing="1rem">
+                            <Tooltip label={editingAchievement ? 'Сохранить достижение' : 'Создать достижение'}><IconButton aria-label={editingAchievement ? 'Сохранить достижение' : 'Создать достижение'} icon={editingAchievement ? <FaCheck /> : <FaPlus />} bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} onClick={handleAchSubmit} isDisabled={isLoading} /></Tooltip>
+                            <Tooltip label="Отмена"><IconButton aria-label="Отмена" icon={<FaTimes />} variant="outline" onClick={resetAchForm} isDisabled={isLoading} /></Tooltip>
+                          </HStack>
+                        </VStack>
+                      </TabPanel>
+                    </TabPanels>
+                  </Tabs>
                 </VStack>
               </TabPanel>
 

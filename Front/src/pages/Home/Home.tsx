@@ -170,17 +170,15 @@ function Home() {
           body { font-family: 'Inter', sans-serif; }
           .slick-track {
             display: flex;
-            align-items: center;
-            padding-top:10px;
-            padding-bottom:10px;
+            align-items: stretch;
+            padding-top: 10px;
+            padding-bottom: 10px;
           }
-          @media(max-width: 768px) {
-            .slick-track {
-              height: 500px;
-            }
-            .slick-list {
-              height: 520px;
-            }
+          .slick-slide {
+            height: auto;
+          }
+          .slick-slide > div {
+            height: 100%;
           }
         `}
       </style>

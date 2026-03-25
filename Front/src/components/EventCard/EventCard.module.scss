@@ -5,12 +5,10 @@
   border: 1px solid rgba(234, 179, 8, 0.16);
   border-radius: 2rem;
   padding: 1.5rem;
-  box-shadow: 0 20px 40px rgba(140, 91, 14, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  height: auto;
+  height: 100%;
   min-height: 360px;
   width: 100%;
 }
@@ -36,8 +34,7 @@
 }
 
 .card:hover {
-  transform: translateY(-6px) rotate(-0.4deg);
-  box-shadow: 0 26px 48px rgba(140, 91, 14, 0.15);
+  transform: translateY(-6px) rotate(-0.4deg)
 }
 
 .organizerRow {
@@ -105,7 +102,7 @@
 }
 
 .cardButton {
-  margin-top: 1.5rem;
+  justify-content: flex-end;
   padding: 0.85rem 1.5rem;
   font-weight: 700;
   border-radius: 999px !important;

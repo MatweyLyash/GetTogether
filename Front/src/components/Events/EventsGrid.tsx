@@ -8,6 +8,8 @@ interface EventsGridProps {
   isLoading: boolean;
   columns?: {
     base: number;
+    sm?: number;
+    md?: number;
     lg?: number;
     xl?: number;
   };
@@ -16,7 +18,7 @@ interface EventsGridProps {
 /**
  * Grid of event cards with loading state
  */
-export function EventsGrid({ events, isLoading, columns = { base: 1, xl: 2 } }: EventsGridProps) {
+export function EventsGrid({ events, isLoading, columns = { base: 1, md: 2 } }: EventsGridProps) {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" py="4rem" minH="300px">
@@ -40,6 +42,7 @@ export function EventsGrid({ events, isLoading, columns = { base: 1, xl: 2 } }: 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
+          style={{ height: '100%', display: 'flex' }}
         >
           <EventCard event={event} />
         </motion.div>

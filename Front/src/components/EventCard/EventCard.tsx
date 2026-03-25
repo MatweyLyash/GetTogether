@@ -23,6 +23,7 @@ function EventCard({ event }: EventCardProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, type: 'spring', stiffness: 120, damping: 18 }}
+        style={{ height: '100%' }}
       >
         <Box className={styles.cardInner}>
           <HStack className={styles.organizerRow} spacing={3}>
@@ -37,7 +38,7 @@ function EventCard({ event }: EventCardProps) {
           <Text className={styles.cardTitle} noOfLines={2}>{event.title}</Text>
           <Box className={styles.cardContent}>
             <VStack className={styles.cardTextContainer} align="stretch" spacing={2}>
-              <Text className={styles.cardText}>
+              <Text className={styles.cardText} noOfLines={1}>
                 Дата: {new Intl.DateTimeFormat('ru-RU', {
                   day: 'numeric',
                   month: 'long',
@@ -46,9 +47,9 @@ function EventCard({ event }: EventCardProps) {
                   minute: '2-digit',
                 }).format(new Date(event.date))}
               </Text>
-              <Text className={styles.cardText}>Категория: {event.category.category_name}</Text>
-              <Text className={styles.cardText}>Цена: {event.price === 0 ? 'Бесплатно' : `${event.price} BYN`}</Text>
-              <Text className={styles.cardText}>Свободные места: {event.capacity}</Text>
+              <Text className={styles.cardText} noOfLines={1}>Категория: {event.category.category_name}</Text>
+              <Text className={styles.cardText} noOfLines={1}>Цена: {event.price === 0 ? 'Бесплатно' : `${event.price} BYN`}</Text>
+              <Text className={styles.cardText} noOfLines={1}>Свободные места: {event.capacity}</Text>
               <Text className={styles.cardText}>Локация: {event.location}</Text>
             </VStack>
             <Box className={styles.cardImageContainer}>

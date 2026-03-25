@@ -382,7 +382,14 @@ function Cabinet() {
             formData={eventFormData}
             imagePreview={imagePreview}
             onFormDataChange={handleEventFormDataChange}
-            onImageChange={setImageFile}
+            onImageChange={(file) => {
+              setImageFile(file);
+              if (file) {
+                setImagePreview(URL.createObjectURL(file));
+              } else {
+                setImagePreview(null);
+              }
+            }}
             onSubmit={handleEventSubmit}
             onCancelEdit={resetEventForm}
             onEdit={handleEditEvent}
