@@ -61,7 +61,7 @@
   .eventEditorImage {
     border-radius: 1.5rem;
     overflow: hidden;
-    max-height: 240px;
+    max-height: 600px;
     box-shadow: 0 12px 26px rgba(140, 91, 14, 0.14);
   }
 
@@ -88,6 +88,7 @@
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
+    margin-inline: 1rem;
   }
 
   .achievementPreview {

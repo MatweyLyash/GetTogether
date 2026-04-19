@@ -31,6 +31,7 @@ import { OwnEventsTab } from '../../components/Cabinet/OwnEvents/OwnEventsTab';
 import { EventRequestsModal } from '../../components/Cabinet/OwnEvents/EventRequestsModal';
 import { AchievementsTab } from '../../components/Cabinet/Achievements/AchievementsTab';
 import { CabinetEvent, CabinetEventRegistration, CabinetOrganizerRequest, CabinetEventRequest, EventFormData } from '../../components/Cabinet/types';
+import { apiDateToLocalString } from '../../utils/date';
 import styles from './Cabinet.module.scss';
 
 function Cabinet() {
@@ -57,6 +58,8 @@ function Cabinet() {
     capacity: '',
     telegram_chat_link: '',
     tags: [],
+    latitude: '',
+    longitude: '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -130,17 +133,19 @@ function Cabinet() {
     if (incomingIsEditing && eventData) {
       setIsEditing(true);
       setEditingEventId(eventId || null);
-      setEventFormData({
-        title: eventData.title,
-        description: eventData.description,
-        date: eventData.date,
-        location: eventData.location,
-        category_id: eventData.category_id,
-        price: eventData.price,
-        capacity: eventData.capacity,
-        telegram_chat_link: eventData.telegram_chat_link,
-        tags: eventData.tags?.map((t: Tag) => t.id) || [],
-      });
+    setEventFormData({
+      title: eventData.title,
+      description: eventData.description,
+      date: apiDateToLocalString(eventData.date),
+      location: eventData.location,
+      category_id: eventData.category_id,
+      price: eventData.price,
+      capacity: eventData.capacity,
+      telegram_chat_link: eventData.telegram_chat_link,
+      tags: eventData.tags?.map((t: Tag) => t.id) || [],
+      latitude: eventData.latitude != null ? String(eventData.latitude) : '',
+      longitude: eventData.longitude != null ? String(eventData.longitude) : '',
+    });
       if (eventData.image) setImagePreview(eventData.image);
     }
   }, [location.state]);
@@ -270,6 +275,8 @@ function Cabinet() {
       capacity: '',
       telegram_chat_link: '',
       tags: [],
+      latitude: '',
+      longitude: '',
     });
     setImageFile(null);
     setImagePreview(null);
@@ -283,13 +290,15 @@ function Cabinet() {
     setEventFormData({
       title: event.title,
       description: event.description,
-      date: event.date.slice(0, 16),
+      date: apiDateToLocalString(event.date),
       location: event.location,
       category_id: String(event.category_id),
       price: event.price,
       capacity: String(event.capacity),
       telegram_chat_link: event.telegram_chat_link || '',
       tags: event.tags?.map((t: Tag) => t.id) || [],
+      latitude: event.latitude != null ? String(event.latitude) : '',
+      longitude: event.longitude != null ? String(event.longitude) : '',
     });
     if (event.image) setImagePreview(toImageSrc(event.image));
     setTabIndex(2);

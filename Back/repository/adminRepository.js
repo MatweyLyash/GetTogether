@@ -77,7 +77,7 @@ class AdminRepository {
         await models.Event.findAll()
     }
 
-    async updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags) {
+    async updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags, latitude, longitude) {
         const updateData = {
             title,
             description,
@@ -86,7 +86,9 @@ class AdminRepository {
             category_id,
             price,
             capacity,
-            telegram_chat_link
+            telegram_chat_link,
+            latitude,
+            longitude
         };
         if (image !== undefined) {
             updateData.image = image; // Обновляем изображение, если передано

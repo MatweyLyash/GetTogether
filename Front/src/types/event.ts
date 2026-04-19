@@ -7,6 +7,8 @@ export interface Event {
   price: number;
   capacity: number;
   location: string;
+  latitude: number | null;
+  longitude: number | null;
   image: string | null;
   deletedAt: string | null;
   telegram_chat_link: string | null;
@@ -23,7 +25,7 @@ export interface Event {
 
 export interface EventResponse {
   event: Event;
-  registration: { id: string; status: number; telegram_invite_link: string | null } | null;
+  registration: { id: string; status: number; telegram_invite_link: string | null; qr_code_used?: boolean } | null;
 }
 
 export interface Category {

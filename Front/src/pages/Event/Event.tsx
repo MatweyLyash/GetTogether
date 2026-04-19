@@ -25,7 +25,6 @@ import { useAuth } from '../../AuthContext/AuthContext';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import { EventImage } from '../../components/Event/EventImage';
-import { EventPriceBadge } from '../../components/Event/EventPriceBadge';
 import { EventTags } from '../../components/Event/EventTags';
 import { EventOrganizerInfo } from '../../components/Event/EventOrganizerInfo';
 import { EventStats } from '../../components/Event/EventStats';
@@ -36,6 +35,8 @@ import { ReviewsSection } from '../../components/Event/ReviewsSection';
 import { QRCodeModal } from '../../components/Event/QRCodeModal';
 import { RegistrationModal } from '../../components/Event/RegistrationModal';
 import { CancellationModal } from '../../components/Event/CancellationModal';
+import { EventMap } from '../../components/Map/EventMap';
+import { apiDateToLocalString } from '../../utils/date';
 import styles from './Event.module.scss';
 
 function EventPage() {
@@ -155,13 +156,16 @@ function EventPage() {
         eventData: {
           title: event.title,
           description: event.description,
-          date: event.date.slice(0, 16),
+          date: apiDateToLocalString(event.date),
           location: event.location,
           category_id: event.category.id,
           price: event.price,
           capacity: event.capacity,
           telegram_chat_link: event.telegram_chat_link,
           image: event.image,
+          latitude: event.latitude,
+          longitude: event.longitude,
+          tags: event.tags,
         },
       },
     });
@@ -280,11 +284,9 @@ function EventPage() {
             border="1px solid rgba(234, 179, 8, 0.16)"
             overflow="hidden"
           >
-            <Box w={{ base: '100%', lg: '40%' }} position="relative">
+            <Box w={{ base: '100%', lg: '40%' }} position="relative" p={{ base: 3, md: 5 }}>
               <EventImage imageSrc={event.image} isLoading={isLoading} />
-              <Box position="absolute" top={4} right={4}>
-                <EventPriceBadge price={event.price} />
-              </Box>
+              <EventMap event={event} />
             </Box>
 
             <VStack align="stretch" flex="1" p={{ base: 4, md: 6 }} spacing={4}>
@@ -321,6 +323,7 @@ function EventPage() {
                   isArchived={isArchived}
                   registrationClosed={registrationClosed}
                   registrationStatus={registrationStatus}
+                  qrCodeUsed={registration?.qr_code_used ?? false}
                   onEdit={handleEditEvent}
                   onRegister={onRegModalOpen}
                   onCancel={onCancelModalOpen}

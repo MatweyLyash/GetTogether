@@ -76,6 +76,14 @@ module.exports = (sequelize, DataTypes) => {
         min: { args: [1], msg: 'Вместимость должна быть не менее 1 человека' }
       }
     },
+    latitude: {
+      type: DataTypes.DECIMAL(10, 6),
+      allowNull: true
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(10, 6),
+      allowNull: true
+    },
     image: {
       type: DataTypes.BLOB,
       allowNull: true

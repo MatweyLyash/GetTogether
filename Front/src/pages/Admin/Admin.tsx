@@ -44,6 +44,7 @@ import { useNavigate } from 'react-router-dom';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ru } from 'date-fns/locale/ru';
+import { dateToLocalISOString, apiDateToLocalString } from '../../utils/date';
 import {
   FaBan,
   FaCheck,
@@ -156,13 +157,7 @@ function Admin() {
   };
 
   const toDateTimeLocalValue = (value?: string | null) => {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - offset * 60000);
-    return localDate.toISOString().slice(0, 16);
+    return apiDateToLocalString(value);
   };
 
   useEffect(() => {
@@ -473,7 +468,7 @@ function Admin() {
     if (!date || !editEvent) return;
     setEditEvent({
       ...editEvent,
-      date: date.toISOString().slice(0, 16),
+      date: dateToLocalISOString(date),
     });
   };
 
@@ -861,7 +856,7 @@ function Admin() {
 
                       <TabPanel px={0}>
                         {editEvent && (
-                          <VStack spacing="6" align="stretch" className={styles.eventEditorForm}>
+                          <VStack spacing="6" align="stretch" px="1.75rem" py="1.75rem">
                             <Heading size="lg" color="#422006" letterSpacing="-0.04em">
                               Редактировать событие
                             </Heading>
@@ -1043,7 +1038,7 @@ function Admin() {
                     </TabList>
                     <TabPanels width="100%">
                       <TabPanel px={0}>
-                        <VStack spacing="1.5rem" align="stretch" className={styles.achievementListPanel}>
+                        <VStack spacing="1.5rem" align="stretch">
                           <HStack justify="space-between" align="center" flexWrap="wrap" className={styles.achievementToolbar}>
                             <Heading size="md">Список достижений</Heading>
                             <Button bg="#facc15" color="#422006" _hover={{ bg: '#eab308' }} leftIcon={<FaPlus />} onClick={openAchievementCreator} isDisabled={isLoading}>

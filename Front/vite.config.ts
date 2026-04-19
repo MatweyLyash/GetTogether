@@ -11,10 +11,9 @@ export default defineConfig({
     // В продакшене HTTPS обеспечивается nginx
     proxy: {
       '/api': {
-        target: 'http://backend:5000',
+        target: 'http://localhost:5000',
         changeOrigin: true,
-        secure: false, // false, так как backend не использует HTTPS внутри сети
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false,
       },
     },
   },

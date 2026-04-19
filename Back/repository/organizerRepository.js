@@ -4,7 +4,7 @@ const qrCodeService = require('../services/qrCodeService');
 const achievementService = require('../services/achievementService');
 
 class OrganizerRepository {
-    async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, tags) {
+    async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, tags, latitude, longitude) {
         const category = await models.Category.findOne({
             where: { id: category_id, deletedAt: null }
         });
@@ -12,7 +12,7 @@ class OrganizerRepository {
             throw new Error('Категория не найдена или удалена');
         }
 
-        const event = await models.Event.create({ creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image });
+        const event = await models.Event.create({ creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, latitude, longitude });
 
         if (tags && Array.isArray(tags) && tags.length > 0) {
             await event.setTags(tags);
@@ -59,7 +59,7 @@ class OrganizerRepository {
         });
     }
 
-    async updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags) {
+    async updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags, latitude, longitude) {
         const updateData = {
             title,
             description,
@@ -68,7 +68,9 @@ class OrganizerRepository {
             category_id,
             price,
             capacity,
-            telegram_chat_link
+            telegram_chat_link,
+            latitude,
+            longitude
         };
         if (image !== undefined) {
             updateData.image = image; // Обновляем изображение, если передано

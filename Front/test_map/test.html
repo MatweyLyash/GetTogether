@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Перископ — карта трансляций</title>
+    <!-- Подключаем Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Подключаем плагин для кластеризации -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a1a;
+        }
+        
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #0a0a1a;
+        }
+        
+        /* Полностью скрываем стандартную атрибуцию */
+        .leaflet-control-attribution {
+            display: none !important;
+        }
+        
+        /* ===== ПОЛНОСТЬЮ УБИРАЕМ ВСЕ КВАДРАТИКИ ВОКРУГ КЛАСТЕРОВ ===== */
+        .marker-cluster,
+        .marker-cluster div,
+        .marker-cluster span,
+        .leaflet-marker-icon.marker-cluster,
+        .leaflet-marker-icon.marker-cluster div,
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+            background: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+        
+        /* Убираем все фоновые элементы, которые создают квадратики */
+        .marker-cluster > div {
+            background: none !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+        
+        /* Переопределяем стандартные стили кластеров */
+        .leaflet-marker-icon.marker-cluster {
+            background: transparent !important;
+        }
+        
+        /* Стили для наших кастомных кластеров (только круг) */
+        .custom-cluster {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        
+        .custom-cluster:hover {
+            transform: scale(1.05);
+        }
+        
+        .custom-cluster span {
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+        }
+        
+        /* Курсор для режима клика */
+        .click-mode-active {
+            cursor: crosshair !important;
+        }
+        
+        /* Панель добавления точки */
+        .add-point-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 12px 16px;
+            z-index: 2;
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: auto;
+        }
+        
+        .add-point-panel h3 {
+            color: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        
+        .form-row input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .form-row input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .form-row input:focus {
+            border-color: #ff4d4d;
+        }
+        
+        .add-btn {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .add-btn:hover {
+            background: #ff6e4d;
+        }
+        
+        .mode-toggle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .mode-toggle.active {
+            background: #ff4d4d;
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            z-index: 2;
+            font-size: 14px;
+            text-align: center;
+            pointer-events: none;
+        }
+        
+        .info-panel span {
+            color: #ff4d4d;
+            font-weight: bold;
+        }
+        
+        /* Кнопка геолокации */
+        .locate-button {
+            position: absolute;
+            bottom: 90px;
+            right: 20px;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: auto;
+            transition: all 0.2s;
+        }
+        
+        .locate-button:hover {
+            background: #ff4d4d;
+            transform: scale(1.05);
+        }
+        
+        .locate-button svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* Статус */
+        .location-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 6px 12px;
+            color: white;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ff4d4d;
+        }
+        
+        .dot.active {
+            background-color: #4caf50;
+            animation: none;
+        }
+        
+        /* Пульсирующий маркер */
+        .pulsing-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+        
+        .pulse-dot {
+            width: 14px;
+            height: 14px;
+            background-color: #ff4d4d;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            border: 2px solid white;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 1; box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); }
+            70% { transform: scale(1.3); opacity: 0.8; box-shadow: 0 0 0 12px rgba(255, 77, 77, 0); }
+            100% { transform: scale(0.8); opacity: 1; box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+        }
+        
+        /* Маркер пользователя */
+        .user-location-marker {
+            background: #4caf50;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: userPulse 2s infinite;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        @keyframes userPulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        /* Попап */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: #1e1e2f;
+            color: white;
+            border-radius: 12px;
+            border-left: 4px solid #ff4d4d;
+        }
+        
+        .custom-popup .leaflet-popup-tip {
+            background: #1e1e2f;
+        }
+        
+        .custom-popup button {
+            background: #ff4d4d;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .custom-popup button:hover {
+            background: #ff6e4d;
+        }
+        
+        @media (max-width: 600px) {
+            .add-point-panel h3 { font-size: 12px; }
+            .form-row input, .add-btn { font-size: 12px; padding: 6px 10px; }
+            .locate-button { bottom: 80px; width: 44px; height: 44px; }
+            .info-panel { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div class="add-point-panel">
+        <h3>
+            📍 Добавить трансляцию
+            <button class="mode-toggle" id="modeToggle">✏️ Режим клика</button>
+        </h3>
+        <div class="form-row">
+            <input type="text" id="pointName" placeholder="Название точки" value="Новая трансляция">
+            <input type="number" id="pointLat" step="any" placeholder="Широта">
+            <input type="number" id="pointLng" step="any" placeholder="Долгота">
+            <button class="add-btn" id="addPointBtn">➕ Добавить</button>
+        </div>
+        <div class="form-row">
+            <small style="color: rgba(255,255,255,0.6);">💡 Включите "Режим клика" → клик по карте → введите название</small>
+        </div>
+    </div>
+    
+    <div class="locate-button" id="locateButton">
+        <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+    </div>
+    
+    <div class="location-status" id="locationStatus" style="display: none;">
+        <div class="dot" id="locationDot"></div>
+        <span id="locationText"></span>
+    </div>
+    
+    <div class="info-panel">
+        📡 <span>●</span> Трансляций: <span id="streamsCount">0</span> | 
+        Приблизьте для деталей
+    </div>
+
+    <script>
+        // ========== ИНИЦИАЛИЗАЦИЯ КАРТЫ ==========
+        const map = L.map('map').setView([20, 0], 2);
+        
+        // Используем слой без видимых швов и сетки — Stamen Toner (чистый, без артефактов)
+        L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}{r}.png', {
+            attribution: '',
+            maxZoom: 18,
+            minZoom: 1,
+            subdomains: 'abcd'
+        }).addTo(map);
+        
+        // ========== ХРАНИЛИЩЕ ==========
+        let streams = [];
+        let nextId = 1;
+        
+        // Группа кластеров с полной очисткой стилей
+        const markerClusterGroup = L.markerClusterGroup({
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                let size = count >= 50 ? 56 : (count >= 20 ? 48 : 40);
+                let bgColor = count >= 50 ? '#e63946' : (count >= 20 ? '#ff6b4a' : '#ff8c69');
+                
+                // Создаём чистый HTML без фоновых элементов
+                const html = `<div class="custom-cluster" style="width:${size}px; height:${size}px; background:${bgColor}; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 10px rgba(0,0,0,0.3);"><span style="color:white; font-weight:bold; font-size:${count >= 50 ? '15px' : '13px'};">${count}</span></div>`;
+                
+                return L.divIcon({
+                    html: html,
+                    className: '',  // Пустой класс, чтобы не было наследования
+                    iconSize: L.point(size, size),
+                    iconAnchor: L.point(size/2, size/2),
+                    popupAnchor: [0, -size/2]
+                });
+            },
+            maxClusterRadius: 70,
+            chunkedLoading: true,
+            spiderfyOnMaxZoom: true,
+            zoomToBoundsOnClick: true,
+            disableClusteringAtZoom: 16  // На зуме 16+ точки не кластеризуются
+        });
+        map.addLayer(markerClusterGroup);
+        
+        // ========== ФУНКЦИИ ==========
+        function createPulsingIcon() {
+            return L.divIcon({
+                className: 'pulsing-marker',
+                html: '<div class="pulse-dot"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+                popupAnchor: [0, -10]
+            });
+        }
+        
+        function createPopupContent(stream) {
+            const date = new Date(stream.createdAt).toLocaleString();
+            return `
+                <div style="min-width: 170px;">
+                    <strong style="font-size: 15px;">🔴 ${escapeHtml(stream.name)}</strong>
+                    <div style="margin: 6px 0; font-size: 12px;">
+                        <div>📌 ${stream.lat.toFixed(4)}, ${stream.lng.toFixed(4)}</div>
+                        <div>👁️ ${stream.viewers} зрителей</div>
+                        <div>@${escapeHtml(stream.user)}</div>
+                        <div style="font-size: 10px; color: #aaa; margin-top: 4px;">${date}</div>
+                    </div>
+                    <button onclick="window.deletePoint(${stream.id})">🗑 Удалить</button>
+                </div>
+            `;
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        window.deletePoint = function(id) {
+            const index = streams.findIndex(s => s.id === id);
+            if (index !== -1) {
+                const layers = markerClusterGroup.getLayers();
+                for (let i = 0; i < layers.length; i++) {
+                    if (layers[i].options && layers[i].options.streamId === id) {
+                        markerClusterGroup.removeLayer(layers[i]);
+                        break;
+                    }
+                }
+                streams.splice(index, 1);
+                updateStreamsCount();
+                showNotification(`🗑 Удалено`, false);
+            }
+        };
+        
+        function addStream(name, lat, lng, viewers = null) {
+            if (!name || typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+                showNotification('❌ Введите название и координаты', true);
+                return false;
+            }
+            if (lat < -90 || lat > 90) { showNotification('❌ Широта от -90 до 90', true); return false; }
+            if (lng < -180 || lng > 180) { showNotification('❌ Долгота от -180 до 180', true); return false; }
+            
+            const newStream = {
+                id: nextId++,
+                name: name.trim(),
+                lat: parseFloat(lat.toFixed(6)),
+                lng: parseFloat(lng.toFixed(6)),
+                viewers: viewers !== null ? viewers : Math.floor(Math.random() * 500) + 10,
+                user: `user_${nextId}`,
+                createdAt: Date.now()
+            };
+            
+            streams.push(newStream);
+            
+            const marker = L.marker([newStream.lat, newStream.lng], {
+                icon: createPulsingIcon(),
+                streamId: newStream.id
+            });
+            marker.bindPopup(createPopupContent(newStream), { className: 'custom-popup', maxWidth: 260 });
+            markerClusterGroup.addLayer(marker);
+            
+            updateStreamsCount();
+            showNotification(`✅ Добавлено: ${newStream.name}`);
+            return true;
+        }
+        
+        function updateStreamsCount() {
+            document.getElementById('streamsCount').textContent = streams.length;
+        }
+        
+        function showNotification(message, isError = false) {
+            const notif = document.createElement('div');
+            notif.textContent = message;
+            notif.style.position = 'absolute';
+            notif.style.bottom = '80px';
+            notif.style.left = '20px';
+            notif.style.right = '20px';
+            notif.style.padding = '12px';
+            notif.style.borderRadius = '12px';
+            notif.style.zIndex = '1000';
+            notif.style.textAlign = 'center';
+            notif.style.fontWeight = 'bold';
+            notif.style.background = isError ? 'rgba(255,77,77,0.9)' : 'rgba(76,175,80,0.9)';
+            notif.style.color = 'white';
+            notif.style.backdropFilter = 'blur(8px)';
+            document.body.appendChild(notif);
+            setTimeout(() => {
+                notif.style.opacity = '0';
+                notif.style.transition = 'opacity 0.5s';
+                setTimeout(() => notif.remove(), 500);
+            }, 2500);
+        }
+        
+        // ========== ФОРМА ==========
+        document.getElementById('addPointBtn').addEventListener('click', () => {
+            const name = document.getElementById('pointName').value;
+            const lat = parseFloat(document.getElementById('pointLat').value);
+            const lng = parseFloat(document.getElementById('pointLng').value);
+            addStream(name, lat, lng);
+        });
+        
+        // ========== РЕЖИМ КЛИКА ==========
+        let clickMode = false;
+        const modeToggle = document.getElementById('modeToggle');
+        let isAddingViaClick = false;
+        
+        modeToggle.addEventListener('click', () => {
+            clickMode = !clickMode;
+            if (clickMode) {
+                modeToggle.textContent = '📍 Режим карты';
+                modeToggle.classList.add('active');
+                document.getElementById('map').classList.add('click-mode-active');
+                showNotification('🔘 Кликните по карте для добавления точки');
+            } else {
+                modeToggle.textContent = '✏️ Режим клика';
+                modeToggle.classList.remove('active');
+                document.getElementById('map').classList.remove('click-mode-active');
+            }
+        });
+        
+        map.on('click', (e) => {
+            if (!clickMode || isAddingViaClick) return;
+            isAddingViaClick = true;
+            
+            const { lat, lng } = e.latlng;
+            document.getElementById('pointLat').value = lat.toFixed(6);
+            document.getElementById('pointLng').value = lng.toFixed(6);
+            
+            const pointName = prompt('Введите название точки:', `Точка ${streams.length + 1}`);
+            if (pointName !== null) {
+                addStream(pointName || `Точка ${streams.length + 1}`, lat, lng);
+            }
+            
+            setTimeout(() => { isAddingViaClick = false; }, 300);
+        });
+        
+        // ========== ГЕОЛОКАЦИЯ ==========
+        let userMarker = null;
+        let userCircle = null;
+        
+        function locateUser() {
+            if (!navigator.geolocation) {
+                showNotification('❌ Геолокация не поддерживается', true);
+                return;
+            }
+            
+            const statusDiv = document.getElementById('locationStatus');
+            const dot = document.getElementById('locationDot');
+            const textSpan = document.getElementById('locationText');
+            statusDiv.style.display = 'flex';
+            statusDiv.style.opacity = '1';
+            textSpan.textContent = 'Определение...';
+            dot.className = 'dot';
+            
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const { latitude, longitude, accuracy } = pos.coords;
+                    map.setView([latitude, longitude], 13);
+                    
+                    if (userMarker) {
+                        userMarker.setLatLng([latitude, longitude]);
+                        userCircle.setLatLng([latitude, longitude]);
+                        userCircle.setRadius(accuracy);
+                    } else {
+                        const userIcon = L.divIcon({
+                            html: '<div class="user-location-marker"></div>',
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8]
+                        });
+                        userMarker = L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+                        userCircle = L.circle([latitude, longitude], { radius: accuracy, color: '#4caf50', fillColor: '#4caf50', fillOpacity: 0.1, weight: 2 }).addTo(map);
+                        userMarker.bindPopup('📍 Вы здесь', { className: 'custom-popup' });
+                    }
+                    
+                    textSpan.textContent = `Вы здесь (±${Math.round(accuracy)}м)`;
+                    dot.className = 'dot active';
+                    setTimeout(() => {
+                        statusDiv.style.opacity = '0';
+                        setTimeout(() => statusDiv.style.display = 'none', 500);
+                    }, 4000);
+                },
+                (err) => {
+                    let msg = 'Ошибка';
+                    if (err.code === 1) msg = 'Доступ запрещён';
+                    if (err.code === 2) msg = 'Нет сигнала';
+                    if (err.code === 3) msg = 'Таймаут';
+                    textSpan.textContent = msg;
+                    dot.className = 'dot';
+                    showNotification(`❌ ${msg}`, true);
+                    setTimeout(() => {
+                        statusDiv.style.opacity = '0';
+                        setTimeout(() => statusDiv.style.display = 'none', 500);
+                    }, 3000);
+                }
+            );
+        }
+        
+        document.getElementById('locateButton').addEventListener('click', locateUser);
+        
+        // ========== ДЕМО-ДАННЫЕ ==========
+        function loadDemoData() {
+            const demoPoints = [
+                { name: "Москва, Красная площадь", lat: 55.7539, lng: 37.6208, viewers: 234 },
+                { name: "Санкт-Петербург, Дворцовая", lat: 59.9398, lng: 30.3146, viewers: 156 },
+                { name: "Нью-Йорк, Таймс-сквер", lat: 40.7580, lng: -73.9855, viewers: 567 },
+                { name: "Лондон, Биг-Бен", lat: 51.5007, lng: -0.1246, viewers: 342 },
+                { name: "Токио, Сибуя", lat: 35.6595, lng: 139.7007, viewers: 421 },
+                { name: "Париж, Эйфелева башня", lat: 48.8584, lng: 2.2945, viewers: 289 },
+                { name: "Стамбул, Галатская башня", lat: 41.0256, lng: 28.9742, viewers: 203 },
+                { name: "Казань, Кремль", lat: 55.7964, lng: 49.1089, viewers: 98 }
+            ];
+            demoPoints.forEach(p => addStream(p.name, p.lat, p.lng, p.viewers));
+        }
+        
+        loadDemoData();
+        
+        // ========== УТИЛИТЫ ==========
+        window.getStreams = () => console.log(streams);
+        window.exportCoordinates = () => {
+            console.log(JSON.stringify(streams.map(s => ({ name: s.name, lat: s.lat, lng: s.lng })), null, 2));
+            showNotification('✅ Экспорт в консоль (F12)');
+        };
+        
+        window.addEventListener('resize', () => setTimeout(() => map.invalidateSize(), 100));
+        
+        console.log('Готово! Квадратики убраны, сетки нет');
+    </script>
+</body>
+</html>

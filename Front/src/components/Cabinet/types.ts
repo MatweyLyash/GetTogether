@@ -14,6 +14,8 @@ export interface CabinetEvent {
   capacity: number;
   telegram_chat_link: string | null;
   organizer_verification_key?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   deletedAt?: string | null;
   image?: any;
   reviews?: any[];
@@ -56,4 +58,6 @@ export interface EventFormData {
   capacity: string;
   telegram_chat_link: string;
   tags: number[];
+  latitude: string;
+  longitude: string;
 }

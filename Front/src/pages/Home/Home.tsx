@@ -12,6 +12,7 @@ import { CategoriesGrid } from '../../components/Home/CategoriesGrid';
 import { EventsCarousel } from '../../components/Home/EventsCarousel';
 import { ReviewsSection } from '../../components/Home/ReviewsSection';
 import { RegistrationCTA } from '../../components/Home/RegistrationCTA';
+import { MapWidget } from '../../components/Map/MapWidget';
 import styles from './Home.module.scss';
 
 interface Category {
@@ -40,6 +41,8 @@ interface EventApiResponse {
     login?: string | null;
     telegram?: string | null;
   } | null;
+  latitude?: number | null;
+  longitude?: number | null;
   deletedAt?: string | null;
 }
 
@@ -101,6 +104,8 @@ function Home() {
               price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
               capacity: event.capacity,
               location: event.location,
+              latitude: event.latitude ?? null,
+              longitude: event.longitude ?? null,
               image: event.image ?? null,
               category: {
                 id: String(event.category_id),
@@ -200,6 +205,8 @@ function Home() {
           <CategoriesGrid categories={categories} isLoading={isLoading} />
 
           <EventsCarousel events={events} isLoading={isLoading} />
+
+          <MapWidget events={events} />
 
           <ReviewsSection reviews={reviews} events={events} isLoading={isLoading} />
 

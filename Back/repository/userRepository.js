@@ -121,7 +121,8 @@ class UserRepository {
                     registration: registration ? {
                         id: registration.id,
                         status: registration.status_id,
-                        telegram_invite_link
+                        telegram_invite_link,
+                        qr_code_used: registration.status_id === 2 && !registration.qr_code
                     } : null
                 };
             } catch (error) {

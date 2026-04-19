@@ -7,6 +7,7 @@ interface RegistrationActionsProps {
   isArchived: boolean;
   registrationClosed: boolean;
   registrationStatus: number | null;
+  qrCodeUsed: boolean;
   onEdit: () => void;
   onRegister: () => void;
   onCancel: () => void;
@@ -22,6 +23,7 @@ export function RegistrationActions({
   isArchived,
   registrationClosed,
   registrationStatus,
+  qrCodeUsed,
   onEdit,
   onRegister,
   onCancel,
@@ -81,8 +83,9 @@ export function RegistrationActions({
             size="lg"
             w="100%"
             onClick={onGetQR}
+            isDisabled={qrCodeUsed}
           >
-            Получить QR-код
+            {qrCodeUsed ? 'QR-код уже использован' : 'Получить QR-код'}
           </Button>
         )}
 

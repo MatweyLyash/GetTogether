@@ -22,6 +22,8 @@ import DatePicker from 'react-datepicker';
 import { FaCloudUploadAlt, FaPlus, FaSave, FaTimes } from 'react-icons/fa';
 import { Tag } from '../../../api/api';
 import { EventFormData } from '../types';
+import { LocationPicker } from '../../Map/LocationPicker';
+import { dateToLocalISOString } from '../../../utils/date';
 
 interface EventFormTabProps {
   categories: { id: number; category_name: string }[];
@@ -60,7 +62,7 @@ export function EventFormTab({
 
   const handleDateChange = (date: Date | null) => {
     if (date) {
-      onFormDataChange({ date: date.toISOString().slice(0, 16) });
+      onFormDataChange({ date: dateToLocalISOString(date) });
     }
   };
 
@@ -197,6 +199,15 @@ export function EventFormTab({
           placeholder="@your_chat"
           bg="rgba(255,255,255,0.92)"
           size={buttonSize}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Место на карте</FormLabel>
+        <LocationPicker
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onChange={(lat, lng) => onFormDataChange({ latitude: lat, longitude: lng })}
         />
       </FormControl>
 

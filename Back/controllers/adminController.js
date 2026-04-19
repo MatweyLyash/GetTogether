@@ -111,7 +111,7 @@ class AdminController {
 
   async updateEvent(req, res) {
     try {
-      const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
+      const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags, latitude, longitude } = req.body;
       const image = req.file?.buffer;
       const { event_id } = req.params;
 
@@ -132,7 +132,7 @@ class AdminController {
         return res.status(400).json({ error: validation.errors ? validation.errors.join(', ') : 'Все поля должны быть заполнены и валидны' });
       }
 
-      const event = await AdminRepository.updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags);
+      const event = await AdminRepository.updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags, latitude, longitude);
 
       if (event == 1) {
         const updatedEvent = await UserRepository.getEvent(event_id, null);

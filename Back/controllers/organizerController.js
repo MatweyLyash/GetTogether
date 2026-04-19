@@ -21,7 +21,7 @@ class OrganizerController {
 
     async createEvent(req, res) {
         try {
-            const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
+            const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags, latitude, longitude } = req.body;
             const creator_id = req.user.id;
             const image = req.file?.buffer; // Двоичные данные изображения
 
@@ -44,7 +44,7 @@ class OrganizerController {
             }
             const organizer_verification_key = uuidv4();
 
-            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, parsedTags);
+            const event = await this.organizerRepository.createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, parsedTags, latitude, longitude);
 
             if (event.image) {
                 const { getMimeType } = require('../utils/fileUtils');
@@ -117,7 +117,7 @@ class OrganizerController {
 
     async updateEvent(req, res) {
         try {
-            const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags } = req.body;
+            const { title, description, date, location, category_id, price, capacity, telegram_chat_link, tags, latitude, longitude } = req.body;
             const { event_id } = req.params;
             const creator_id = req.user.id;
             const image = req.file?.buffer;
@@ -144,7 +144,7 @@ class OrganizerController {
                 return res.status(400).json({ error: validation.errors.join(', ') });
             }
 
-            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags);
+            const event = await this.organizerRepository.updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, parsedTags, latitude, longitude);
 
             if (event == 1) {
                 const updatedEvent = await this.organizerRepository.getOwnEvent(creator_id, event_id);

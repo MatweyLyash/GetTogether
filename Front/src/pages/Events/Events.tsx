@@ -44,6 +44,8 @@ interface ApiEvent {
     login?: string | null;
     telegram?: string | null;
   } | null;
+  latitude?: number | null;
+  longitude?: number | null;
   deletedAt?: string | null;
   tags?: Tag[];
 }
@@ -110,6 +112,8 @@ function Events() {
               price: typeof event.price === 'string' ? parseFloat(event.price) : event.price,
               capacity: event.capacity,
               location: event.location,
+              latitude: event.latitude ?? null,
+              longitude: event.longitude ?? null,
               image: event.image ?? null,
               category: {
                 id: String(event.category_id),
