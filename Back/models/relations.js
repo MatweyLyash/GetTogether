@@ -11,11 +11,14 @@ module.exports = (db) => {
     Category,
     EventRegistration,
     EventSubscription,
+    EventWaitlist,
     PushSubscription,
     Achievement,
     UserAchievement,
     Tag,
     EventTag,
+    Promotion,
+    EventView,
   } = db;
 
   // User ↔ Role
@@ -58,6 +61,14 @@ module.exports = (db) => {
   EventSubscription.belongsTo(User, { foreignKey: 'user_id', as: 'subscriber' });
   User.hasMany(EventSubscription, { foreignKey: 'user_id', as: 'eventSubscriptions' });
 
+  // EventWaitlist ↔ User, Event
+  if (EventWaitlist) {
+    EventWaitlist.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+    User.hasMany(EventWaitlist, { foreignKey: 'user_id', as: 'eventWaitlistItems' });
+    EventWaitlist.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
+    Event.hasMany(EventWaitlist, { foreignKey: 'event_id', as: 'waitlistItems' });
+  }
+
   // PushSubscription ↔ User
   PushSubscription.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
   User.hasMany(PushSubscription, { foreignKey: 'user_id', as: 'pushSubscriptions' });
@@ -75,5 +86,17 @@ module.exports = (db) => {
   if (Tag && Event && EventTag) {
     Event.belongsToMany(Tag, { through: EventTag, foreignKey: 'event_id', as: 'tags' });
     Tag.belongsToMany(Event, { through: EventTag, foreignKey: 'tag_id', as: 'events' });
+  }
+
+  // Event ↔ Promotion
+  if (Promotion && Event) {
+    Event.hasMany(Promotion, { foreignKey: 'event_id', as: 'promotions' });
+    Promotion.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
+  }
+
+  // Event ↔ EventView
+  if (EventView && Event) {
+    Event.hasMany(EventView, { foreignKey: 'event_id', as: 'views' });
+    EventView.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
   }
 };

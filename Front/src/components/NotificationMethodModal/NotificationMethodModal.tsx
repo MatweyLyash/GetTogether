@@ -31,7 +31,7 @@ interface NotificationMethodModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSelectMethod: (method: 'telegram' | 'browser') => Promise<void>;
-    subscriptionType: 'organizer' | 'category';
+    subscriptionType: 'organizer' | 'category' | 'waitlist';
     targetName: string;
 }
 
@@ -241,8 +241,9 @@ export function NotificationMethodModal({
                     ) : (
                         <>
                             <Text mb={4} fontSize={{ base: 'sm', sm: 'md' }}>
-                                Как вы хотите получать уведомления о новых мероприятиях{' '}
-                                {subscriptionType === 'organizer' ? 'от организатора' : 'в категории'} "{targetName}"?
+                                {subscriptionType === 'waitlist'
+                                    ? `Как вы хотите получить уведомление о свободном месте на мероприятии "${targetName}"?`
+                                    : `Как вы хотите получать уведомления о новых мероприятиях ${subscriptionType === 'organizer' ? 'от организатора' : 'в категории'} "${targetName}"?`}
                             </Text>
                             <VStack spacing={3} align="stretch">
                                 <Button

@@ -1,10 +1,12 @@
 const SubscriptionRepository = require('../repository/subscriptionRepository');
+const WaitlistRepository = require('../repository/waitlistRepository');
 const models = require('../models');
 const webPushService = require('./webPushService');
 
 class NotificationService {
     constructor() {
         this.subscriptionRepository = SubscriptionRepository.repository;
+        this.waitlistRepository = WaitlistRepository.repository;
     }
 
     async notifyNewEvent(event) {
@@ -68,6 +70,51 @@ class NotificationService {
         // Приводим user.id к числу, если это строка
         const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
         await webPushService.notifyNewEvent(userId, event);
+    }
+
+    async notifyWaitlistSpotAvailable(event) {
+        try {
+            const waitlistItems = await this.waitlistRepository.getEventWaitlistSubscribers(event.id);
+            console.log(`Найдено пользователей в списке ожидания: ${waitlistItems.length}`);
+
+            for (const waitlistItem of waitlistItems) {
+                if (!waitlistItem.user) {
+                    console.warn(`Пользователь не найден для записи списка ожидания ${waitlistItem.id}`);
+                    continue;
+                }
+
+                if (waitlistItem.notification_method === 'telegram') {
+                    await this.sendTelegramWaitlistNotification(waitlistItem.user, event);
+                } else if (waitlistItem.notification_method === 'browser') {
+                    await this.storeBrowserWaitlistNotification(waitlistItem.user, event);
+                }
+
+                waitlistItem.notified_at = new Date();
+                await waitlistItem.save();
+            }
+        } catch (error) {
+            console.error('Error notifying waitlist subscribers:', error);
+        }
+    }
+
+    async sendTelegramWaitlistNotification(user, event) {
+        if (!user.telegram) {
+            console.warn(`Пользователь ${user.id} не имеет привязанного Telegram`);
+            return;
+        }
+
+        const { sendNotificationToUser } = require('../bot/telegramBot');
+        const message = `Появилось свободное место!\n\n📌 ${event.title}\n📅 ${new Date(event.date).toLocaleDateString('ru-RU')}\n📍 ${event.location}\n\nПерейдите на сайт и отправьте заявку на участие.`;
+
+        const success = await sendNotificationToUser(user.telegram, message);
+        if (!success) {
+            console.warn(`Не удалось отправить уведомление пользователю ${user.telegram}`);
+        }
+    }
+
+    async storeBrowserWaitlistNotification(user, event) {
+        const userId = typeof user.id === 'string' ? parseInt(user.id, 10) : user.id;
+        await webPushService.notifyWaitlistSpotAvailable(userId, event);
     }
 }
 

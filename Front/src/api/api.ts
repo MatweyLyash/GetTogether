@@ -68,6 +68,7 @@ interface Event {
   price: string;
   capacity: number;
   telegram_chat_link: string | null;
+  category?: Category;
   creator_id?: string;
   creator?: {
     id: string | number;
@@ -483,7 +484,7 @@ export async function createEvent(formData: FormData): Promise<{ event: Event; m
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 413) {
-        throw new Error('Файл слишком большой. Максимальный размер — 1МБ');
+        throw new Error('Файл слишком большой. Максимальный размер — 5 МБ');
       }
       throw new Error(error.response?.data?.error || 'Ошибка при создании мероприятия');
     }
@@ -526,7 +527,7 @@ export async function updateEvent(event_id: string, formData: FormData): Promise
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 413) {
-        throw new Error('Файл слишком большой. Максимальный размер — 1МБ');
+        throw new Error('Файл слишком большой. Максимальный размер — 5 МБ');
       }
       throw new Error(error.response?.data?.error || 'Ошибка при обновлении мероприятия');
     }
@@ -674,7 +675,7 @@ export async function updateEventByAdmin(eventId: string, data: FormData): Promi
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 413) {
-        throw new Error('Файл слишком большой. Максимальный размер — 1МБ');
+        throw new Error('Файл слишком большой. Максимальный размер — 5 МБ');
       }
       throw new Error(error.response?.data?.error || 'Ошибка при обновлении мероприятия');
     }
@@ -794,6 +795,17 @@ export interface EventSubscription {
   updatedAt: string;
 }
 
+export interface EventWaitlistItem {
+  id: number;
+  user_id: number;
+  event_id: number;
+  notification_method: 'telegram' | 'browser';
+  notified_at: string | null;
+  createdAt: string;
+  updatedAt: string;
+  event?: Event;
+}
+
 export async function createSubscription(
   subscription_type: 'organizer' | 'category',
   target_id: number,
@@ -898,6 +910,47 @@ export async function deleteSubscription(subscription_id: number): Promise<void>
   }
 }
 
+export async function addEventToWaitlist(
+  event_id: string | number,
+  notification_method: 'telegram' | 'browser'
+): Promise<EventWaitlistItem> {
+  try {
+    const response = await userApi.post<EventWaitlistItem>('/waitlist', {
+      event_id,
+      notification_method,
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при добавлении в список ожидания');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getEventWaitlist(): Promise<EventWaitlistItem[]> {
+  try {
+    const response = await userApi.get<EventWaitlistItem[]>('/waitlist');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении списка ожидания');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function removeEventFromWaitlist(waitlist_id: number): Promise<void> {
+  try {
+    await userApi.delete(`/waitlist/${waitlist_id}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при удалении из списка ожидания');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
 // Web Push API
 export async function getVapidPublicKey(): Promise<string> {
   try {
@@ -906,6 +959,105 @@ export async function getVapidPublicKey(): Promise<string> {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.error || 'Ошибка при получении VAPID ключа');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+// Promotion API
+export interface PromotionCheckoutResponse {
+  url: string;
+  promotion_id: number;
+}
+
+export interface PromotionPriceInfo {
+  one_time: { byn: number; usd_cents: number; default_days: number };
+  boost:    { byn: number; usd_cents: number; default_days: number };
+  repeat:   { byn_per_day: number; usd_cents_per_day: number };
+  premium:  { byn_per_day: number; usd_cents_per_day: number };
+}
+
+export async function createPromotionCheckout(event_id: string, type: string, duration_days: number): Promise<PromotionCheckoutResponse> {
+  try {
+    const response = await organizerApi.post<PromotionCheckoutResponse>('/promotion/checkout', { event_id, type, duration_days });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при создании оплаты');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getOwnPromotions(): Promise<any[]> {
+  try {
+    const response = await organizerApi.get('/promotions');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении продвижений');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+export async function getPromotionPrices(): Promise<PromotionPriceInfo> {
+  try {
+    const response = await guestApi.get('/promotion/prices');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении цен');
+    }
+    throw new Error('Неизвестная ошибка');
+  }
+}
+
+// Event View Tracking
+export async function recordEventView(event_id: string): Promise<void> {
+  try {
+    await guestApi.post(`/event/${event_id}/view`);
+  } catch {
+    // silently ignore — tracking failure should not affect UX
+  }
+}
+
+// Organizer Statistics
+export interface OrganizerEventStats {
+  id: number;
+  title: string;
+  date: string;
+  category: string | null;
+  total_views: number;
+  unique_views: number;
+  registrations: number;
+  conversion: number;
+}
+
+export interface ViewsByDay {
+  date: string;
+  views: number;
+  unique_views: number;
+}
+
+export interface OrganizerStats {
+  events: OrganizerEventStats[];
+  viewsByDay: ViewsByDay[];
+  totals: {
+    views: number;
+    uniqueViews: number;
+    registrations: number;
+    conversion: number;
+  };
+}
+
+export async function getOrganizerStats(): Promise<OrganizerStats> {
+  try {
+    const response = await organizerApi.get<OrganizerStats>('/stats');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.error || 'Ошибка при получении статистики');
     }
     throw new Error('Неизвестная ошибка');
   }

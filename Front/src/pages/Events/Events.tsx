@@ -16,6 +16,7 @@ import { FilterActions } from '../../components/Events/FilterActions';
 import { ActiveFiltersDisplay } from '../../components/Events/ActiveFiltersDisplay';
 import { EventsGrid } from '../../components/Events/EventsGrid';
 import { EventsEmptyState } from '../../components/Events/EventsEmptyState';
+import { mapPromotion } from '../../utils/promotion';
 import styles from './Events.module.scss';
 
 interface Category {
@@ -48,6 +49,7 @@ interface ApiEvent {
   longitude?: number | null;
   deletedAt?: string | null;
   tags?: Tag[];
+  promotions?: Array<{ id?: number; type: string; expires_at: string }> | null;
 }
 
 function Events() {
@@ -135,6 +137,7 @@ function Events() {
               created_at: event.created_at ?? null,
               updated_at: event.updated_at ?? null,
               tags: event.tags || [],
+              promotion: mapPromotion(event.promotions),
             };
           });
 

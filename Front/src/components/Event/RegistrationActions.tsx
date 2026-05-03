@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Button, VStack } from '@chakra-ui/react';
 import { FaQrcode } from 'react-icons/fa';
 
@@ -12,6 +13,7 @@ interface RegistrationActionsProps {
   onRegister: () => void;
   onCancel: () => void;
   onGetQR: () => void;
+  waitlistAction?: ReactNode;
 }
 
 /**
@@ -28,6 +30,7 @@ export function RegistrationActions({
   onRegister,
   onCancel,
   onGetQR,
+  waitlistAction,
 }: RegistrationActionsProps) {
   if (isOrganizer) {
     return (
@@ -46,6 +49,10 @@ export function RegistrationActions({
   }
 
   if (!isRegistered && !isArchived) {
+    if (registrationClosed && waitlistAction) {
+      return <>{waitlistAction}</>;
+    }
+
     return (
       <Button
         bg="#facc15"

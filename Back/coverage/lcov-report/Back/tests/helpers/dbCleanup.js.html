@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">28.57% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/14</span>
+                <span class='fraction'>4/14</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">28.57% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>14/14</span>
+                <span class='fraction'>4/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -81,39 +81,39 @@
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">6x</span>
+<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
-<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const models = require('../../models');
 &nbsp;
 const cleanDB = async () =&gt; {
     // Delete in order of dependencies to avoid FK constraint errors
     await models.PushSubscription.destroy({ where: {}, force: true });
-    await models.EventRegistration.destroy({ where: {}, force: true });
-    await models.EventSubscription.destroy({ where: {}, force: true });
-    await models.UserAchievement.destroy({ where: {}, force: true });
-    await models.Review.destroy({ where: {}, force: true });
-    await models.EventTag.destroy({ where: {}, force: true });
-    await models.Event.destroy({ where: {}, force: true });
-    await models.OrganizerRequest.destroy({ where: {}, force: true });
-    await models.User.destroy({ where: {}, force: true });
-    await models.Category.destroy({ where: {}, force: true });
-    await models.Tag.destroy({ where: {}, force: true });
+<span class="cstat-no" title="statement not covered" >    await models.EventRegistration.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.EventSubscription.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.UserAchievement.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.Review.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.EventTag.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.Event.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.OrganizerRequest.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.User.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.Category.destroy({ where: {}, force: true });</span>
+<span class="cstat-no" title="statement not covered" >    await models.Tag.destroy({ where: {}, force: true });</span>
 };
 &nbsp;
 module.exports = cleanDB;
@@ -124,7 +124,7 @@ module.exports = cleanDB;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-28T19:08:20.124Z
+                at 2026-05-03T10:03:25.512Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

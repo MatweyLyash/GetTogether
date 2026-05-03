@@ -1,23 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useToast, Box, Spinner, Flex, Heading, Text, FormControl, FormLabel, Input, Button, VStack, useBreakpointValue } from '@chakra-ui/react';
+import { useToast, Box, Spinner, Flex, Heading, Text, Button, VStack, useBreakpointValue } from '@chakra-ui/react';
 import {
-  getOwnEventsRegistration,
-  createReview,
-  createOrganizerRequest,
-  getOwnOrganizerRequests,
-  linkTelegram,
-  getCategories,
-  createEvent,
-  getOwnEvents,
-  updateEvent,
-  deleteEvent,
-  getEventRequests,
-  responseToEventRequest,
-  getMyAchievements,
-  AchievementProgress,
-  Tag,
-  getTags,
+  getOwnEventsRegistration, createReview, createOrganizerRequest, getOwnOrganizerRequests,
+  getCategories, createEvent, getOwnEvents, updateEvent, deleteEvent,
+  getEventRequests, responseToEventRequest, getMyAchievements, AchievementProgress, Tag, getTags,
+  createPromotionCheckout, EventWaitlistItem, getEventWaitlist, removeEventFromWaitlist,
 } from '../../api/api';
 import { useAuth } from '../../AuthContext/AuthContext';
 import Header from '../../components/Header/Header';
@@ -30,6 +18,9 @@ import { OrganizerRequestsTab } from '../../components/Cabinet/OrganizerRequests
 import { OwnEventsTab } from '../../components/Cabinet/OwnEvents/OwnEventsTab';
 import { EventRequestsModal } from '../../components/Cabinet/OwnEvents/EventRequestsModal';
 import { AchievementsTab } from '../../components/Cabinet/Achievements/AchievementsTab';
+import { StatsTab } from '../../components/Cabinet/Stats/StatsTab';
+import { WaitlistTab } from '../../components/Cabinet/Waitlist/WaitlistTab';
+import { TelegramLinkGuideModal } from '../../components/TelegramLinkGuideModal/TelegramLinkGuideModal';
 import { CabinetEvent, CabinetEventRegistration, CabinetOrganizerRequest, CabinetEventRequest, EventFormData } from '../../components/Cabinet/types';
 import { apiDateToLocalString } from '../../utils/date';
 import styles from './Cabinet.module.scss';
@@ -40,12 +31,12 @@ function Cabinet() {
   const [organizerRequests, setOrganizerRequests] = useState<CabinetOrganizerRequest[]>([]);
   const [categories, setCategories] = useState<{ id: number; category_name: string }[]>([]);
   const [ownEvents, setOwnEvents] = useState<CabinetEvent[]>([]);
+  const [waitlist, setWaitlist] = useState<EventWaitlistItem[]>([]);
   const [myAchievements, setMyAchievements] = useState<AchievementProgress[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [eventRequests, setEventRequests] = useState<CabinetEventRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
-  const [telegram, setTelegram] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [eventFormData, setEventFormData] = useState<EventFormData>({
@@ -60,11 +51,14 @@ function Cabinet() {
     tags: [],
     latitude: '',
     longitude: '',
+    promotion_type: 'none',
+    promotion_duration_days: 0,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [requestsModalOpen, setRequestsModalOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [telegramGuideOpen, setTelegramGuideOpen] = useState(false);
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -145,6 +139,8 @@ function Cabinet() {
       tags: eventData.tags?.map((t: Tag) => t.id) || [],
       latitude: eventData.latitude != null ? String(eventData.latitude) : '',
       longitude: eventData.longitude != null ? String(eventData.longitude) : '',
+      promotion_type: 'none',
+      promotion_duration_days: 0,
     });
       if (eventData.image) setImagePreview(eventData.image);
     }
@@ -161,16 +157,18 @@ function Cabinet() {
       if (authLoading || !isAuthenticated || !user) return;
       setIsLoading(true);
       try {
-        const [regs, orgRequests, cats, tagList] = await Promise.all([
+        const [regs, orgRequests, cats, tagList, waitlistItems] = await Promise.all([
           getOwnEventsRegistration(),
           getOwnOrganizerRequests(),
           getCategories(),
           getTags(),
+          getEventWaitlist(),
         ]);
         setRegistrations(regs.map(mapToCabinetRegistration));
         setOrganizerRequests((orgRequests || []).map(mapToOrganizerRequest));
         setCategories(cats || []);
         setTags(tagList || []);
+        setWaitlist(waitlistItems || []);
         await fetchAchievements();
         if (isOrganizer || isAdmin) {
           const events = await getOwnEvents();
@@ -190,6 +188,19 @@ function Cabinet() {
     };
     fetchData();
   }, [authLoading, isAuthenticated, user, isOrganizer, isAdmin, toast, fetchAchievements]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const promo = params.get('promotion');
+    if (promo === 'success' || promo === 'cancel') {
+      window.history.replaceState({}, '', '/cabinet');
+      if (promo === 'success') {
+        toast({ title: 'Оплата прошла успешно', description: 'Продвижение активировано', status: 'success', duration: 5000, isClosable: true });
+      } else {
+        toast({ title: 'Оплата отменена', description: 'Мероприятие создано без продвижения', status: 'warning', duration: 5000, isClosable: true });
+      }
+    }
+  }, [location.search, toast]);
 
   const handleCreateReview = async (eventId: string, rating: number, comment: string) => {
     setIsLoading(true);
@@ -217,19 +228,6 @@ function Cabinet() {
     }
   };
 
-  const handleLinkTelegram = async (telegram: string) => {
-    setIsLoading(true);
-    try {
-      await linkTelegram(telegram);
-      setTelegram('');
-      toast({ title: 'Успех', description: 'Telegram привязан', status: 'success', duration: 3000, isClosable: true });
-    } catch (error: any) {
-      toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 3000, isClosable: true });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleEventFormDataChange = (data: Partial<EventFormData>) => {
     setEventFormData((prev) => ({ ...prev, ...data }));
   };
@@ -239,21 +237,41 @@ function Cabinet() {
     Object.entries(eventFormData).forEach(([key, value]) => {
       if (key === 'tags' && Array.isArray(value)) {
         formData.append('tags', JSON.stringify(value));
+      } else if (key === 'promotion_type' || key === 'promotion_duration_days') {
+        // handled separately after event creation
       } else {
         formData.append(key, String(value));
       }
     });
     if (imageFile) formData.append('image', imageFile);
 
+    const promoType = eventFormData.promotion_type;
+    const promoDays = eventFormData.promotion_duration_days;
+
     setIsLoading(true);
     try {
+      let createdEventId: string | null = null;
+
       if (isEditing && editingEventId) {
         await updateEvent(editingEventId, formData);
+        createdEventId = editingEventId;
         toast({ title: 'Успех', description: 'Мероприятие обновлено', status: 'success', duration: 3000, isClosable: true });
       } else {
-        await createEvent(formData);
+        const result = await createEvent(formData);
+        createdEventId = result?.event?.id || null;
         toast({ title: 'Успех', description: 'Мероприятие создано', status: 'success', duration: 3000, isClosable: true });
       }
+
+      if (promoType !== 'none' && createdEventId) {
+        try {
+          const checkout = await createPromotionCheckout(createdEventId, promoType, promoDays);
+          window.location.href = checkout.url;
+          return;
+        } catch (promoError: any) {
+          toast({ title: 'Мероприятие создано', description: 'Не удалось перейти к оплате продвижения: ' + promoError.message, status: 'warning', duration: 5000, isClosable: true });
+        }
+      }
+
       const events = await getOwnEvents();
       setOwnEvents(events.map(mapToCabinetEvent));
       resetEventForm();
@@ -277,6 +295,8 @@ function Cabinet() {
       tags: [],
       latitude: '',
       longitude: '',
+      promotion_type: 'none',
+      promotion_duration_days: 0,
     });
     setImageFile(null);
     setImagePreview(null);
@@ -299,6 +319,8 @@ function Cabinet() {
       tags: event.tags?.map((t: Tag) => t.id) || [],
       latitude: event.latitude != null ? String(event.latitude) : '',
       longitude: event.longitude != null ? String(event.longitude) : '',
+      promotion_type: 'none',
+      promotion_duration_days: 0,
     });
     if (event.image) setImagePreview(toImageSrc(event.image));
     setTabIndex(2);
@@ -340,6 +362,19 @@ function Cabinet() {
       const requests = await getEventRequests(eventId);
       setEventRequests(requests || []);
       toast({ title: 'Успех', description: `Заявка ${statusId === 2 ? 'подтверждена' : 'отклонена'}`, status: 'success', duration: 3000, isClosable: true });
+    } catch (error: any) {
+      toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 3000, isClosable: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveFromWaitlist = async (waitlistId: number) => {
+    setIsLoading(true);
+    try {
+      await removeEventFromWaitlist(waitlistId);
+      setWaitlist((prev) => prev.filter((item) => item.id !== waitlistId));
+      toast({ title: 'Успех', description: 'Мероприятие удалено из списка ожидания', status: 'success', duration: 3000, isClosable: true });
     } catch (error: any) {
       toast({ title: 'Ошибка', description: error.message, status: 'error', duration: 3000, isClosable: true });
     } finally {
@@ -420,10 +455,33 @@ function Cabinet() {
       ),
     },
     {
+      label: 'Список ожидания',
+      content: (
+        <Box>
+          <Text fontSize={fontSizeText} mb="1rem">
+            Мероприятия, где вы ждете свободное место
+          </Text>
+          <WaitlistTab
+            waitlist={waitlist}
+            isLoading={isLoading}
+            onNavigate={(eventId: string) => navigate(`/event/${eventId}`)}
+            onRemove={handleRemoveFromWaitlist}
+          />
+        </Box>
+      ),
+    },
+    {
       label: 'Достижения',
       content: <AchievementsTab achievements={myAchievements} isLoading={isLoading} withPanel={false} />,
     },
   ];
+
+  if (isOrganizer || isAdmin) {
+    cabinetTabs.splice(3, 0, {
+      label: 'Статистика',
+      content: <StatsTab isLoading={isLoading} />,
+    });
+  }
 
   useEffect(() => {
     if (tabIndex >= cabinetTabs.length) {
@@ -455,22 +513,13 @@ function Cabinet() {
             <Text fontSize={fontSizeText} color="rgba(66, 32, 6, 0.78)">
               {user?.telegram
                 ? `Подтвердите привязку Telegram-тега ${user.telegram.replace('PENDING_', '')} в течение 2 минут`
-                : 'Привяжите ваш Telegram-аккаунт'}
+                : 'Привяжите ваш Telegram-аккаунт для получения уведомлений'}
             </Text>
-            <FormControl>
-              <FormLabel>Telegram</FormLabel>
-              <Input
-                value={telegram}
-                onChange={(e) => setTelegram(e.target.value)}
-                placeholder="@username"
-                bg="rgba(255,255,255,0.92)"
-              />
-            </FormControl>
             <Button
               bg="#facc15"
               color="#422006"
               _hover={{ bg: '#eab308', transform: 'scale(1.03)' }}
-              onClick={() => handleLinkTelegram(telegram)}
+              onClick={() => setTelegramGuideOpen(true)}
               isDisabled={isLoading}
             >
               {user?.telegram ? 'Подтвердить Telegram' : 'Привязать Telegram'}
@@ -486,6 +535,11 @@ function Cabinet() {
         requests={eventRequests}
         onResponse={handleResponseToRequest}
         isLoading={isLoading}
+      />
+      <TelegramLinkGuideModal
+        isOpen={telegramGuideOpen}
+        onClose={() => setTelegramGuideOpen(false)}
+        onSuccess={() => setTelegramGuideOpen(false)}
       />
     </CabinetLayout>
   );

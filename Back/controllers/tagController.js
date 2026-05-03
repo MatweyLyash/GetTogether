@@ -6,12 +6,12 @@ class TagController {
         try {
             const { name } = req.body;
             if (!validators.validatePresence(name)) {
-                return res.status(400).json({ error: 'Name is required' });
+                return res.status(400).json({ error: 'Название обязательно' });
             }
 
             const existing = await models.Tag.findOne({ where: { name } });
             if (existing) {
-                return res.status(400).json({ error: 'Tag already exists' });
+                return res.status(400).json({ error: 'Тег уже существует' });
             }
 
             const tag = await models.Tag.create({ name });
@@ -39,19 +39,18 @@ class TagController {
             const { name } = req.body;
 
             if (!validators.validatePresence(name)) {
-                return res.status(400).json({ error: 'Name is required' });
+                return res.status(400).json({ error: 'Название обязательно' });
             }
 
             const tag = await models.Tag.findByPk(tag_id);
             if (!tag) {
-                return res.status(404).json({ error: 'Tag not found' });
+                return res.status(404).json({ error: 'Тег не найден' });
             }
 
-            // Check name uniqueness if changed
             if (name !== tag.name) {
                 const existing = await models.Tag.findOne({ where: { name } });
                 if (existing) {
-                    return res.status(400).json({ error: 'Tag with this name already exists' });
+                    return res.status(400).json({ error: 'Тег с таким названием уже существует' });
                 }
             }
 
@@ -68,11 +67,10 @@ class TagController {
             const { tag_id } = req.params;
             const tag = await models.Tag.findByPk(tag_id);
             if (!tag) {
-                return res.status(404).json({ error: 'Tag not found' });
+                return res.status(404).json({ error: 'Тег не найден' });
             }
-            // Soft delete
             await tag.destroy();
-            return res.status(200).json({ message: 'Tag deleted successfully' });
+            return res.status(200).json({ message: 'Тег удалён' });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }

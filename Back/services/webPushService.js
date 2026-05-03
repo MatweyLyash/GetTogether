@@ -96,6 +96,20 @@ class WebPushService {
         await this.sendNotification(user_id, payload);
     }
 
+    async notifyWaitlistSpotAvailable(user_id, event) {
+        const payload = {
+            title: 'Появилось свободное место',
+            body: `${event.title} — можно отправить заявку на участие`,
+            icon: '/logo.png',
+            badge: '/badge.png',
+            data: {
+                url: `/event/${event.id}`
+            }
+        };
+
+        await this.sendNotification(user_id, payload);
+    }
+
     // Получить публичный VAPID ключ
     getPublicKey() {
         if (!vapidInitialized) {

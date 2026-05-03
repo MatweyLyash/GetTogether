@@ -94,12 +94,12 @@ class UserController {
             const user_id = req.user?.id;
 
             if (!validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'Event ID is required' });
+                return res.status(400).json({ error: 'ID мероприятия обязательно' });
             }
 
             const result = await this.userRepository.getEvent(event_id, user_id);
             if (!result) {
-                return res.status(404).json({ error: 'Event not found' });
+                return res.status(404).json({ error: 'Мероприятие не найдено' });
             }
 
             const rawEvent = result.event || result;
@@ -131,7 +131,7 @@ class UserController {
             const { event_id } = req.params;
 
             if (!validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'Event ID is required' });
+                return res.status(400).json({ error: 'ID мероприятия обязательно' });
             }
 
             const reviews = await this.userRepository.getReviews(event_id);
@@ -147,7 +147,7 @@ class UserController {
             const user_id = req.user.id;
 
             if (!validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'Event ID is required' });
+                return res.status(400).json({ error: 'ID мероприятия обязательно' });
             }
 
             const registration = await this.userRepository.createEventRegistration(user_id, event_id);
@@ -171,7 +171,7 @@ class UserController {
             const user_id = req.user.id;
 
             if (!validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'Event ID is required' });
+                return res.status(400).json({ error: 'ID мероприятия обязательно' });
             }
 
             const registration = await this.userRepository.cancelEventRegistration(user_id, event_id);
@@ -187,15 +187,15 @@ class UserController {
             const user_id = req.user.id;
 
             if (!validators.validatePresence(event_id)) {
-                return res.status(400).json({ error: 'Event ID is required' });
+                return res.status(400).json({ error: 'ID мероприятия обязательно' });
             }
 
             if (!validators.validateRating(rating)) {
-                return res.status(400).json({ error: 'Rating must be a number between 1 and 5' });
+                return res.status(400).json({ error: 'Рейтинг должен быть числом от 1 до 5' });
             }
 
             if (!validators.validateText(comment)) {
-                return res.status(400).json({ error: 'Comment must be between 1 and 255 characters' });
+                return res.status(400).json({ error: 'Комментарий должен быть от 1 до 255 символов' });
             }
 
             const registration = await models.EventRegistration.findOne({
@@ -341,7 +341,7 @@ class UserController {
             const user_id = req.user.id;
             const user = await this.userRepository.getMe(user_id);
             if (!user) {
-                return res.status(404).json({ error: 'User not found' });
+                return res.status(404).json({ error: 'Пользователь не найден' });
             }
             return res.json(user);
         } catch (error) {
@@ -386,7 +386,7 @@ class UserController {
             const user_id = req.user.id;
 
             if (!validators.validatePresence(registration_id)) {
-                return res.status(400).json({ error: 'Registration ID is required' });
+                return res.status(400).json({ error: 'ID регистрации обязательно' });
             }
 
             // Находим регистрацию с включённым событием

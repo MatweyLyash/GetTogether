@@ -8,6 +8,9 @@ class UserRepository {
 
     async getEvents(filters = {}) {
         const { tags } = filters;
+        const { Sequelize } = models;
+        const now = new Date();
+
         const include = [
             {
                 model: models.Category,
@@ -24,24 +27,58 @@ class UserRepository {
                 as: 'tags',
                 attributes: ['id', 'name'],
                 through: { attributes: [] }
+            },
+            {
+                model: models.Promotion,
+                as: 'promotions',
+                where: {
+                    is_paid: true,
+                    status: 'active',
+                    expires_at: { [Sequelize.Op.gt]: now },
+                },
+                required: false,
+                attributes: ['id', 'type', 'expires_at'],
             }
         ];
 
-        // Basic query structure
         const query = {
-            include
+            include,
+            order: [
+                [Sequelize.literal(`
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM promotions p 
+                            WHERE p.event_id = "Event".id 
+                            AND p.is_paid = true 
+                            AND p.status = 'active' 
+                            AND p.expires_at > NOW()
+                        ) THEN 1 
+                        ELSE 0 
+                    END
+                `), 'DESC'],
+                [Sequelize.literal(`
+                    COALESCE((
+                        SELECT MAX(
+                            CASE p.type 
+                                WHEN 'premium' THEN 3 
+                                WHEN 'repeat' THEN 2 
+                                WHEN 'boost' THEN 1 
+                                WHEN 'one_time' THEN 0.5 
+                                ELSE 0 
+                            END
+                        ) FROM promotions p 
+                        WHERE p.event_id = "Event".id 
+                        AND p.is_paid = true 
+                        AND p.status = 'active' 
+                        AND p.expires_at > NOW()
+                    ), 0)
+                `), 'DESC'],
+                ['createdAt', 'DESC'],
+            ],
         };
 
         if (tags && Array.isArray(tags) && tags.length > 0) {
-            // Filter by tags. We want events that have at least one of the tags (OR logic) or ALL (AND logic)? 
-            // Usually filters are "contains any".
-            // However, straightforward way in Sequelize for M:N filtering:
-            include[2].where = {
-                id: tags
-            };
-            // Note: This will return events that have MATCHING tags, but might not return ALL tags of that event in the result object due to how Sequelize filtering works on included models (it filters the included array). 
-            // To get full event with all tags but filtered by presence of some tag, we usually need a subquery or strict include.
-            // For simplicity in this project context: strict filtering on the include will suffice to narrow down the list.
+            include[2].where = { id: tags };
             include[2].required = true;
         }
 
@@ -116,6 +153,10 @@ class UserRepository {
                     telegram_invite_link = registration.telegram_invite_link;
                 }
 
+                const waitlistItem = await models.EventWaitlist.findOne({
+                    where: { event_id, user_id }
+                });
+
                 return {
                     event,
                     registration: registration ? {
@@ -123,6 +164,11 @@ class UserRepository {
                         status: registration.status_id,
                         telegram_invite_link,
                         qr_code_used: registration.status_id === 2 && !registration.qr_code
+                    } : null,
+                    waitlist: waitlistItem ? {
+                        id: waitlistItem.id,
+                        notification_method: waitlistItem.notification_method,
+                        notified_at: waitlistItem.notified_at
                     } : null
                 };
             } catch (error) {
@@ -133,7 +179,9 @@ class UserRepository {
     }
 
     async createEventRegistration(user_id, event_id) {
-        return await models.EventRegistration.create({ user_id, event_id, status_id: 1 });
+        const registration = await models.EventRegistration.create({ user_id, event_id, status_id: 1 });
+        await models.EventWaitlist.destroy({ where: { user_id, event_id } });
+        return registration;
     }
 
     async cancelEventRegistration(user_id, event_id) {

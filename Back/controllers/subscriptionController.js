@@ -15,13 +15,13 @@ class SubscriptionController {
             const user_id = req.user.id;
 
             if (!['organizer', 'category'].includes(subscription_type)) {
-                return res.status(400).json({ error: 'Invalid subscription_type' });
+                return res.status(400).json({ error: 'Некорректный тип подписки' });
             }
             if (!['telegram', 'browser'].includes(notification_method)) {
-                return res.status(400).json({ error: 'Invalid notification_method' });
+                return res.status(400).json({ error: 'Некорректный способ уведомления' });
             }
             if (!validators.validatePresence(target_id)) {
-                return res.status(400).json({ error: 'target_id is required' });
+                return res.status(400).json({ error: 'target_id обязательно' });
             }
 
             const subscription = await this.subscriptionRepository.createSubscription(
@@ -30,7 +30,7 @@ class SubscriptionController {
             return res.status(201).json(subscription);
         } catch (error) {
             if (error.name === 'SequelizeUniqueConstraintError') {
-                return res.status(409).json({ error: 'Subscription already exists' });
+                return res.status(409).json({ error: 'Подписка уже существует' });
             }
             return res.status(500).json({ error: error.message });
         }
@@ -43,7 +43,7 @@ class SubscriptionController {
 
             const deleted = await this.subscriptionRepository.deleteSubscription(user_id, subscription_id);
             if (deleted === 0) {
-                return res.status(404).json({ error: 'Subscription not found' });
+                return res.status(404).json({ error: 'Подписка не найдена' });
             }
             return res.status(204).send();
         } catch (error) {

@@ -60,4 +60,6 @@ export interface EventFormData {
   tags: number[];
   latitude: string;
   longitude: string;
+  promotion_type: 'none' | 'one_time' | 'boost' | 'repeat' | 'premium';
+  promotion_duration_days: number;
 }

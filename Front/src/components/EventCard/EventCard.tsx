@@ -1,6 +1,7 @@
 import { Avatar, Box, HStack, Text, Button, Image, VStack } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { FaCrown } from 'react-icons/fa';
 import { Event } from '../../types/event';
 import styles from './EventCard.module.scss';
 
@@ -17,8 +18,22 @@ function EventCard({ event }: EventCardProps) {
     .map((part) => part[0]?.toUpperCase())
     .join('');
 
+  const isPremium = event.promotion?.type === 'premium';
+  const hasPromotion = event.promotion != null;
+
+  const cardClass = [
+    styles.card,
+    isPremium ? styles.premiumCard : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <Box className={styles.card} h="100%">
+    <Box className={cardClass} h="100%">
+      {hasPromotion && (
+        <div className={`${styles.promotionBadge} ${isPremium ? styles.premiumBadge : ''}`}>
+          <FaCrown className={styles.promotionBadgeIcon} />
+          {isPremium ? 'Премиум' : 'Продвигается'}
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

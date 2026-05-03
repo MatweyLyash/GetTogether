@@ -16,10 +16,10 @@ class AdminController {
     try {
       const { category_name } = req.body;
       if (!category_name) {
-        return res.status(400).json({ error: 'Category name is required' });
+        return res.status(400).json({ error: 'Название категории обязательно' });
       }
       await AdminRepository.addCategory({ category_name });
-      res.status(201).json({ message: 'Category added successfully' });
+      res.status(201).json({ message: 'Категория добавлена' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -30,10 +30,10 @@ class AdminController {
       const { category_id } = req.params;
       const { category_name } = req.body;
       if (!category_name) {
-        return res.status(400).json({ error: 'New category name is required' });
+        return res.status(400).json({ error: 'Новое название категории обязательно' });
       }
       await AdminRepository.renameCategory(category_id, category_name);
-      res.status(200).json({ message: 'Category renamed successfully' });
+      res.status(200).json({ message: 'Категория переименована' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -44,7 +44,7 @@ class AdminController {
     try {
       const { category_id } = req.params;
       await AdminRepository.deleteCategory(category_id);
-      res.status(200).json({ message: 'Category deleted successfully' });
+      res.status(200).json({ message: 'Категория удалена' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -64,7 +64,7 @@ class AdminController {
       const { user_id } = req.params;
       const { isBan } = req.body;
       await AdminRepository.userBan(user_id, isBan);
-      res.status(200).json({ message: 'User ban status updated successfully' });
+      res.status(200).json({ message: 'Статус блокировки пользователя обновлён' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -84,7 +84,7 @@ class AdminController {
       const { request_id } = req.params;
       const { status_id } = req.body;
       await AdminRepository.organizerResponse(request_id, status_id);
-      res.status(200).json({ message: 'Organizer request status updated' });
+      res.status(200).json({ message: 'Статус заявки организатора обновлён' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -94,7 +94,7 @@ class AdminController {
     try {
       const { user_id } = req.params;
       await AdminRepository.unassignOrganizer(user_id);
-      res.status(200).json({ message: 'User role updated to organizer' });
+      res.status(200).json({ message: 'Роль пользователя обновлена на организатора' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -141,9 +141,9 @@ class AdminController {
           const mime = await getMimeType(updatedEvent.image);
           updatedEvent.dataValues.image = `data:${mime};base64,${updatedEvent.image.toString('base64')}`;
         }
-        return res.status(200).json({ message: 'Event updated successfully', event: updatedEvent });
+        return res.status(200).json({ message: 'Мероприятие обновлено', event: updatedEvent });
       }
-      return res.status(404).json({ error: "Event not found", event });
+      return res.status(404).json({ error: "Мероприятие не найдено", event });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
@@ -154,7 +154,7 @@ class AdminController {
       const { event_id } = req.params;
 
       if (!eventValidator.validateId(event_id)) {
-        return res.status(400).json({ error: 'Valid Event ID is required' });
+        return res.status(400).json({ error: 'Некорректный ID мероприятия' });
       }
 
       await AdminRepository.deleteEvent(event_id);
@@ -227,7 +227,7 @@ class AdminController {
       }
       await AchievementRepository.update(achievement_id, { name, description, score, image: imageBuffer, trigger, condition_event_id, condition_category_id, condition_payload });
       const updated = await AchievementRepository.get(achievement_id);
-      if (!updated) return res.status(404).json({ error: 'Achievement not found' });
+      if (!updated) return res.status(404).json({ error: 'Достижение не найдено' });
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: error.message });

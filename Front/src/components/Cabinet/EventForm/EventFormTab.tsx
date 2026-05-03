@@ -24,6 +24,7 @@ import { Tag } from '../../../api/api';
 import { EventFormData } from '../types';
 import { LocationPicker } from '../../Map/LocationPicker';
 import { dateToLocalISOString } from '../../../utils/date';
+import { PromotionPicker } from '../Promotion/PromotionPicker';
 
 interface EventFormTabProps {
   categories: { id: number; category_name: string }[];
@@ -192,17 +193,6 @@ export function EventFormTab({
       </Flex>
 
       <FormControl>
-        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Telegram чат</FormLabel>
-        <Input
-          value={formData.telegram_chat_link}
-          onChange={(e) => onFormDataChange({ telegram_chat_link: e.target.value })}
-          placeholder="@your_chat"
-          bg="rgba(255,255,255,0.92)"
-          size={buttonSize}
-        />
-      </FormControl>
-
-      <FormControl>
         <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Место на карте</FormLabel>
         <LocationPicker
           latitude={formData.latitude}
@@ -231,6 +221,14 @@ export function EventFormTab({
             </Box>
           ))}
         </Flex>
+      </FormControl>
+
+      <FormControl>
+        <FormLabel color="rgba(66, 32, 6, 0.78)" fontWeight="700">Продвижение</FormLabel>
+        <PromotionPicker
+          value={{ type: formData.promotion_type, duration_days: formData.promotion_duration_days }}
+          onChange={(val) => onFormDataChange({ promotion_type: val.type, promotion_duration_days: val.duration_days })}
+        />
       </FormControl>
 
       <FormControl>

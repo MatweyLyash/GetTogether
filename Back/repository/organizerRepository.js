@@ -2,6 +2,7 @@ const models = require('../models');
 const { generateInviteLink } = require('../bot/telegramBot');
 const qrCodeService = require('../services/qrCodeService');
 const achievementService = require('../services/achievementService');
+const notificationService = require('../services/notificationService');
 
 class OrganizerRepository {
     async createEvent(creator_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, organizer_verification_key, image, tags, latitude, longitude) {
@@ -60,6 +61,7 @@ class OrganizerRepository {
     }
 
     async updateEvent(creator_id, event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags, latitude, longitude) {
+        const previousEvent = await models.Event.findOne({ where: { id: event_id, creator_id } });
         const updateData = {
             title,
             description,
@@ -87,6 +89,11 @@ class OrganizerRepository {
             }
         }
 
+        if (updatedCount === 1 && previousEvent && Number(previousEvent.capacity) === 0 && Number(capacity) > 0) {
+            const updatedEvent = await models.Event.findOne({ where: { id: event_id, creator_id } });
+            await notificationService.notifyWaitlistSpotAvailable(updatedEvent);
+        }
+
         return updatedCount;
     }
 
@@ -103,6 +110,11 @@ class OrganizerRepository {
         const registration = await models.EventRegistration.findOne({
             where: { user_id, event_id },
         });
+        if (!registration) {
+            throw new Error('Регистрация не найдена');
+        }
+        const previousStatusId = Number(registration.status_id);
+        const previousCapacity = Number(event.capacity);
 
         // Проверяем, есть ли свободные места при одобрении заявки
         if (status_id === 2 && event.capacity === 0) {
@@ -136,6 +148,11 @@ class OrganizerRepository {
 
         // Сохраняем изменения
         await registration.save();
+
+        if (previousStatusId === 2 && Number(status_id) !== 2 && previousCapacity === 0) {
+            const updatedEvent = await models.Event.findByPk(event_id);
+            await notificationService.notifyWaitlistSpotAvailable(updatedEvent);
+        }
 
         // Возвращаем обновлённую заявку с включённым статусом
         return await models.EventRegistration.findOne({

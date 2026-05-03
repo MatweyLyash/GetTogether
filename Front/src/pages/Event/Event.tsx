@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -13,12 +13,14 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
+import { FaBell } from 'react-icons/fa';
 import {
   getEventById,
   getEventByIdWithReg,
   registerForEvent,
   cancelEventRegistration,
   getRegistrationQRCode,
+  recordEventView,
 } from '../../api/api';
 import { Event as EventType, EventResponse } from '../../types/event';
 import { useAuth } from '../../AuthContext/AuthContext';
@@ -31,6 +33,7 @@ import { EventStats } from '../../components/Event/EventStats';
 import { EventDescription } from '../../components/Event/EventDescription';
 import { TelegramChatLink } from '../../components/Event/TelegramChatLink';
 import { RegistrationActions } from '../../components/Event/RegistrationActions';
+import { WaitlistButton } from '../../components/Event/WaitlistButton';
 import { ReviewsSection } from '../../components/Event/ReviewsSection';
 import { QRCodeModal } from '../../components/Event/QRCodeModal';
 import { RegistrationModal } from '../../components/Event/RegistrationModal';
@@ -67,6 +70,8 @@ function EventPage() {
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [isQRLoading, setIsQRLoading] = useState(false);
 
+  const viewRecordedRef = useRef(false);
+
   useEffect(() => {
     const fetchEventData = async () => {
       if (!id) return;
@@ -79,6 +84,10 @@ function EventPage() {
             ? await getEventByIdWithReg(id)
             : await getEventById(id);
         setEventData(data);
+        if (!viewRecordedRef.current) {
+          viewRecordedRef.current = true;
+          recordEventView(id);
+        }
       } catch (error: any) {
         toast({
           title: 'Ошибка',
@@ -116,6 +125,7 @@ function EventPage() {
         prev
           ? {
             ...prev,
+            waitlist: null,
             registration: {
               id: result.id,
               status: result.status,
@@ -257,6 +267,7 @@ function EventPage() {
 
   const event = (eventData as EventResponse).event || eventData;
   const registration = (eventData as EventResponse).registration || null;
+  const waitlist = (eventData as EventResponse).waitlist || null;
 
   const isOrganizer = String(user?.id) === String(event?.creator?.id);
   const isRegistered = registration !== null;
@@ -265,6 +276,31 @@ function EventPage() {
   const isArchived = isPastEvent || !!event.deletedAt;
   const registrationStatus =
     (registration as any)?.status ?? (registration as any)?.status_id ?? null;
+
+  const handleWaitlistChange = (waitlistItem: EventResponse['waitlist']) => {
+    setEventData((prev) => (prev ? { ...prev, waitlist: waitlistItem || null } : prev));
+  };
+
+  const waitlistAction = !isAuthenticated ? (
+    <Button
+      bg="#facc15"
+      color="#422006"
+      _hover={{ bg: '#eab308' }}
+      size="lg"
+      w="100%"
+      leftIcon={<FaBell />}
+      onClick={() => navigate('/login', { state: { from: `/event/${id}` } })}
+    >
+      Добавить мероприятие в список ожидания
+    </Button>
+  ) : id ? (
+    <WaitlistButton
+      eventId={id}
+      eventTitle={event.title}
+      waitlistItem={waitlist ? { id: waitlist.id, notification_method: waitlist.notification_method } : null}
+      onChange={handleWaitlistChange}
+    />
+  ) : null;
 
   return (
     <Box className={styles.container}>
@@ -328,6 +364,7 @@ function EventPage() {
                   onRegister={onRegModalOpen}
                   onCancel={onCancelModalOpen}
                   onGetQR={handleGetQRCode}
+                  waitlistAction={waitlistAction}
                 />
               </Box>
             </VStack>

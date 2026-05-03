@@ -17,7 +17,7 @@ const upload = multer({
     if (extname && mimetype) {
       return cb(null, true);
     }
-    cb(new Error('Only images (jpeg, jpg, png) are allowed'));
+    cb(new Error('Допустимы только изображения формата JPEG, JPG или PNG'));
   },
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });

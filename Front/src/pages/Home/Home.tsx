@@ -13,6 +13,7 @@ import { EventsCarousel } from '../../components/Home/EventsCarousel';
 import { ReviewsSection } from '../../components/Home/ReviewsSection';
 import { RegistrationCTA } from '../../components/Home/RegistrationCTA';
 import { MapWidget } from '../../components/Map/MapWidget';
+import { mapPromotion } from '../../utils/promotion';
 import styles from './Home.module.scss';
 
 interface Category {
@@ -44,6 +45,7 @@ interface EventApiResponse {
   latitude?: number | null;
   longitude?: number | null;
   deletedAt?: string | null;
+  promotions?: Array<{ id?: number; type: string; expires_at: string }> | null;
 }
 
 interface Review {
@@ -126,6 +128,7 @@ function Home() {
               organizer_verification_key: event.organizer_verification_key ?? null,
               created_at: event.created_at ?? null,
               updated_at: event.updated_at ?? null,
+              promotion: mapPromotion(event.promotions),
             };
           });
 

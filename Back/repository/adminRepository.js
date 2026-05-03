@@ -1,5 +1,6 @@
 const models = require('../models');
 const eventValidator = require('../services/eventValidator');
+const notificationService = require('../services/notificationService');
 
 class AdminRepository {
 
@@ -78,6 +79,7 @@ class AdminRepository {
     }
 
     async updateEvent(event_id, title, description, date, location, category_id, price, capacity, telegram_chat_link, image, tags, latitude, longitude) {
+        const previousEvent = await models.Event.findByPk(event_id);
         const updateData = {
             title,
             description,
@@ -103,6 +105,11 @@ class AdminRepository {
             if (event) {
                 await event.setTags(tags);
             }
+        }
+
+        if (updatedCount === 1 && previousEvent && Number(previousEvent.capacity) === 0 && Number(capacity) > 0) {
+            const updatedEvent = await models.Event.findByPk(event_id);
+            await notificationService.notifyWaitlistSpotAvailable(updatedEvent);
         }
 
         return updatedCount;

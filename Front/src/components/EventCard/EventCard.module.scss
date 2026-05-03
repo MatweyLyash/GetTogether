@@ -108,6 +108,74 @@
   border-radius: 999px !important;
 }
 
+.premiumCard {
+  background: linear-gradient(135deg, #fffbeb 0%, #fff7d6 50%, #fef3c7 100%) !important;
+  border: 2.5px solid #eab308 !important;
+  box-shadow:
+    0 0 0 1px rgba(250, 204, 21, 0.4),
+    0 0 20px rgba(234, 179, 8, 0.25),
+    0 0 40px rgba(234, 179, 8, 0.1),
+    0 14px 30px rgba(140, 91, 14, 0.12) !important;
+}
+
+.premiumCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2rem;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 70%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+.premiumCard::after {
+  background: rgba(250, 204, 21, 0.3) !important;
+  width: 160px !important;
+  height: 160px !important;
+}
+
+.promotionBadge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #facc15, #eab308);
+  color: #422006;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px rgba(140, 91, 14, 0.25);
+  font-family: 'Outfit', sans-serif;
+}
+
+.premiumBadge {
+  background: linear-gradient(135deg, #fbbf24, #d97706) !important;
+  color: #fffdf5 !important;
+  font-size: 0.78rem !important;
+  padding: 0.35rem 0.85rem !important;
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.35) !important;
+}
+
+.promotionBadgeIcon {
+  font-size: 0.65rem;
+}
+
 @media (max-width: 1200px) {
   .cardContent {
     grid-template-columns: 1fr;

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Box, Heading, SimpleGrid, Skeleton, SkeletonText, Text } from '@chakra-ui/react';
 import Slider, { Settings } from 'react-slick';
@@ -11,8 +11,18 @@ interface EventsCarouselProps {
   isLoading: boolean;
 }
 
+const PROMO_ORDER: Record<string, number> = { premium: 4, repeat: 3, boost: 2, one_time: 1 };
+
 export function EventsCarousel({ events, isLoading }: EventsCarouselProps) {
   const sliderRef = useRef<Slider>(null);
+
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => {
+      const pa = a.promotion ? PROMO_ORDER[a.promotion.type] ?? 0 : 0;
+      const pb = b.promotion ? PROMO_ORDER[b.promotion.type] ?? 0 : 0;
+      return pb - pa;
+    });
+  }, [events]);
 
   const slickSettings: Settings = {
     dots: true,
@@ -67,7 +77,7 @@ export function EventsCarousel({ events, isLoading }: EventsCarouselProps) {
           </SimpleGrid>
         ) : events.length > 0 ? (
           <Slider ref={sliderRef} {...slickSettings}>
-            {events.map((event) => (
+            {sortedEvents.map((event) => (
               <div key={event.id} className={styles.slide}>
                 <motion.div whileHover={{ scale: 1.03, y: -5 }} transition={{ duration: 0.2 }} style={{ height: '100%' }}>
                   <EventCard event={event} />

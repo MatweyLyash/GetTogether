@@ -1,6 +1,7 @@
 const express = require('express')
 const UserController = require('../controllers/userController');
 const SubscriptionController = require('../controllers/subscriptionController');
+const WaitlistController = require('../controllers/waitlistController');
 const TagController = require('../controllers/tagController');
 const webPushService = require('../services/webPushService');
 
@@ -28,6 +29,11 @@ router.post('/subscriptions', SubscriptionController.createSubscription);
 router.get('/subscriptions', SubscriptionController.getSubscriptions);
 router.delete('/subscriptions/:subscription_id', SubscriptionController.deleteSubscription);
 
+// Waitlist routes
+router.post('/waitlist', WaitlistController.addToWaitlist);
+router.get('/waitlist', WaitlistController.getUserWaitlist);
+router.delete('/waitlist/:waitlist_id', WaitlistController.removeFromWaitlist);
+
 // Web Push routes
 router.get('/push/vapid-public-key', (req, res) => {
     const publicKey = webPushService.getPublicKey();
@@ -42,7 +48,7 @@ router.post('/push/subscribe', async (req, res) => {
         const user_id = req.user.id;
         const subscription = req.body;
         await webPushService.savePushSubscription(user_id, subscription);
-        res.status(201).json({ message: 'Push subscription saved' });
+        res.status(201).json({ message: 'Push-подписка сохранена' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -52,7 +58,7 @@ router.post('/push/unsubscribe', async (req, res) => {
     try {
         const { endpoint } = req.body;
         await webPushService.removePushSubscription(endpoint);
-        res.status(200).json({ message: 'Push subscription removed' });
+        res.status(200).json({ message: 'Push-подписка удалена' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

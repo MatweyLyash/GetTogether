@@ -95,12 +95,12 @@ class OrganizerController {
             const { event_id } = req.params;
             const creater_id = req.user.id
             if (!eventValidator.validateId(event_id)) {
-                return res.status(400).json({ error: 'Valid Event ID is required' });
+                return res.status(400).json({ error: 'Некорректный ID мероприятия' });
             }
 
             const event = await this.organizerRepository.getOwnEvent(creater_id, event_id);
             if (!event) {
-                return res.status(404).json({ error: 'Event not found' });
+                return res.status(404).json({ error: 'Мероприятие не найдено' });
             }
 
             if (event.image) {
@@ -172,7 +172,7 @@ class OrganizerController {
 
 
             if (!eventValidator.validateId(event_id)) {
-                return res.status(400).json({ error: 'Valid Event ID is required' });
+                return res.status(400).json({ error: 'Некорректный ID мероприятия' });
             }
 
             await this.organizerRepository.deleteEvent(creator_id, event_id);
@@ -189,13 +189,13 @@ class OrganizerController {
             const creator_id = req.user.id;
 
             if (!eventValidator.validateId(event_id) || !eventValidator.validateId(user_id) || !validators.validatePresence(status_id)) {
-                return res.status(400).json({ error: 'Event ID, User ID, and Status ID are required and must be valid' });
+                return res.status(400).json({ error: 'ID мероприятия, ID пользователя и ID статуса обязательны и должны быть корректными' });
             }
 
             const response = await this.organizerRepository.responseToEventRequest(creator_id, user_id, event_id, status_id);
             return res.json(response);
         } catch (error) {
-            if (error.message === 'Event not found or not owned by organizer' || error.message === 'Registration not found') {
+            if (error.message === 'Событие не найдено или вы не являетесь его организатором' || error.message === 'Регистрация не найдена') {
                 return res.status(404).json({ error: error.message });
             }
             return res.status(500).json({ error: error.message });
@@ -208,7 +208,7 @@ class OrganizerController {
             const creator_id = req.user.id;
 
             if (!eventValidator.validateId(event_id)) {
-                return res.status(400).json({ error: 'Valid Event ID is required' });
+                return res.status(400).json({ error: 'Некорректный ID мероприятия' });
             }
 
             const requests = await this.organizerRepository.getEventRequests(creator_id, event_id);
@@ -224,20 +224,20 @@ class OrganizerController {
             const creator_id = req.user.id;
 
             if (!qrData) {
-                return res.status(400).json({ error: 'QR Data is required' });
+                return res.status(400).json({ error: 'QR-код обязателен' });
             }
 
             let parsedData;
             try {
                 parsedData = JSON.parse(qrData);
             } catch (e) {
-                return res.status(400).json({ error: 'Invalid QR Data format' });
+                return res.status(400).json({ error: 'Некорректный формат QR-кода' });
             }
 
             const { registrationId, eventId, userId } = parsedData;
 
             if (!registrationId || !eventId || !userId) {
-                return res.status(400).json({ error: 'Incomplete QR Data' });
+                return res.status(400).json({ error: 'Неполные данные QR-кода' });
             }
 
             const result = await this.organizerRepository.verifyRegistration(creator_id, registrationId, eventId, userId);
