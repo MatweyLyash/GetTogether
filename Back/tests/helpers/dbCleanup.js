@@ -3,6 +3,9 @@ const models = require('../../models');
 const cleanDB = async () => {
     // Delete in order of dependencies to avoid FK constraint errors
     await models.PushSubscription.destroy({ where: {}, force: true });
+    await models.Promotion.destroy({ where: {}, force: true });
+    await models.EventView.destroy({ where: {}, force: true });
+    await models.EventWaitlist.destroy({ where: {}, force: true });
     await models.EventRegistration.destroy({ where: {}, force: true });
     await models.EventSubscription.destroy({ where: {}, force: true });
     await models.UserAchievement.destroy({ where: {}, force: true });

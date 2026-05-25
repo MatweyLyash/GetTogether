@@ -46,7 +46,6 @@ function EventCard({ event }: EventCardProps) {
               {organizerInitials}
             </Avatar>
             <Box minW={0}>
-              <Text className={styles.organizerLabel}>Организатор</Text>
               <Text className={styles.organizerName}>{organizerName}</Text>
             </Box>
           </HStack>

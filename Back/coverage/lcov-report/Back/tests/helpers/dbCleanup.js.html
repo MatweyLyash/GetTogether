@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.57% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/14</span>
+                <span class='fraction'>17/17</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.57% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/14</span>
+                <span class='fraction'>17/17</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -81,39 +81,48 @@
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
+<span class="cline-any cline-yes">125x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const models = require('../../models');
 &nbsp;
 const cleanDB = async () =&gt; {
     // Delete in order of dependencies to avoid FK constraint errors
     await models.PushSubscription.destroy({ where: {}, force: true });
-<span class="cstat-no" title="statement not covered" >    await models.EventRegistration.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.EventSubscription.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.UserAchievement.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.Review.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.EventTag.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.Event.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.OrganizerRequest.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.User.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.Category.destroy({ where: {}, force: true });</span>
-<span class="cstat-no" title="statement not covered" >    await models.Tag.destroy({ where: {}, force: true });</span>
+    await models.Promotion.destroy({ where: {}, force: true });
+    await models.EventView.destroy({ where: {}, force: true });
+    await models.EventWaitlist.destroy({ where: {}, force: true });
+    await models.EventRegistration.destroy({ where: {}, force: true });
+    await models.EventSubscription.destroy({ where: {}, force: true });
+    await models.UserAchievement.destroy({ where: {}, force: true });
+    await models.Review.destroy({ where: {}, force: true });
+    await models.EventTag.destroy({ where: {}, force: true });
+    await models.Event.destroy({ where: {}, force: true });
+    await models.OrganizerRequest.destroy({ where: {}, force: true });
+    await models.User.destroy({ where: {}, force: true });
+    await models.Category.destroy({ where: {}, force: true });
+    await models.Tag.destroy({ where: {}, force: true });
 };
 &nbsp;
 module.exports = cleanDB;
@@ -124,7 +133,7 @@ module.exports = cleanDB;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-03T10:03:25.512Z
+                at 2026-05-14T19:22:02.368Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

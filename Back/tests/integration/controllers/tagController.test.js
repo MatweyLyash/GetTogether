@@ -80,7 +80,7 @@ describe('TagController Integration', () => {
                 .set('Cookie', [`accessToken=${adminToken}`])
                 .send({});
             expect(res.status).toBe(400);
-            expect(res.body.error).toBe('Name is required');
+            expect(res.body.error).toBe('Название обязательно');
         });
 
         it('should return 400 if name is missing when updating tag', async () => {
@@ -90,7 +90,7 @@ describe('TagController Integration', () => {
                 .set('Cookie', [`accessToken=${adminToken}`])
                 .send({});
             expect(res.status).toBe(400);
-            expect(res.body.error).toBe('Name is required');
+            expect(res.body.error).toBe('Название обязательно');
         });
 
         it('should return 400 if tag already exists', async () => {
@@ -100,7 +100,7 @@ describe('TagController Integration', () => {
                 .set('Cookie', [`accessToken=${adminToken}`])
                 .send({ name: 'existing' });
             expect(res.status).toBe(400);
-            expect(res.body.error).toBe('Tag already exists');
+            expect(res.body.error).toBe('Тег уже существует');
         });
 
         it('should return 404 if updating non-existent tag', async () => {
@@ -126,7 +126,7 @@ describe('TagController Integration', () => {
                 .set('Cookie', [`accessToken=${adminToken}`])
                 .send({ name: 'T1' });
             expect(res.status).toBe(400);
-            expect(res.body.error).toBe('Tag with this name already exists');
+            expect(res.body.error).toBe('Тег с таким названием уже существует');
         });
     });
 });

@@ -79,9 +79,7 @@ export function EventsCarousel({ events, isLoading }: EventsCarouselProps) {
           <Slider ref={sliderRef} {...slickSettings}>
             {sortedEvents.map((event) => (
               <div key={event.id} className={styles.slide}>
-                <motion.div whileHover={{ scale: 1.03, y: -5 }} transition={{ duration: 0.2 }} style={{ height: '100%' }}>
-                  <EventCard event={event} />
-                </motion.div>
+                <EventCard event={event} />
               </div>
             ))}
           </Slider>

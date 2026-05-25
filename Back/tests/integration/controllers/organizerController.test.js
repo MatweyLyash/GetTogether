@@ -12,6 +12,7 @@ const seedReferenceData = require('../../helpers/seedReferenceData');
 describe('OrganizerController Integration', () => {
     let organizer, organizerToken;
     let category;
+    const futureDate = () => new Date(Date.now() + 86400000).toISOString();
 
     beforeEach(async () => {
         await cleanDB();
@@ -52,7 +53,7 @@ describe('OrganizerController Integration', () => {
                 .set('Cookie', [`accessToken=${organizerToken}`])
                 .field('title', 'Bad Tags Event')
                 .field('description', 'Desc')
-                .field('date', '2025-12-31')
+                .field('date', futureDate())
                 .field('location', 'Loc')
                 .field('category_id', cat.id)
                 .field('price', 100)
@@ -72,7 +73,7 @@ describe('OrganizerController Integration', () => {
                 .set('Cookie', [`accessToken=${organizerToken}`])
                 .field('title', 'Image Event')
                 .field('description', 'With Image')
-                .field('date', '2025-12-31')
+                .field('date', futureDate())
                 .field('location', 'Online')
                 .field('category_id', cat.id)
                 .field('price', 0)
@@ -125,7 +126,7 @@ describe('OrganizerController Integration', () => {
                 .field('event_id', event.id)
                 .field('title', 'New Title')
                 .field('description', 'New Desc')
-                .field('date', '2025-12-31')
+                .field('date', futureDate())
                 .field('location', 'New Loc')
                 .field('category_id', event.category_id)
                 .field('price', 20)
@@ -274,7 +275,7 @@ describe('OrganizerController Integration', () => {
                 creator_id: organizer.id,
                 title: 'Verify Event',
                 description: 'Desc',
-                date: '2025-12-31',
+                date: futureDate(),
                 location: 'Loc',
                 category_id: cat.id,
                 price: 10,
@@ -304,7 +305,7 @@ describe('OrganizerController Integration', () => {
                 creator_id: organizer.id,
                 title: 'Verify Event 2',
                 description: 'Desc',
-                date: '2025-12-31',
+                date: futureDate(),
                 location: 'Loc',
                 category_id: cat.id,
                 price: 10,
@@ -371,7 +372,7 @@ describe('OrganizerController Integration', () => {
                 .send({ qrData: '{ bad json' });
 
             expect(res.status).toBe(400);
-            expect(res.body.error).toBe('Invalid QR Data format');
+            expect(res.body.error).toBe('Некорректный формат QR-кода');
         });
 
         it('should return 400 if qrData is incomplete', async () => {
@@ -383,7 +384,7 @@ describe('OrganizerController Integration', () => {
                 .send({ qrData });
 
             expect(res.status).toBe(400);
-            expect(res.body.error).toBe('Incomplete QR Data');
+            expect(res.body.error).toBe('Неполные данные QR-кода');
         });
 
         it('should return 400 if event does not belong to organizer', async () => {

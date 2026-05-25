@@ -29,7 +29,7 @@ describe('Интеграционные тесты AdminController', () => {
                 .send({ category_name: 'New Category' });
 
             expect(res.status).toBe(201);
-            expect(res.body.message).toBe('Category added successfully');
+            expect(res.body.message).toBe('Категория добавлена');
 
             const category = await models.Category.findOne({ where: { category_name: 'New Category' } });
             expect(category).toBeDefined();
@@ -198,7 +198,7 @@ describe('Интеграционные тесты AdminController', () => {
                 .attach('image', buffer, 'test.png');
 
             expect(res.status).toBe(200);
-            expect(res.body.message).toBe('Event updated successfully');
+            expect(res.body.message).toBe('Мероприятие обновлено');
             expect(res.body.event.title).toBe('Admin Updated Title');
         });
 
